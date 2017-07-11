@@ -756,14 +756,14 @@ H1                   Converter                       Remote Host
     SYN, MPC[Remote Host:port]                  
 
      --------------------->
-            SYN+ACK
+            SYN+ACK, MPC
                                 --------------------->
                                         SYN+ACK
 
                                 <---------------------
                                            ACK
      <-------------------
-              ACK
+              ACK, MPC
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
