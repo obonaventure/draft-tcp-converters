@@ -684,6 +684,8 @@ that are supported by the Converter. This message spans 8 bytes (4 for the fixed
 header and 4 for the Bootstrap TLV). The Converter replies with a fixed header 
 and a TCP Options TLV that indicates the TCP extensions that it supports.
 
+During the bootsrap phase, the client may register on the converter the set of its available IP addresses. Announcing these addresses will help the converter to place incoming multipath connections to the client.  
+
 ## Multipath TCP {#sec-ex-mptcp}
 
 The MP\_CAPABLE Option defined in {{RFC6824}} 
