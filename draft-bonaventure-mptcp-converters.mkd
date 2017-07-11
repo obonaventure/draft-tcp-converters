@@ -745,6 +745,29 @@ bypass the Transport Converter for future connections towards this Server.
 
 In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into an MPTCP connection. 
 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         Transport
+H1                   Converter                       Remote Host
+                                <-------------------
+                                  SYN
+
+     <-------------------
+    SYN, MPC[Remote Host:port]                  
+
+     --------------------->
+            SYN+ACK
+                                --------------------->
+                                        SYN+ACK
+
+                                <---------------------
+                                           ACK
+     <-------------------
+              ACK
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
+
 ## TCP Fast Open (TFO) {#sec-ex-tfo}
 
 The TCP Fast Open (TFO) option is defined in {{RFC7413}}. In this section,
