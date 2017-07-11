@@ -33,6 +33,7 @@ informative:
   RFC3135:
   RFC6555:
   RFC7414:
+  RFC6887:
   I-D.ietf-tcpinc-tcpcrypt:
   I-D.olteanu-intarea-socks-6:
   I-D.boucadair-mptcp-plain-mode:
@@ -742,6 +743,7 @@ Transport Converter. By parsing the TCP Extended Header TLV,
 it detects that Server @s supports Multipath TCP and will thus be able to
 bypass the Transport Converter for future connections towards this Server.
 
+In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into an MPTCP connection. 
 
 ## TCP Fast Open (TFO) {#sec-ex-tfo}
 
@@ -913,7 +915,7 @@ a SYN to a Server after having received a retransmitted SYN from the correspondi
 # IANA Considerations
 
 This document requests the allocation of a reserved service name and port
-number for the converter protocol.
+number for the converter protocol at https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml.
 
 This documents specifies version 1 of the Converter protocol. 
 Five types of Converter messages are defined:
