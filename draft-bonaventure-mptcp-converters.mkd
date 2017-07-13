@@ -356,6 +356,8 @@ is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
 selection of a Server {{RFC6555}}. This is illustrated in{{fig-mpestabrst}}.
 
+Further, reverse SOCKS proxy is not fully specified. 
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
 Client                   Converter                    Server
