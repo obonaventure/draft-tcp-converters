@@ -649,18 +649,22 @@ Client               Transport                 Server
 
 ## Bootstrap {#sec-bootstrap}
 
-The Converter protocol defined in this document assumes the
+The Converter protocol is designed with the ability to leverage on the
 utilisation of TCP Fast Open between the
 Client and the Transport Converter. To be able to place data inside
 the SYN packet that it sends, the Client first needs to obtain a
-TFO cookie from the Transport Converter. This is achieved by simply
+TFO cookie from the Transport Converter. This is achieved by 
 establishing a TCP connection to the Transport Converter without
-requesting the establishment of a connection towards a Server. 
+requesting the establishment of a connection towards a Server. This connection is established immediatley when a new Converter is configured to the client.
 
-To perform this bootstrap operation, the Client sends the following 
+Note that the Converter may rely on local policies to decide whether it can service a given requesting client. That is, the Convert may not return a cookie for that client.
+
+Also, the Converter may behave in a Cookie-less mode when appropriate means are enforced at the converter and the network in-between to protect against atatcks such spoofing and SYN flood. Under such deployments, the use of TFO is not required.  
+
+To perform the bootstrap operation, the Client sends the following 
 SYN packet :
 
- * source IP address: @c
+ * source IP address: @c (one of the client's IP addresses)
  * destination IP address: @t
  * TCP Options : MSS, TFO (2 bytes), NOP, NOP
  * Payload : empty
@@ -673,18 +677,24 @@ The Converter replies with the following SYN+ACK packet:
  * Payload : empty
 
 At this point, the Client has learned the TFO cookie (@tcookie) that needs
-to be used to interact with this Transport Converter. For the examples
+to be used fro subsequent exchanges with this Transport Converter. For the examples
 in this section, we assume TFO cookies that contain 4 bytes of information.
-Other cookie lengths are possible as well {{RFC7413}}.
+Other cookie lengths are possible as per {{RFC7413}}.
 
-The Client sends the third acknowledgement to conclude the three-way handshake. 
+The Client sends the third Ack to conclude the three-way handshake. 
 It then sends in a Data packet the fixed header and the 
 Bootstrap TLV to query the TCP options
 that are supported by the Converter. This message spans 8 bytes (4 for the fixed
-header and 4 for the Bootstrap TLV). The Converter replies with a fixed header 
+header and 4 for the Bootstrap TLV). The Converter replies with the converter fixed header 
 and a TCP Options TLV that indicates the TCP extensions that it supports.
 
-During the bootsrap phase, the client may register on the converter the set of its available IP addresses. Announcing these addresses will help the converter to place incoming multipath connections to the client.  
+
+During the bootstrap phase, the client may register on the converter the set of its available IP addresses. Announcing these addresses will help the converter to place incoming multipath connections to the client.  
+
+The Client needs to recontact the Converter before the expiry of the TFO Cookie to refresh it or obtain a new one.
+
+The TFO-cookie supplied by the Converter is inserted in subsequent messages as part of the Converter TLVs. As such, there is no ambiguity with TFO cookie that is supplied by the Client to the remote server; this second cookie is enclosed according to the procedure in {{RFC7413}}.
+
 
 ## Multipath TCP {#sec-ex-mptcp}
 
