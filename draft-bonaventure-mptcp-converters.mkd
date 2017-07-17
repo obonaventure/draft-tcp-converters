@@ -137,7 +137,7 @@ It does not mandate anything on the server side. The architecture assumes that
 new software will be installed on the Client hosts and on Transport Converters. Further, the architecture allow for making use of new extensions if those are supported by a given server. 
 
 A Transport Converter is a network function that relays all data exchanged over one
-upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transfort converter (Internet-facing Interface, client-facing inetreface). The 
+upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing Interface, client-facing inetreface). The 
 converter, thus, maintains state that associates one upstream connection to
 a corresponding downstream connection. One of the benefits of this design 
 is that different transport protocol extensions can be used on the upstream
@@ -223,7 +223,7 @@ this information from the user data that can also be carried inside the payload
 of such packets (e.g., {{RFC7413}}). 
 
 With TCP, the Converter protocol places the
-destination address and port number of the final Server in the paylaod of the SYN. 
+destination address and port number of the final Server in the payload of the SYN. 
 The SYN+ACK packet returned by the Transport Converter to the Client contains
 information that confirms the establishment of the connection between the Transport 
 Converter and the final Server. It is important to note that the Transport Converter 
@@ -255,7 +255,7 @@ Client                   Converter                    Server
                                  <--------------------
                                          SYN+ACK 
      <--------------------
-       SYN+ACK,MPC 
+       SYN+ACK,MPC [ NoMPC ]
 
      -------------------->
          ACK,MPC
@@ -404,7 +404,7 @@ extension defined in {{RFC7413}}.
 
 The Converter Protocol uses a 32 bits long fixed header that is sent
 by both the Client and the Transport Converter. This header indicates both
-the version of the protocol used and the length of the CP messages. A magic number is used to demux conversion-supplied data from user-supplied one. 
+the version of the protocol used and the length of the CP messages. 
 
 
 ## The Fixed Header {#sec-header}
