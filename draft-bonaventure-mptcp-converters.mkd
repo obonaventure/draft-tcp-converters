@@ -1,5 +1,5 @@
 ---
-title: 0-rtt TCP converters
+title: 0-RTT TCP converters
 abbrev: 
 docname: draft-bonaventure-mptcp-converters-00
 date: 2017-07-03
@@ -21,6 +21,10 @@ author:
   organization: Tessares
   email: Olivier.Bonaventure@tessares.net
 
+  ins: M. Boucadair
+  name: Mohamed Boucadair
+  organization: Orange
+  email: mohamed.boucadair@orange.com
 
 normative:
   RFC0793:
@@ -38,6 +42,7 @@ informative:
   I-D.olteanu-intarea-socks-6:
   I-D.boucadair-mptcp-plain-mode:
   I-D.peirens-mptcp-transparent:
+  I-D.arkko-arch-low-latency:
   Fukuda2011:
     author:
       - ins: K. Fukuda
@@ -83,7 +88,7 @@ aid the deployment of TCP extensions such as Multipath TCP.
 Transport protocols like TCP evolve regularly {{RFC7414}}. Given the end-to-end nature of those protocols, 
 a new feature can only be used once it has been deployed on both clients and servers. 
 Experience with TCP extensions reveals that the deployment of a new TCP extension 
-requires several years or more {{Fukuda2011}}. 
+requires many years {{Fukuda2011}}. 
 
 There are some situations where the transport stack used on clients (resp. servers) 
 can be upgraded at a faster pace than the transport stack running on servers (resp. 
@@ -91,22 +96,27 @@ clients). In those situations, clients would typically want to benefit from the
 features of an improved transport protocol even if the servers have not yet been 
 upgraded and conversely. In the past, Performance Enhancing Proxies have been 
 proposed and deployed {{RFC3135}} as solutions to improve TCP performance over 
-links/networks with specific characteristics. 
+links with specific characteristics. 
 
 Recent examples of TCP extensions include Multipath TCP 
 {{RFC6824}} or TCPINC {{I-D.ietf-tcpinc-tcpcrypt}}. Those extensions
-provide features that are interesting for clients such as smartphones. 
-With Multipath TCP, smartphones could seamlessly use WiFi and cellular networks, 
-either for bonding purposes or for faster handovers. 
+provide features that are interesting for clients such as cellular devices. 
+With Multipath TCP, cellular devices could seamlessly use WLAN and cellular networks, 
+either for bonding purposes, for faster handovers, or better resiliency. 
 Unfortunately, deploying those extensions on both a wide range of clients and 
-a wide range of servers remains difficult.
+servers remains difficult.
 
-In this document, we propose the utilisation of Transport Converter. A
+In this document, we propose the utilisation of a Transport Converter. A
 Transport Converter is a network function that is installed by a network
-operator to aid the deployment of TCP extensions.  A Transport Converter
-operates entirely in the transport layer and supports one or more TCP extensions. 
-Their main advantage is that they enable new TCP extensions to be used on 
-a subset of the end-to-end path, which encourages the deployment of this extension. 
+operator to aid the deployment of TCP extensions and to provide the benefits of such extensons to the subscribers.  A Transport Converter
+operates entirely at the transport layer and supports one or more TCP extensions. The conversion service is an application service that uses a TCP port number to be assigned by IANA. 
+
+The main advantage of network-assisted converters is that they enable new TCP extensions to be used on 
+a subset of the end-to-end path, which encourages the deployment of these extensions. A Transport Converter is designed to not alter options that are supplied by the client or the server; those options can still be negotiated directly between the endpoints.    
+
+This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the trafic will be forwarded to a converter according to a set of policies that are preconfigured.
+
+This document focuses on the explicit mode; that is a client is configured with one or a list of transport converters. Configuration means are outside the scope of this document. 
 
 This document is organised as follows. We first provide a brief explanation of the
 operation of Transport Converters in {{sec-arch}}. We compare them in
@@ -118,22 +128,22 @@ in {{sec-examples}}. We then discuss the interactions with middleboxes
 
 # Architecture {#sec-arch}
 
-Our architecture considers three types of hosts:
+The architecture considers three types of end hosts:
 
 - Client endhosts
 - Transport Converters
 - Server endhosts
 
-We do not mandate anything on the server side. Our architecture assumes that
-new software will be installed on the Client hosts and on Transport Converters.
+It does not mandate anything on the server side. The architecture assumes that
+new software will be installed on the Client hosts and on Transport Converters. Further, the architecture allow for making use of new extensions if those are supported by a given server. 
 
 A Transport Converter is a network function that relays all data exchanged over one
-upstream connection to one downstream connection and vice versa. The 
-converter thus maintains state that associates one upstream connection to
-a corresponding downstream connection. The main benefit of the Transport Converter
+upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing Interface, client-facing inetreface). The 
+converter, thus, maintains state that associates one upstream connection to
+a corresponding downstream connection. One of the benefits of this design 
 is that different transport protocol extensions can be used on the upstream
 and the downstream connection. This encourages the deployment of new TCP extensions 
-until they are supported by all Servers.
+until they are supported by all servers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                      +------------+
@@ -151,11 +161,13 @@ scope of this document,
 with the names and/or the addresses of one or more Transport Converters. The 
 packets belonging to a transport connection that pass through a transport 
 converter 
-will typically follow a different path than the packets directly exchanged 
+may follow a different path than the packets directly exchanged 
 between
 the Client and the Server. Deployments should minimise this additional delay 
 by carefully selecting the location of the Transport Converter used to reach 
 a given destination. 
+
+A transport converter can be embedded in a standalone device or be actiavted as a service on a router. How such function is enabled is deployement-specific. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -169,18 +181,20 @@ a given destination.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
 
-When establishing a transport connection, the Client can, depending on its policies, 
-either contact the Server directly (e.g. by sending a TCP SYN towards the Server)
+When establishing a transport connection, the Client can, depending on local policies, 
+either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, the Client
-initiates a connection towards the Transport Converter and indicates the address of 
-the final Server inside the connection establishment packet (shown between brackets
-in {{fig-estab}}). This enables the Transport Converter to immediately initiate 
-a connection towards the final Server. The Transport Converter waits until the 
+initiates a connection towards the Transport Converter and indicates the address and port number of 
+the ultimate Server inside the connection establishment packet (shown between brackets
+in {{fig-estab}}). Doing so enables the Transport Converter to immediately initiate 
+a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the 
 confirmation that the Server agrees to establish the connection before confirming 
 it to the Client. {{fig-estab}} illustrates the 
 establishment of a TCP connection by the Client through a Transport Converter. The
 information shown between brackets is part of the Converter protocol 
 described later in this document.
+
+The connection can also be established from the Internet towards a client via a transport converter. This is typically the case when the client embbeds a server (video server, for example). 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
@@ -204,26 +218,29 @@ Client                   Converter                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab title="Establishment of a TCP connection through a Converter"}
 
-As shown in {{fig-estab}}, the Converter protocol places its information 
+As shown in {{fig-estab}}, the Converter places its supplied information 
 inside the handshake packets. This information is encoded in a way that separates 
 this information from the user data that can also be carried inside the payload
-of such packets {{RFC7413}}. With TCP, the Converter protocol places the
-destination address and ports of the final Server inside the SYN. 
+of such packets (e.g., {{RFC7413}}). 
+
+With TCP, the Converter protocol places the
+destination address and port number of the final Server in the payload of the SYN. 
 The SYN+ACK packet returned by the Transport Converter to the Client contains
 information that confirms the establishment of the connection between the Transport 
 Converter and the final Server. It is important to note that the Transport Converter 
 maintains two transport connections that are combined together. The upstream 
 connection is the one between the Client and the Transport Converter. The 
 downstream connection is between the Transport Converter and the final Server. 
+
 Any user data received by the Transport Converter over the upstream (resp. downstream) 
 connection is relayed over the downstream (resp. upstream) connection to give 
 to the Client the illusion of an end-to-end connection.
 
 As an example, let us consider how such a protocol can help the deployment of 
 Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport 
-Converter support Multipath TCP but consider two different cases depending on 
+Converter support Multipath TCP, but consider two different cases depending  
 whether the Server supports Multipath TCP or not. A Multipath TCP connection is created
-by placing the MP\_CAPABLE (MPC) option inside the SYN sent by the Client. 
+by placing the MP\_CAPABLE (MPC) option in the SYN sent by the Client. 
 {{fig-mpestab}} describes the operation of the Transport Converter 
 if the Server does not support Multipath TCP.
 
@@ -239,7 +256,7 @@ Client                   Converter                    Server
                                  <--------------------
                                          SYN+ACK 
      <--------------------
-       SYN+ACK,MPC [ No MPC ]
+       SYN+ACK,MPC [ NoMPC ]
 
      -------------------->
          ACK,MPC
@@ -250,12 +267,11 @@ Client                   Converter                    Server
 {: #fig-mpestab title="Establishment of a Multipath TCP connection through a Converter"}
 
 The Client tries to initiate a Multipath TCP connection by sending a SYN with the 
-MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port 
+MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port number 
 of the final Server and the Transport Converter attempts to initiate a Multipath TCP 
 connection towards this Server. Since the Server does not support Multipath TCP, it 
 replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport 
-Converter notes that the connection with the Server does not support Multipath TCP 
-and informs the Client that the remote Server does not support Multipath TCP.
+Converter notes that the connection with the Server does not support Multipath TCP.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it 
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option. 
@@ -264,7 +280,7 @@ of the connection to the Client and indicates in the SYN+ACK packet sent to
 the Client that the Server supports Multipath TCP. With this information, 
 the Client has discovered that the Server supports Multipath TCP 
 natively. This will enable it to bypass the Transport Converter for the next 
-Multipath TCP connection that it will initiate towards this Server.
+Multipath TCP connection that it will initiate towards this Server or by creating a subflow to the server directly. The one established via the transport converter can be closed. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
                          Transport
@@ -339,7 +355,7 @@ to place all its control information inside the SYN and SYN+ACK packets. This re
 the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream connection towards
 the final destination. A recently proposed extension to SOCKS also leverages the TFO
-option {{I-D.olteanu-intarea-socks-6}}.
+option {{I-D.olteanu-intarea-socks-6}}. This proposal does not allow for 0-RTT exchanges in a systematic manner; the support of TFO at the server side is required. 
 
 A second difference is that the converter protocol takes the TCP extensions
 explicitly into account. With the converter protocol, the Client can learn whether
@@ -382,16 +398,16 @@ TCP implementation more closely than the regular socket APIs used by the SOCKS
 proxy.
 
 
-# The Converter protocol {#sec-protocol}
+# The Converter Protocol {#sec-protocol}
 
 
 We now describe in details the messages that are exchanged between a Client and
-a Transport Converter. The Converter protocol (CP) leverages the TCP Fast Open
+a Transport Converter. The Converter protocol leverages the TCP Fast Open
 extension defined in {{RFC7413}}. 
 
-The Converter Protocol (CP) uses a 32 bits long fixed header that is sent
+The Converter Protocol uses a 32 bits long fixed header that is sent
 by both the Client and the Transport Converter. This header indicates both
-the version of the protocol used and the length of the CP messages.
+the version of the protocol used and the length of the CP messages. 
 
 
 ## The Fixed Header {#sec-header}
@@ -418,7 +434,7 @@ Total Length of zero is invalid and the connection MUST be reset upon
 reception of such a header. The Reserved field MUST be set to zero in this
 version of the protocol. 
 
-## The TLV messages {#sec-tlv}
+## The TLV Messages {#sec-tlv}
 
 The Converter protocol uses variable length messages that are encoded using 
 a TLV format to simplify the parsing of the messages and leave room to extend
