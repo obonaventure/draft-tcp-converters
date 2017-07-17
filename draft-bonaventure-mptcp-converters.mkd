@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP converters
 abbrev: 
-docname: draft-bonaventure-mptcp-converters-00
-date: 2017-07-03
+docname: draft-bonaventure-mptcp-converters-01
+date: 2017-07-17
 category: exp
 
 ipr: trust200902
@@ -20,11 +20,16 @@ author:
   name: Olivier Bonaventure
   organization: Tessares
   email: Olivier.Bonaventure@tessares.net
-
+ -
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
   email: mohamed.boucadair@orange.com
+ -
+  ins: B. Peirens
+  name: Bart Peirens
+  organization: Proxiums
+  email: bart.peirens@proximus.com
 
 normative:
   RFC0793:
@@ -109,14 +114,15 @@ servers remains difficult.
 In this document, we propose the utilisation of a Transport Converter. A
 Transport Converter is a network function that is installed by a network
 operator to aid the deployment of TCP extensions and to provide the benefits of such extensons to the subscribers.  A Transport Converter
-operates entirely at the transport layer and supports one or more TCP extensions. The conversion service is an application service that uses a TCP port number to be assigned by IANA. 
+operates entirely at the transport layer and supports one or more TCP extensions. The converter protocol is an application layer protocol 
+that uses a TCP port number to be assigned by IANA. 
 
 The main advantage of network-assisted converters is that they enable new TCP extensions to be used on 
 a subset of the end-to-end path, which encourages the deployment of these extensions. A Transport Converter is designed to not alter options that are supplied by the client or the server; those options can still be negotiated directly between the endpoints.    
 
-This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the trafic will be forwarded to a converter according to a set of policies that are preconfigured.
+This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the trafic will be forwarded to a converter according to a set of policies. Furthermore, it is possible to bypass the converter to connect to the servers that already support the required TCP extension.
 
-This document focuses on the explicit mode; that is a client is configured with one or a list of transport converters. Configuration means are outside the scope of this document. 
+This document assumes that a client is configured with one or a list of transport converters. Configuration means are outside the scope of this document. 
 
 This document is organised as follows. We first provide a brief explanation of the
 operation of Transport Converters in {{sec-arch}}. We compare them in
@@ -354,8 +360,9 @@ A first difference is that the converter protocol leverages the TFO option {{RFC
 to place all its control information inside the SYN and SYN+ACK packets. This reduces
 the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream connection towards
-the final destination. A recently proposed extension to SOCKS also leverages the TFO
-option {{I-D.olteanu-intarea-socks-6}}. This proposal does not allow for 0-RTT exchanges in a systematic manner; the support of TFO at the server side is required. 
+the final destination. In today's Internet, latency is a important metric and 
+various protocols have been tuned to reduce their latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to SOCKS also leverages the TFO
+option {{I-D.olteanu-intarea-socks-6}}. 
 
 A second difference is that the converter protocol takes the TCP extensions
 explicitly into account. With the converter protocol, the Client can learn whether
@@ -372,7 +379,6 @@ is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
 selection of a Server {{RFC6555}}. This is illustrated in{{fig-mpestabrst}}.
 
-Further, reverse SOCKS proxy is not fully specified. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
@@ -391,7 +397,7 @@ Client                   Converter                    Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestabrst title="Establishment of a Multipath TCP connection through a converter"}
 
-These three differences between SOCKS and the Converter protocol imply that
+These differences between SOCKS and the Converter protocol imply that
 a Transport Converter cannot be implemented as a regular user-space application
 like a SOCKS proxy. A Transport Converter needs to interact with the underlying
 TCP implementation more closely than the regular socket APIs used by the SOCKS
