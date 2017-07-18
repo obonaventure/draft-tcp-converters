@@ -3,7 +3,7 @@ title: 0-RTT TCP converters
 abbrev: 
 docname: draft-bonaventure-mptcp-converters-01
 date: 2017-07-17
-category: exp
+category: Standards Track
 
 ipr: trust200902
 area: Transport
