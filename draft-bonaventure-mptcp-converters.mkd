@@ -994,18 +994,6 @@ Furthermore, it also defines 6 types of errors.
  - 32: Resource Exceeded 
  -128: Error TLV
 
-# Conclusion
-
-We have proposed the utilisation of Transport Converters to aid the deployment of
-TCP extensions such as Multipath TCP. Compared with deployed solutions such as
-SOCKS proxies, the Transport Converters provide several benefits. First, they do
-not increase the connection establishment time. Second, they are compatible and
-benefit from the TCP Fast Open extension. Third, clients benefit from the
-Transport Converter when the Server does not support the required extension. 
-Furthermore, they can easily detect when the Server supports the required
-extension and thus bypass the Transport Converter to contact those Servers.
-
-
 # Acknowledgements
 
 This document builds upon earlier documents that proposed various forms
