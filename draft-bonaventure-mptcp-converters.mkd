@@ -993,14 +993,19 @@ Five types of Converter messages are defined:
  - 21: Supported TCP Options TLV 
  - 30: Error TLV  
 
-Furthermore, it also defines 6 types of errors.
+Furthermore, it also defines the following errors:
+ -  0: Unsupported Version    
+ -  1: ANot Authorized    
+ -  2: Connection Reset 
+ -  3: Destination Unreachable 
+ -  4: Malformed Message
+ -  5: Unsupported TLV 
+ -  6: Malformed TLV
+ -  7: Resource Exceeded  
+ -  8: Network Failure   
+ -128: Unsupported TCP Option   
 
- -  1: Administratively prohibited    
- -  2: Connection reset by final destination 
- -  3: Destination unreachable 
- - 16: Invalid Converter message
- - 32: Resource Exceeded 
- -128: Error TLV
+Values in the 7-127 range are unassigned. Assigning a value in this range requires a Standards Action as per RFC8126. 
 
 # Conclusion
 
