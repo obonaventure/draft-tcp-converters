@@ -725,11 +725,10 @@ The TFO-cookie supplied by the Converter is inserted in subsequent messages as p
 
 The MP\_CAPABLE Option defined in {{RFC6824}} 
 allows to negotiate the utilisation
-of Multipath TCP. Consider a Client that uses the Transport Converter 
-to create a connection on port 123 with a Server that
-supports {{RFC6824}}.
+of MPTCP. Consider a Client that uses the Transport Converter 
+to create a connection on port 123 with an MPTCP-capable Server.
 
-For this, the Client sends the following SYN packet :
+For this, the Client sends the following SYN packet:
 
  * source IP address: @c
  * destination IP address: @t
@@ -748,7 +747,7 @@ For this, the Client sends the following SYN packet :
 Upon reception of this packet, the Transport Converter creates a SYN
 packet and sends it to the destination Server:
 
- * source IP address: @t
+ * source IP address: @e (an IP address from a pool configured to the Converter)
  * destination IP address: @s
  * TCP Options : MSS, MP\_CAPABLE(key@ts)
  * Payload : empty
@@ -756,7 +755,7 @@ packet and sends it to the destination Server:
 The Server replies with the following SYN+ACK:
 
  * source IP address: @s
- * destination IP address: @t
+ * destination IP address: @e
  * TCP Options : MSS, MP\_CAPABLE(key@ts,key@s)
  * Payload : empty
 
@@ -773,10 +772,10 @@ connection to the Client with the following SYN+ACK:
      * Value: MSS, MP_CAPABLE(key@ts,key@s)
 
 
-Upon reception of this packet, the Client has the confirmation that
-the Multipath TCP connection has been established through the 
+Upon receipt of this packet, the Client has the confirmation that
+the MPTCP connection has been established through the 
 Transport Converter. By parsing the TCP Extended Header TLV, 
-it detects that Server @s supports Multipath TCP and will thus be able to
+it detects that Server @s supports MPTCP and will thus be able to
 bypass the Transport Converter for future connections towards this Server.
 
 In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into an MPTCP connection. 
@@ -831,7 +830,7 @@ The TFO option of the SYN packet contains the cookie chosen by the Transport
 Converter. The Transport Converter then issues the following SYN packet towards
 the Server:
 
- * source IP address: @t
+ * source IP address: @e
  * destination IP address: @s
  * TCP Options : MSS, TFO (empty), NOP, NOP
  * Payload : empty
@@ -839,7 +838,7 @@ the Server:
 The Server replies with its own TFO cookie (@s cookie) in the SYN+ACK packet:
 
  * source IP address: @s
- * destination IP address: @t
+ * destination IP address: @e
  * TCP Options : MSS, TFO (@s cookie)
  * Payload : empty
 
@@ -857,7 +856,7 @@ by sending the following SYN+ACK packet:
    * some data
 
 
-The Client can extract the Server cookie from the TCP Extended
+The Client can extract the Server's cookie from the TCP Extended
 Header TLV and
 initiate future connections to this Server as follows (assuming that
 it prefers to establish it via the Transport Converter instead of
@@ -880,7 +879,7 @@ contacting directly the final destination).
 The Transport Converter then initiates the connection towards the
 final destination by sending the following SYN packet:
 
- * source IP address: @t
+ * source IP address: @e
  * destination IP address: @s
  * TCP Options : MSS, TFO (@s cookie), NOP, NOP
  * Payload : some data
@@ -889,7 +888,7 @@ The Server verifies the TFO option and accepts the data in the SYN. It
 replies with the following SYN+ACK packet:
 
  * source IP address: @s
- * destination IP address: @t
+ * destination IP address: @e
  * TCP Options : MSS, NOP, NOP
  * Payload : more data
 
