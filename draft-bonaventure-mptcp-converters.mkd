@@ -116,7 +116,13 @@ This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
 operator to aid the deployment of TCP extensions and to provide the benefits of such extensons to the subscribers.  A Transport Converter
 operates entirely at the transport layer and supports one or more TCP extensions. The converter protocol is an application layer protocol 
-that uses a TCP port number (see IANA section). 
+that uses a TCP port number (see IANA section). The Transport Converter adheres to the main principles as drawn in {{RFC1919}}. In particular, the Converter achieves the following: 
+
+- Listen for client sessions;
+- Receive from a client the address of the final target server;
+- Setup a session to the final server;
+- Relay control messages and data between the client and server;
+- Perform access controls according to local policies.
 
 The main advantage of network-assisted converters is that they enable new TCP extensions to be used on 
 a subset of the end-to-end path, which encourages the deployment of these extensions. A Transport Converter is designed to not alter options that are supplied by the client or the server; those options can still be negotiated directly between the endpoints.    
