@@ -36,6 +36,8 @@ normative:
   RFC4291:
   RFC6824:
   RFC7413:
+  RFC1919:
+  RFC7857:
 
 informative:
   RFC1928:
@@ -187,127 +189,31 @@ A transport converter can be embedded in a standalone device or be actiavted as 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
 
+The Converter MUST adhere to the state machine defined in Section 2 of {{RFC7857}}.
+
 When establishing a transport connection, the Client can, depending on local policies, 
 either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, the Client
 initiates a connection towards the Transport Converter and indicates the address and port number of 
-the ultimate Server inside the connection establishment packet (shown between brackets
-in {{fig-estab}}). Doing so enables the Transport Converter to immediately initiate 
+the ultimate Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate 
 a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the 
 confirmation that the Server agrees to establish the connection before confirming 
-it to the Client. {{fig-estab}} illustrates the 
-establishment of a TCP connection by the Client through a Transport Converter. The
-information shown between brackets is part of the Converter protocol 
-described later in this document.
+it to the Client. 
 
-The connection can also be established from the Internet towards a client via a transport converter. This is typically the case when the client embbeds a server (video server, for example). 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                       Server
-     -------------------->
-      SYN [->Server:port]
-
-                                 -------------------->
-                                          SYN
-
-                                 <--------------------
-                                         SYN+ACK
-     <--------------------
-       SYN+ACK [ ]
-
-     -------------------->
-            ACK
-                                 -------------------->
-                                          ACK
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of a TCP connection through a Converter"}
-
-As shown in {{fig-estab}}, the Converter places its supplied information 
-inside the handshake packets. This information is encoded in a way that separates 
-this information from the user data that can also be carried inside the payload
-of such packets (e.g., {{RFC7413}}). 
-
-With TCP, the Converter protocol places the
-destination address and port number of the final Server in the payload of the SYN. 
+The client places the
+destination address and port number of the target Server in the payload of the SYN sent to the Converter. 
 The SYN+ACK packet returned by the Transport Converter to the Client contains
 information that confirms the establishment of the connection between the Transport 
-Converter and the final Server. It is important to note that the Transport Converter 
+Converter and the Server. 
+
+In accordance with {{RFC1919}}, the Transport Converter 
 maintains two transport connections that are combined together. The upstream 
 connection is the one between the Client and the Transport Converter. The 
-downstream connection is between the Transport Converter and the final Server. 
+downstream connection is between the Transport Converter and the remote Server. Any user data received by the Transport Converter over the upstream (resp., downstream) 
+connection is relayed over the downstream (resp., upstream) connection.
 
-Any user data received by the Transport Converter over the upstream (resp. downstream) 
-connection is relayed over the downstream (resp. upstream) connection to give 
-to the Client the illusion of an end-to-end connection.
-
-As an example, let us consider how such a protocol can help the deployment of 
-Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport 
-Converter support Multipath TCP, but consider two different cases depending  
-whether the Server supports Multipath TCP or not. A Multipath TCP connection is created
-by placing the MP\_CAPABLE (MPC) option in the SYN sent by the Client. 
-{{fig-mpestab}} describes the operation of the Transport Converter 
-if the Server does not support Multipath TCP.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                    Server
-     -------------------->
-     SYN, MPC [->Server:port]
-
-                                 -------------------->
-                                       SYN, MPC
-
-                                 <--------------------
-                                         SYN+ACK 
-     <--------------------
-       SYN+ACK,MPC [ NoMPC ]
-
-     -------------------->
-         ACK,MPC
-                                 -------------------->
-                                          ACK
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestab title="Establishment of a Multipath TCP connection through a Converter"}
-
-The Client tries to initiate a Multipath TCP connection by sending a SYN with the 
-MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port number 
-of the final Server and the Transport Converter attempts to initiate a Multipath TCP 
-connection towards this Server. Since the Server does not support Multipath TCP, it 
-replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport 
-Converter notes that the connection with the Server does not support Multipath TCP.
-
-{{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it 
-replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option. 
-Upon reception of this SYN+ACK, the Transport Converter confirms the establishment 
-of the connection to the Client and indicates in the SYN+ACK packet sent to 
-the Client that the Server supports Multipath TCP. With this information, 
-the Client has discovered that the Server supports Multipath TCP 
-natively. This will enable it to bypass the Transport Converter for the next 
-Multipath TCP connection that it will initiate towards this Server or by creating a subflow to the server directly. The one established via the transport converter can be closed. 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
-                         Transport
-Client                   Converter                       Server
-     -------------------->
-     SYN, MPC [->Server:port]
-
-                                 -------------------->
-                                       SYN, MPC
-
-                                 <--------------------
-                                         SYN+ACK, MPC
-     <--------------------
-       SYN+ACK, MPC [ MPC supported ]
-
-     -------------------->
-         ACK, MPC
-                                 -------------------->
-                                          ACK, MPC
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestabok title="Establishment of a Multipath TCP connection through a converter"}
+Refer to {{sec-appendix}} for more details how the Converter can help the deployment of 
+Multipath TCP {{RFC6824}}.
 
 ## Differences with SOCKSv5 {#sec-socks}
 
@@ -317,8 +223,7 @@ At a first glance, the proposed solution could seem similar to the SOCKS v5 prot
 a connection to a SOCKS proxy, exchanges authentication information and indicates
 the destination address and port of the final server. At this point, the SOCKS
 proxy creates a connection towards the final server and relays all data between
-the two proxied connections. The operation of SOCKS v5 is illustrated in {{fig-socks5}}.
-
+the two proxied connections. The operation of an implementation based on SOCKSv5 is illustrated in {{fig-socks5}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
                          
@@ -352,9 +257,9 @@ Client                     SOCKS                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
 
-The converter protocol proposed in this document also relays data
+The converter protocol also relays data
 between an upstream and a downstream connection, but there are important
-differences with SOCKS v5. 
+differences with SOCKSv5. 
 
 A first difference is that the converter protocol leverages the TFO option {{RFC7413}}
 to place all its control information inside the SYN and SYN+ACK packets. This reduces
@@ -377,25 +282,7 @@ the Server. If the Server refuses the connection establishment attempt from
 the Transport Converter, then the upstream connection from the Client
 is rejected as well. This feature is important for applications that check the 
 availability of a Server or use the time to connect as a hint on the
-selection of a Server {{RFC6555}}. This is illustrated in{{fig-mpestabrst}}.
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                    Server
-     -------------------->
-     SYN, MPC [->Server:port]
-
-                                 -------------------->
-                                       SYN, MPC
-
-                                 <--------------------
-                                         RST
-     <--------------------
-       RST [ ... ]
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestabrst title="Establishment of a Multipath TCP connection through a converter"}
+selection of a Server {{RFC6555}}. 
 
 These differences between SOCKS and the Converter protocol imply that
 a Transport Converter cannot be implemented as a regular user-space application
@@ -403,9 +290,7 @@ like a SOCKS proxy. A Transport Converter needs to interact with the underlying
 TCP implementation more closely than the regular socket APIs used by the SOCKS
 proxy.
 
-
 # The Converter Protocol {#sec-protocol}
-
 
 We now describe in details the messages that are exchanged between a Client and
 a Transport Converter. The Converter protocol leverages the TCP Fast Open
@@ -781,29 +666,6 @@ bypass the Transport Converter for future connections towards this Server.
 
 In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into an MPTCP connection. 
 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-H1                   Converter                       Remote Host
-                                <-------------------
-                                  SYN
-
-     <-------------------
-    SYN, MPC[Remote Host:port]                  
-
-     --------------------->
-            SYN+ACK, MPC
-                                --------------------->
-                                        SYN+ACK
-
-                                <---------------------
-                                           ACK
-     <-------------------
-              ACK, MPC
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
-
 ## TCP Fast Open (TFO) {#sec-ex-tfo}
 
 The TCP Fast Open (TFO) option is defined in {{RFC7413}}. In this section,
@@ -1005,6 +867,139 @@ Transport Converter when the Server does not support the required extension.
 Furthermore, they can easily detect when the Server supports the required
 extension and thus bypass the Transport Converter to contact those Servers.
 
+# Appendix {#sec-appendix}
+
+## Sample Example of Connection Establishements via a Converter 
+
+{{fig-estab}} illustrates the 
+establishment of a TCP connection by the Client through a Transport Converter. The
+information shown between brackets is part of the Converter protocol 
+described later in this document.
+
+The connection can also be established from the Internet towards a client via a transport converter. This is typically the case when the client embbeds a server (video server, for example). 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         Transport
+Client                   Converter                       Server
+     -------------------->
+      SYN [->Server:port]
+
+                                 -------------------->
+                                          SYN
+
+                                 <--------------------
+                                         SYN+ACK
+     <--------------------
+       SYN+ACK [ ]
+
+     -------------------->
+            ACK
+                                 -------------------->
+                                          ACK
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-estab title="Establishment of a TCP connection through a Converter"}
+
+As shown in {{fig-estab}}, the Converter places its supplied information 
+inside the handshake packets. This information is encoded in a way that separates 
+this information from the user data that can also be carried inside the payload
+of such packets (e.g., {{RFC7413}}). 
+
+## Sample Examples of Converter-Assisted MPTCP Connections
+
+As an example, let us consider how such a protocol can help the deployment of 
+Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport 
+Converter support Multipath TCP, but consider two different cases depending  
+whether the Server supports Multipath TCP or not. A Multipath TCP connection is created
+by placing the MP\_CAPABLE (MPC) option in the SYN sent by the Client.
+
+{{fig-mpestab}} describes the operation of the Transport Converter 
+if the Server does not support Multipath TCP.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         Transport
+Client                   Converter                    Server
+     -------------------->
+     SYN, MPC [->Server:port]
+
+                                 -------------------->
+                                       SYN, MPC
+
+                                 <--------------------
+                                         SYN+ACK 
+     <--------------------
+       SYN+ACK,MPC
+
+     -------------------->
+         ACK,MPC
+                                 -------------------->
+                                          ACK
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-mpestab title="Establishment of a Multipath TCP connection through a Converter"}
+
+The Client tries to initiate a Multipath TCP connection by sending a SYN with the 
+MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port number 
+of the final Server and the Transport Converter attempts to initiate a Multipath TCP 
+connection towards this Server. Since the Server does not support Multipath TCP, it 
+replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport 
+Converter notes that the connection with the Server does not support Multipath TCP.
+
+{{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it 
+replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option. 
+Upon reception of this SYN+ACK, the Transport Converter confirms the establishment 
+of the connection to the Client and indicates in the SYN+ACK packet sent to 
+the Client that the Server supports Multipath TCP. With this information, 
+the Client has discovered that the Server supports Multipath TCP 
+natively. This will enable it to bypass the Transport Converter for the next 
+Multipath TCP connection that it will initiate towards this Server or by creating a subflow to the server directly. The one established via the transport converter can be closed. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
+                         Transport
+Client                   Converter                       Server
+     -------------------->
+     SYN, MPC [->Server:port]
+
+                                 -------------------->
+                                       SYN, MPC
+
+                                 <--------------------
+                                         SYN+ACK, MPC
+     <--------------------
+       SYN+ACK, MPC [ MPC supported ]
+
+     -------------------->
+         ACK, MPC
+                                 -------------------->
+                                          ACK, MPC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-mpestabok title="Establishment of a Multipath TCP connection through a converter"}
+
+## Sample Example of Incoming Converter-Assisted MPTCP Connection
+
+An example of an incoming converter-assisted MPTCP connection is depicted in {{fig-inestab}}. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         Transport
+H1                   Converter                       Remote Host
+                                <-------------------
+                                  SYN
+
+     <-------------------
+    SYN, MPC[Remote Host:port]                  
+
+     --------------------->
+            SYN+ACK, MPC
+                                --------------------->
+                                        SYN+ACK
+
+                                <---------------------
+                                           ACK
+     <-------------------
+              ACK, MPC
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
 
 # Acknowledgements
 
