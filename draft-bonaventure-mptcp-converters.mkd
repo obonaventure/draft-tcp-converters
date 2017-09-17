@@ -480,38 +480,41 @@ Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}
 
 ### Connect TLV {#sec-connect}
 
-This TLV is used to request the Transport Converter to establish a 
-connection towards the Server address
-and port included in the TLV. The Server Address is always encoded
-as an IPv6 address. IPv4 addresses are encoded using the 
+This TLV ({{fig-connect}}) is used to request the establishement of a connection via a Transport Converter. 
+
+Typically, the 'Remote Peer Port' and 'Remote Peer IP Address' fields include the destination port number and IP address of the target server for an outgoing connection towards a server located on the Internet. For incoming connections destined to a client serviced via a Converter, these fields convey the source port number and IP address. 
+
+The Remote Peer IP Address MUST be encoded
+as an IPv6 address. IPv4 addresses MUST be encoded using the 
 IPv4-Mapped IPv6 Address format defined in {{RFC4291}}.
-The optional TCP Options field is used to specify how some TCP Options 
+
+The optional 'TCP Options' field is used to specify how some TCP Options 
 are advertised by the Transport Converter
-to the final destination. If this field is empty, then the Transport 
-Converter uses the standard TCP options that correspond to its local 
+to the final destination of a connection. If this field is not supplied, the Transport 
+Converter MUST use the default TCP options that correspond to its local 
 policy. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    +---------------+---------------+-------------------------------+
-   |     Type      |     Length    |          Server Port          |
+   |     Type      |     Length    |      Remote Peer Port         |
    +---------------+---------------+-------------------------------+
    |                                                               |
-   |                         Server Address                        |
+   |         Remote Peer IP Address (128 bits)                     |
    |                                                               |
    |                                                               |
    +---------------------------------------------------------------+
-   |                          TCP Options                          |
+   |                          TCP Options (Variable)               |
    |                              ...                              |
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-connect title="The Connect TLV"}
 
-The TCP Options field is a variable length field that carries
-a list of TCP Option(s). Each TCP Option (TCPOpt) is encoded as a
+The 'TCP Options' field is a variable length field that carries
+a list of TCP Option fields ({{fig-tcpopt}}). Each TCP Option field is encoded as a
 block of 2+n bytes where the first byte is the TCP 
 Option Type and the second byte is the length of the TCP Option
 as specified in {{RFC0793}}. The minimum value for the TCPOpt Length is 2. 
-The TCP Options that do not include a length subfield, i.e. option types 
+The TCP Options that do not include a length subfield, i.e., option types 
 0 (EOL) and 1 (NOP) defined in {{RFC0793}} cannot be placed inside the 
 TCP Options field of the Connect TLV. The optional Value field 
 contains the variable-length part of the TCP option. A length of two 
@@ -531,18 +534,13 @@ always ends on a 32 bits boundary after being padded with zeros.
 {: #fig-tcpopt title="The TCP Options field"}
 
 
-If a Transport Converter receives a Connect TLV with an empty TCP Options
-field, it shall place in the SYN that it sends towards the 
-Server the TCP Options that it would have used according to its local
-policy.
-
 If a Transport Converter receives a Connect TLV with an non-empty TCP Options
-field, it shall place in the SYN that it sends towards the destination
-Server the TCP Options that it would have used according to its local
-policies and the options that are listed in the TCP Options field. For those 
-TCP Options that are listed without an optional value, it will generate its
-own value. For the TCP Options that are included in the TCP Options field with
-an optional value, it shall copy the entire option in the SYN sent to the Server. This feature is required to support TCP Fast Open as explained in
+field, it shall present those options to the destination
+peer in addition to the TCP Options that it would have used according to its local
+policies. For the 
+TCP Options that are listed without an optional value, the Converter MUST generate its
+own value. For the TCP Options that are included in the 'TCP Options' field with
+an optional value, it shall copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open as explained in
 {{sec-ex-tfo}}.
 
 
