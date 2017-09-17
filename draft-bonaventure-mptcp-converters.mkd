@@ -124,6 +124,7 @@ that uses a TCP port number (see IANA section). The Transport Converter adheres 
 - Relay control messages and data between the client and server;
 - Perform access controls according to local policies.
 
+
 The main advantage of network-assisted converters is that they enable new TCP extensions to be used on 
 a subset of the end-to-end path, which encourages the deployment of these extensions. A Transport Converter is designed to not alter options that are supplied by the client or the server; those options can still be negotiated directly between the endpoints.    
 
@@ -148,7 +149,8 @@ The architecture considers three types of end hosts:
 - Server endhosts
 
 It does not mandate anything on the server side. The architecture assumes that
-new software will be installed on the Client hosts and on Transport Converters. Further, the architecture allow for making use of new extensions if those are supported by a given server. 
+new software will be installed on the Client hosts and on Transport Converters. 
+Further, the architecture allows for making use of new extensions if those are supported by a given server. 
 
 A Transport Converter is a network function that relays all data exchanged over one
 upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing Interface, client-facing inetreface). The 
@@ -329,15 +331,22 @@ the two proxied connections. The operation of SOCKS v5 is illustrated in {{fig-s
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
                          
-Client                     SOCKS                       Server
+Client                     SOCKS Proxy                  Server
      -------------------->
              SYN 
      <--------------------
            SYN+ACK
      -------------------->
-          Version=5 
+             ACK
+             
+     -------------------->
+     Version=5, Auth Methods
      <--------------------
-           No Auth
+           Method
+     -------------------->
+         Auth Reuqest (if "No auth" method negotiated)
+     <--------------------
+         Auth Response
      -------------------->
      Connect Server:Port            -------------------->
                                            SYN
@@ -359,11 +368,11 @@ Client                     SOCKS                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
 
-The converter protocol proposed in this document also relays data
+The Converter protocol proposed in this document also relays data
 between an upstream and a downstream connection, but there are important
 differences with SOCKS v5. 
 
-A first difference is that the converter protocol leverages the TFO option {{RFC7413}}
+A first difference is that the Converter protocol leverages the TFO option {{RFC7413}}
 to place all its control information inside the SYN and SYN+ACK packets. This reduces
 the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream connection towards
@@ -371,11 +380,11 @@ the final destination. In today's Internet, latency is a important metric and
 various protocols have been tuned to reduce their latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to SOCKS also leverages the TFO
 option {{I-D.olteanu-intarea-socks-6}}. 
 
-A second difference is that the converter protocol takes the TCP extensions
-explicitly into account. With the converter protocol, the Client can learn whether
+A second difference is that the Converter protocol takes the TCP extensions
+explicitly into account. With the Converter protocol, the Client can learn whether
 a given TCP extension is supported by the destination Server. This enables the Client to 
 bypass the Transport Converter when the destination supports the required 
-TCP extension. Neither SOCKSv5 {{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
+TCP extension. Neither SOCKS v5 {{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
 provide such feature.
 
 A third difference is that a Transport Converter will only accept the connection
@@ -384,7 +393,7 @@ the Server. If the Server refuses the connection establishment attempt from
 the Transport Converter, then the upstream connection from the Client
 is rejected as well. This feature is important for applications that check the 
 availability of a Server or use the time to connect as a hint on the
-selection of a Server {{RFC6555}}. This is illustrated in{{fig-mpestabrst}}.
+selection of a Server {{RFC6555}}. This is illustrated in {{fig-mpestabrst}}.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -418,7 +427,7 @@ We now describe in details the messages that are exchanged between a Client and
 a Transport Converter. The Converter protocol leverages the TCP Fast Open
 extension defined in {{RFC7413}}. 
 
-The Converter Protocol uses a 32 bits long fixed header that is sent
+The Converter protocol uses a 32 bits long fixed header that is sent
 by both the Client and the Transport Converter. This header indicates both
 the version of the protocol used and the length of the CP messages. 
 
@@ -435,11 +444,11 @@ first four bytes of the bytestream.
    |  Version      |  Total Length |          Reserved             |
    +---------------+---------------+-------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-header title="The fixed-sized header of the Converter Protocol"}
+{: #fig-header title="The fixed-sized header of the Converter protocol"}
 
 The Version is encoded as an 8 bits unsigned integer value. This document specifies
 version 1. The Total Length is the number of 32 bits word, including the
-header, of the bytestram that are consumed by the Converter Protocol messages.
+header, of the bytestram that are consumed by the Converter protocol messages.
 Since Total Length is also an 8 bits unsigned integer, those messages cannot
 consume more than 1020 bytes of data. This limits the number of bytes
 that a Transport Converter needs to process. A
@@ -484,7 +493,7 @@ policy.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    +---------------+---------------+-------------------------------+
-   |     Type      |     Length    |          Server  Port         |
+   |     Type      |     Length    |          Server Port          |
    +---------------+---------------+-------------------------------+
    |                                                               |
    |                         Server Address                        |
@@ -498,7 +507,7 @@ policy.
 {: #fig-connect title="The Connect TLV"}
 
 The TCP Options field is a variable length field that carries
-a list of TCP Option fields. Each TCP Option field is encoded as a
+a list of TCP Option(s). Each TCP Option (TCPOpt) is encoded as a
 block of 2+n bytes where the first byte is the TCP 
 Option Type and the second byte is the length of the TCP Option
 as specified in {{RFC0793}}. The minimum value for the TCPOpt Length is 2. 
@@ -530,7 +539,7 @@ policy.
 If a Transport Converter receives a Connect TLV with an non-empty TCP Options
 field, it shall place in the SYN that it sends towards the destination
 Server the TCP Options that it would have used according to its local
-policies and the options that are listed in the TCP Options field. For the 
+policies and the options that are listed in the TCP Options field. For those 
 TCP Options that are listed without an optional value, it will generate its
 own value. For the TCP Options that are included in the TCP Options field with
 an optional value, it shall copy the entire option in the SYN sent to the Server. This feature is required to support TCP Fast Open as explained in
@@ -589,11 +598,11 @@ The following fatal errors are defined in this document:
    unreachable, port unreachable or network unreachable was received
    by the Transport Converter. The Value field contains the Code 
    field of the received ICMP message.
- - Invalid Converter message (4). This Error indicates that the Transport
+ - Invalid Converter message (16). This Error indicates that the Transport
    Converter received an unknown TLV. The Value field is set to the
    type of the unknown TLV. If several unknown TLVs were received, only
    one of them is reported in the error.
- - Resource Exceeded (5). This Error indicates that the Transport Converter does 
+ - Resource Exceeded (32). This Error indicates that the Transport Converter does 
    not have enough resources to perform the Client request.
 
 The following non-fatal errors are defined in this document:
@@ -607,17 +616,16 @@ The following non-fatal errors are defined in this document:
 
 {{tab-error-types}} summarises the different error messages.
 
-
-|-------+-----------------------------------------------|
-| Error | Description                                   |
-|-------+-----------------------------------------------|
-|    1  | Administratively prohibited                   | 
-|    2  | Connection reset by final destination         |
-|    3  | Destination unreachable                       |
-|   16  | Invalid Converter message                     |
-|   32  | Resource Exceeded                             |
-|  128  | Error TLV                                     |
-|-------+-----------------------------------------------|
+|-------+------+-----------------------------------------------|
+| Error | Hex  | Description                                   |
+|-------+------+-----------------------------------------------|
+|    1  | 0x01 | Administratively prohibited                   | 
+|    2  | 0x02 | Connection reset by final destination         |
+|    3  | 0x03 | Destination unreachable                       |
+|   16  | 0x10 | Invalid Converter message                     |
+|   32  | 0x20 | Resource Exceeded                             |
+|  128  | 0x80 | Error TLV                                     |
+|-------+------+-----------------------------------------------|
 {: #tab-error-types title="The different error types"}
 
 
@@ -709,7 +717,7 @@ The Converter replies with the following SYN+ACK packet:
  * Payload : empty
 
 At this point, the Client has learned the TFO cookie (@tcookie) that needs
-to be used fro subsequent exchanges with this Transport Converter. For the examples
+to be used for subsequent exchanges with this Transport Converter. For the examples
 in this section, we assume TFO cookies that contain 4 bytes of information.
 Other cookie lengths are possible as per {{RFC7413}}.
 
@@ -721,11 +729,11 @@ header and 4 for the Bootstrap TLV). The Converter replies with the converter fi
 and a TCP Options TLV that indicates the TCP extensions that it supports.
 
 
-During the bootstrap phase, the client may register on the converter the set of its available IP addresses. Announcing these addresses will help the converter to place incoming multipath connections to the client.  
+During the bootstrap phase, the Client may register on the Converter the set of its available IP addresses. Announcing these addresses will help the Converter to place incoming multipath connections to the client.  
 
 The Client needs to recontact the Converter before the expiry of the TFO Cookie to refresh it or obtain a new one.
 
-The TFO-cookie supplied by the Converter is inserted in subsequent messages as part of the Converter TLVs. As such, there is no ambiguity with TFO cookie that is supplied by the Client to the remote server; this second cookie is enclosed according to the procedure in {{RFC7413}}.
+The TFO-cookie supplied by the Converter is inserted in subsequent messages as part of the Converter TLVs. As such, there is no ambiguity with TFO cookie that is supplied by the Client to the remote Server; this second cookie is enclosed according to the procedure in {{RFC7413}}.
 
 
 ## Multipath TCP {#sec-ex-mptcp}
@@ -791,7 +799,7 @@ In order to support incoming connections from remote hosts, the client may use P
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
-H1                   Converter                       Remote Host
+Client                   Converter                  Remote Host
                                 <-------------------
                                   SYN
 
