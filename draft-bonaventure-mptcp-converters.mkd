@@ -1,8 +1,8 @@
 ---
 title: TCP Converter: An Application 0-RTT Proxy
 abbrev: 
-docname: draft-bonaventure-mptcp-converters-01
-date: 2017-07-17
+docname: draft-bonaventure-mptcp-converters-02
+date: 2017-09-17
 category: exp
 
 ipr: trust200902
@@ -30,6 +30,11 @@ author:
   name: Bart Peirens
   organization: Proxiums
   email: bart.peirens@proximus.com
+ -
+  ins: S. Seo
+  name: SungHoon Seo
+  organization: Korea Telecom
+  email: sh.seo@kt.com
 
 normative:
   RFC0793:
