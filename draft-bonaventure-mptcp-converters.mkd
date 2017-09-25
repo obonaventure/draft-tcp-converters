@@ -1049,5 +1049,46 @@ we would like to thank Joe Touch and Juliusz Chroboczek whose
 comments on the MPTCP mailing list have forced
 us to reconsider the design of the solution several times.
 
+From {{I-D.boucadair-mptcp-plain-mode}}:
+
+   Many thanks to Chi Dung Phung, Mingui Zhang, Rao Shoaib, Yoshifumi
+   Nishida, and Christoph Paasch for their valuable comments.
+
+   Thanks to Ian Farrer, Mikael Abrahamsson, Alan Ford, Dan Wing, and
+   Sri Gundavelli for the fruitful discussions in IETF#95 (Buenos
+   Aires).
+
+   Special thanks to Pierrick Seite, Yannick Le Goff, Fred Klamm, and
+   Xavier Grall for their inputs.
+
+   Thanks also to Olaf Schleusing, Martin Gysi, Thomas Zasowski, Andreas
+   Burkhard, Silka Simmen, Sandro Berger, Michael Melloul, Jean-Yves
+   Flahaut, Adrien Desportes, Gregory Detal, Benjamin David, Arun
+   Srinivasan, and Raghavendra Mallya for the discussion.
+
+# Contributors
+
+As noted above, this document builds on two previous documents. 
+
+The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
+- Mohamed Boucadair
+- Christian Jacquenet
+- Olivier Bonaventure
+- Denis Behaghel
+- Stefano Secci
+- Wim Henderickx
+- Robert Skog
+- Suresh Vinapamula
+- SungHoon Seo
+- Wouter Cloetens
+- Ullrich Meyer
+- Luis M. Contreras
+- Bart Peirens
+
+The authors of {{I-D.peirens-mptcp-transparent}} were:
+- Bart Peirens
+- Gregory Detal
+- Sebastien Barre
+- Olivier Bonaventure
 
 
