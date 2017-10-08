@@ -1,8 +1,8 @@
 ---
-title: TCP Converter: An Application 0-RTT Proxy
+title: 0-RTT TCP Converter 
 abbrev: 
 docname: draft-bonaventure-mptcp-converters-02
-date: 2017-09-17
+date: 2017-09-18
 category: exp
 
 ipr: trust200902
