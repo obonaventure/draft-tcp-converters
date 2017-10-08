@@ -2,7 +2,7 @@
 title: 0-RTT TCP Converter 
 abbrev: 
 docname: draft-bonaventure-mptcp-converters-02
-date: 2017-09-18
+date: 2017-10-10
 category: exp
 
 ipr: trust200902
@@ -45,6 +45,7 @@ normative:
   RFC7857:
 
 informative:
+  RFC1919:
   RFC1928:
   RFC3135:
   RFC6555:
@@ -61,6 +62,16 @@ informative:
     title: An Analysis of Longitudinal TCP Passive Measurements (Short Paper)
     seriesinfo: Traffic Monitoring and Analysis. TMA 2011. Lecture Notes in Computer Science, vol 6613.
     date: 2011
+  ANRW17:
+    author: 
+      - ins: B. Trammell
+      - ins: M. Kuhlewind
+      - ins: P. De Vaere
+      - ins: I. Learmonth 
+      - ins: G. Fairhurst
+    title: Tracking transport-layer evolution with PATHspider
+    seriesinfo: Applied Networking Research Workshop 2017 (ANRW17)
+    date: July 2017, Prague  
   IMC11:
     author: 
       - ins: K. Honda
@@ -91,7 +102,8 @@ informative:
 --- abstract
 
 This document specifies an application proxy, called Transport Converter, to
-assist the deployment of TCP extensions such as Multipath TCP. This proxy is designed to avoid inducing extra delay when involved in a network-assisted connecton (that is, 0-RTT).
+assist the deployment of Multipath TCP. This proxy is designed to avoid inducing extra 
+delay when involved in a network-assisted connecton (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitely configured to hosts.
 
 --- middle
@@ -101,7 +113,9 @@ This specification assumes an explicit model, where the proxy is explicitely con
 Transport protocols like TCP evolve regularly {{RFC7414}}. Given the end-to-end nature of those protocols, 
 a new feature can only be used once it has been deployed on both clients and servers. 
 Experience with TCP extensions reveals that the deployment of a new TCP extension 
-requires many years {{Fukuda2011}}. 
+requires many years. Fukuda reports in {{Fukuda2011}} results of a decade of measurements showing
+the deployment of Selective Acknowledgements, Window Scale and TCP Timestamps. Trammel et al. provide in
+{{ANRW17}} measurements showing that TCP Fast Open {{RFC7413}} (TFO) is still not widely deployed.
 
 There are some situations where the transport stack used on clients (resp. servers) 
 can be upgraded at a faster pace than the transport stack running on servers (resp. 
@@ -117,7 +131,8 @@ provide features that are interesting for clients such as cellular devices.
 With Multipath TCP, cellular devices could seamlessly use WLAN and cellular networks, 
 either for bonding purposes, for faster handovers, or better resiliency. 
 Unfortunately, deploying those extensions on both a wide range of clients and 
-servers remains difficult.
+servers remains difficult. As of October 2017, Multipath TCP has been deployed on
+popular smartphones but not yet on servers. 
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -146,6 +161,10 @@ Multipath TCP in cellular networks {{IETFJ16}}. We then describe the Converter
 protocol in {{sec-protocol}} and illustrate its usage with a few examples
 in {{sec-examples}}. We then discuss the interactions with middleboxes
 ({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
+
+This document focuses on Multipath TCP and TCP Fast Open. The support for other TCP extensions 
+will be discussed in other documents.
+
 
 # Architecture {#sec-arch}
 
@@ -217,9 +236,6 @@ it to the Client.
 The client places the
 destination address and port number of the target Server in the payload of the SYN sent to the Converter. 
 
-The SYN+ACK packet returned by the Transport Converter to the Client contains
-information that confirms the establishment of the connection between the Transport 
-Converter and the Server. 
 
 In accordance with {{RFC1919}}, the Transport Converter 
 maintains two transport connections that are combined together. The upstream 
@@ -227,9 +243,9 @@ connection is the one between the Client and the Transport Converter. The
 downstream connection is between the Transport Converter and the remote Server. Any user data received by the Transport Converter over the upstream (resp., downstream) 
 connection is relayed over the downstream (resp., upstream) connection.
 
-
 {{sec-appendix}} ilustrates how the Converter can help the deployment of 
 Multipath TCP {{RFC6824}}.
+
 
 ## Differences with SOCKSv5 {#sec-socks}
 
@@ -350,7 +366,7 @@ Total Length of zero is invalid and the connection MUST be reset upon
 reception of such a header. The Reserved field MUST be set to zero in this
 version of the protocol. 
 
-## Transport Convert TLVs {#sec-tlv}
+## Transport Converter TLVs {#sec-tlv}
 
 The Converter protocol uses variable length messages that are encoded using 
 a TLV format to simplify the parsing of the messages and leave room to extend
@@ -573,6 +589,164 @@ appear in this list. The list of supported TCP Options is padded with
 {: #fig-supported title="The Supported Options TLV"}
 
 
+
+
+# Interactions with middleboxes {#sec-middleboxes}
+
+The Converter protocol was designed to be used in networks that do not
+contain middleboxes that interfere with TCP. We describe in this
+section how a Client can detect middlebox interference and stop using
+the Transport Converter affected by this interference. 
+
+Internet measurements {{IMC11}} 
+have shown that middleboxes can affect the deployment of TCP extensions. 
+In this section, we only discuss the middleboxes
+that modify SYN and SYN+ACK packets since the Converter protocol places
+its messages in such packets. 
+
+Let us first consider a middlebox that removes the TFO Option from the SYN packet.
+This interference will be detected by the Client during the boostrap procedure
+described in section {{sec-bootstrap}}. A Client should not use a Transport Converter
+that does not reply with the TFO option during the Bootstrap.
+
+Consider a middlebox that removes the SYN payload after the bootstrap
+procedure. The Client can detect this problem by looking at the 
+acknowledgement number field of
+the SYN+ACK returned by the Transport Converter. 
+The Client should stop to use this 
+Transport Converter given the middlebox interference.
+
+As explained in {{RFC7413}}, some carrier-grade NATs can affect the operation of 
+TFO if they assign different IP addresses to the same endhost. Such carrier-grade
+NATs could affect the operation of the TFO Option used by the Converter protocol. 
+See also the discussion in section 7.1 of {{RFC7413}}.
+
+
+# Security Considerations  {#sec-security}
+
+Given its function and its location in the network, a Transport Converter has
+access to the payload of all the packets that it processes. 
+As such, it must be protected as a core IP router.
+
+The Converter protocol is intended to be used in managed networks where endhosts
+can be identified by their IP address. Thanks to the Bootstrap procedure 
+described in section {{sec-bootstrap}}, the Transport Converter can verify that
+the Client correctly receives packets sent by the Converter. Stronger authentication
+schemes should be defined to use the Converter protocol in more open network environments.
+
+Upon reception of a SYN that contains a valid TFO Cookie and a Connect TLV, the
+Transport Converter attempts to establish a TCP connection to a remote Server. There is a
+risk of denial of service attack if a Client requests too many connections
+in a short period of time. Implementations should limit the number of pending 
+connections from a given Client.
+
+Another possible risk are the amplification attacks since a Transport Converter sends
+a SYN towards a remote Server upon reception of a SYN from a Client. This could 
+lead to amplification attacks if the SYN sent by the Transport Converter were larger
+than the SYN received from the Client or if the Transport Converter retransmits the
+SYN. To mitigate such attack,s the Transport Converter should first limit the number of 
+pending requested for a given Client. It should also avoid sending to remote Servers SYNs 
+that are significantly longer than the SYN received from the Client. In practice, 
+Transport Converters should not advertise to a Server TCP Options that were not specified
+by the Client in the received SYN. Finally, the Transport Converter should only retransmit
+a SYN to a Server after having received a retransmitted SYN from the corresponding Client. 
+
+
+# IANA Considerations
+
+This document requests the allocation of a reserved service name and port
+number for the converter protocol at https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml.
+
+This documents specifies version 1 of the Converter protocol. 
+Five types of Converter messages are defined:
+
+ -  1: Bootstrap TLV  
+ - 10: Connect TLV   
+ - 20: Extended TCP Header TLV  
+ - 21: Supported TCP Options TLV 
+ - 30: Error TLV  
+
+Furthermore, it also defines the following errors:
+ -  0: Unsupported Version    
+ -  1: ANot Authorized    
+ -  2: Connection Reset 
+ -  3: Destination Unreachable 
+ -  4: Malformed Message
+ -  5: Unsupported TLV 
+ -  6: Malformed TLV
+ -  7: Resource Exceeded  
+ -  8: Network Failure   
+ -128: Unsupported TCP Option   
+
+Values in the 7-127 range are unassigned. Assigning a value in this range requires a Standards Action as per RFC8126. 
+
+# Conclusion
+
+We have proposed the utilisation of Transport Converters to aid the deployment of
+TCP extensions like Multipath TCP. Compared with deployed solutions such as
+SOCKS proxies, Transport Converters provide several benefits. First, they do
+not increase the connection establishment time. Second, they are compatible and
+benefit from the TCP Fast Open extension. Third, clients benefit from the
+Transport Converter when the Server does not support the required extension. 
+Furthermore, they can easily detect when the Server supports the required
+extension and thus bypass the Transport Converter to contact those Servers.
+
+
+# Acknowledgements
+
+This document builds upon earlier documents that proposed various forms
+of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}}, 
+{{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
+
+We would like to thank Bart Peirens, Raphael Bauduin and Anand Nandugudi
+for their help in preparing this draft. 
+
+Although they could disagree with the contents of the document, 
+we would like to thank Joe Touch and Juliusz Chroboczek whose 
+comments on the MPTCP mailing list have forced
+us to reconsider the design of the solution several times.
+
+From {{I-D.boucadair-mptcp-plain-mode}}:
+
+   Many thanks to Chi Dung Phung, Mingui Zhang, Rao Shoaib, Yoshifumi
+   Nishida, and Christoph Paasch for their valuable comments.
+
+   Thanks to Ian Farrer, Mikael Abrahamsson, Alan Ford, Dan Wing, and
+   Sri Gundavelli for the fruitful discussions in IETF#95 (Buenos
+   Aires).
+
+   Special thanks to Pierrick Seite, Yannick Le Goff, Fred Klamm, and
+   Xavier Grall for their inputs.
+
+   Thanks also to Olaf Schleusing, Martin Gysi, Thomas Zasowski, Andreas
+   Burkhard, Silka Simmen, Sandro Berger, Michael Melloul, Jean-Yves
+   Flahaut, Adrien Desportes, Gregory Detal, Benjamin David, Arun
+   Srinivasan, and Raghavendra Mallya for the discussion.
+
+# Contributors
+
+As noted above, this document builds on two previous documents. 
+
+The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
+- Mohamed Boucadair
+- Christian Jacquenet
+- Olivier Bonaventure
+- Denis Behaghel
+- Stefano Secci
+- Wim Henderickx
+- Robert Skog
+- Suresh Vinapamula
+- SungHoon Seo
+- Wouter Cloetens
+- Ullrich Meyer
+- Luis M. Contreras
+- Bart Peirens
+
+The authors of {{I-D.peirens-mptcp-transparent}} were:
+- Bart Peirens
+- Gregory Detal
+- Sebastien Barre
+- Olivier Bonaventure
 
 # Examples {#sec-examples}
 
@@ -803,7 +977,6 @@ by sending the following SYN+ACK packet:
 
 The Client has thus been able to use TFO with a remote Server through
 the Transport Converter.
-
 
 # Interactions with middleboxes {#sec-middleboxes}
 
@@ -1094,5 +1267,4 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
 - Gregory Detal
 - Sebastien Barre
 - Olivier Bonaventure
-
 
