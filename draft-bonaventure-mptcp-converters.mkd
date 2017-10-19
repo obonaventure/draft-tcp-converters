@@ -35,7 +35,11 @@ author:
   name: SungHoon Seo
   organization: Korea Telecom
   email: sh.seo@kt.com
-
+ -
+  ins: A. Nandugudi
+  name: Anandatirtha Nandugudi
+  organization: Tessares
+  email: anand.nandugudi@tessares.net
 normative:
   RFC0793:
   RFC4291:
@@ -528,10 +532,10 @@ the version of the protocol used and the length of the CP message.
 
 ## The Fixed Header {#sec-header}
 
-
-When a Client initiates a connection to a Transport Converter using the Converter
-Protocol, it MUST send the fixed-sized header shown in {{fig-header}} as the
-first four bytes of the bytestream.
+The Fixed Header is used to exchange information about the version and length of
+the messages between the Client and the Transport Converter. The Client and the
+Transport Converter MUST send the fixed-sized header shown in {{fig-header}} as
+the first four bytes of the bytestream.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    +---------------+---------------+-------------------------------+
@@ -658,8 +662,9 @@ an optional value, it shall copy the entire option for use in the connection wit
 
 The Extended TCP Header TLV is used by the Transport Converter to send 
 to the Client the extended TCP header that was returned by the Server in the
-SYN+ACK packet. This TLV is only present if the Client sent
+SYN+ACK packet. This TLV is only sent if the Client sent
 a Connect TLV to request the establishment of a connection.
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    +---------------+---------------+-------------------------------+
@@ -675,7 +680,6 @@ The Returned Extended TCP header field is a copy of the extended header
 that was received in the SYN+ACK by the Transport Converter. The 
 Reserved field is set to zero by the transmitter and ignored by the 
 receiver. 
-
 
 ### Error TLV {#sec-error}
 
@@ -696,7 +700,8 @@ the error TLV will be carried in the payload.
 {: #fig-error title="The Error TLV"}
 
 Different types of errors can occur while processing Converter protocol
-messages. Each error is identified by a code. Four classes of errors are defined: 
+messages. Each error is identified by a code represented as an unsigned integer.
+Four classes of errors are defined: 
 
  - Message validation and processing errors (0<= error code < 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs). 
  - Client-side errors (32<= error code < 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation). 
@@ -714,9 +719,9 @@ The following errors are defined in this document:
    Converter. The Value field is set to the type of the unsupported
    TCP Option. If several unsupported TCP Options were specified in the 
    Connect TLV, only one of them is returned in the Value.
-    - Resource Exceeded (64): This error indicates that the Transport Converter does 
+ - Resource Exceeded (64): This error indicates that the Transport Converter does 
    not have enough resources to perform the request. This error MUST be sent by the Converter when it does not have sufficient resources to handle a new connection.  
-    - Network Failure (65): This error indicates that the converter is experiencing a network failure to relay the request. The converter MUST sent this error code when it experiences forwardig issues to relay a connection.
+ - Network Failure (65): This error indicates that the converter is experiencing a network failure to relay the request. The converter MUST send this error code when it experiences forwardig issues to relay a connection.
  - Connection Reset (96): This error indicates that the final
    destination responded with a RST packet. The Value field is set to zero. 
  - Destination Unreachable (97): This error indicates that an ICMP destination 
@@ -900,8 +905,8 @@ This document builds upon earlier documents that proposed various forms
 of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}}, 
 {{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
 
-We would like to thank Bart Peirens, Raphael Bauduin, and Anand Nandugudi
-for their help in preparing this draft. 
+We would like to thank Raphael Bauduin for his help
+in preparing this draft. 
 
 Sri Gundavelli and Nandini Ganesh provided valuable feedback. Thanks to them.
 
