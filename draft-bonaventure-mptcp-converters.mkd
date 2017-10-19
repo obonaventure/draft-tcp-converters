@@ -169,8 +169,11 @@ Protocol in {{sec-protocol}}. Appendix {{sec-examples}} contains some illustrati
 of the operation of this protocol. We then discuss the interactions with middleboxes
 ({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
 
+# Applicability Scope {#scope}
 
+This specification is designed with MPTCP in mind. That is, the specification draws how network-assisted MPTCP connections can be established even of the remote server is not MPTCP-capable without inducing extra connection delays (0-RTT proxy). Further, the specification allows for end-to-end MPTCP connection with or without proxy involvement. 
 
+Assessing the applicability of the solution to other use cases is out of scope. Companion future documents are required to specify the extract behavior when the converter is deployed in other contexts than MPTCP.
 
 # Architecture {#sec-arch}
 
