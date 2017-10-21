@@ -45,7 +45,7 @@ normative:
   RFC4291:
   RFC6824:
   RFC7413:
-
+  RFC4987:
 
 informative:
   RFC1919:
@@ -53,6 +53,7 @@ informative:
   RFC2018:
   RFC3135:
   RFC6555:
+  RFC6181:
   RFC7414:
   RFC6887:
   RFC7323:
@@ -827,9 +828,19 @@ See also the discussion in section 7.1 of {{RFC7413}}.
 
 # Security Considerations  {#sec-security}
 
+## Privacy & Ingress Filtering
+
+The Converter may have access to privacy-related information (e.g., subscriber credentials). 
+The Converter MUST NOT leak such sensitive information outside a local domain.
+
 Given its function and its location in the network, a Transport Converter has
-access to the payload of all the packets that it processes. 
-As such, it must be protected as a core IP router.
+access to the payload of all the packets that it processes. As such, it must be protected as a core IP router.
+
+Furthermore, ingress filtering policies MUST be enforced at the network boundaries [RFC2827].
+
+This document assumes that all network attachements are managed by the same administrative entity. Therefore, enforcing anti-spoofing filters at these network ensures that hosts are not sending trafic with spoofed source IP addresses.
+
+## Authorization
 
 The Converter protocol is intended to be used in managed networks where end hosts
 can be identified by their IP address. Thanks to the Bootstrap procedure 
@@ -837,23 +848,70 @@ described in section {{sec-bootstrap}}, the Transport Converter can verify that
 the Client correctly receives packets sent by the Converter. Stronger authentication
 schemes should be defined to use the Converter protocol in more open network environments.
 
-Upon reception of a SYN that contains a valid TFO Cookie and a Connect TLV, the
-Transport Converter attempts to establish a TCP connection to a remote Server. There is a
-risk of denial of service attack if a Client requests too many connections
-in a short period of time. Implementations should limit the number of pending 
-connections from a given Client.
+See below for MPTCP-specific authorization considerations.
 
-Another possible risk are the amplification attacks since a Transport Converter sends
+## Denial of Service 
+
+Another possible risk is the amplification attacks since a Transport Converter sends
 a SYN towards a remote Server upon reception of a SYN from a Client. This could 
 lead to amplification attacks if the SYN sent by the Transport Converter were larger
 than the SYN received from the Client or if the Transport Converter retransmits the
-SYN. To mitigate such attack,s the Transport Converter should first limit the number of 
-pending requested for a given Client. It should also avoid sending to remote Servers SYNs 
+SYN. To mitigate such attack,s the Transport Converter SHOULD rate limit the number of 
+pending requested for a given Client. It SHOULD also avoid sending to remote Servers SYNs 
 that are significantly longer than the SYN received from the Client. In practice, 
-Transport Converters should not advertise to a Server TCP Options that were not specified
-by the Client in the received SYN. Finally, the Transport Converter should only retransmit
+Transport Converters SHOULD NOT advertise to a Server TCP Options that were not specified
+by the Client in the received SYN. Finally, the Transport Converter SHOULD only retransmit
 a SYN to a Server after having received a retransmitted SYN from the corresponding Client. 
+   
+Upon reception of a SYN that contains a valid TFO Cookie and a Connect TLV, the
+Transport Converter attempts to establish a TCP connection to a remote Server. There is a
+risk of denial of service attack if a Client requests too many connections
+in a short period of time. Implementations SHOULD limit the number of pending 
+connections from a given Client. Means to protect against SYN flooding
+attacks MUST also be enabled {{RFC4987}}.
 
+## Traffic Theft 
+
+   Traffic theft is a risk if an illegitimate Converter is inserted in the
+   path.  Indeed, inserting an illegitimate Converter in the forwarding path
+   allows traffic intercept and can therefore provide access to
+   sensitive data issued by or destined to a host. Converter discovery and configuration are out of scope of this document.
+   
+## MPTCP-specific Considerations
+
+MPTCP-related security threats are discussed in {{RFC6181}} and
+{{RFC6824}}.
+
+The operator that manages the various network attachments
+   (including the Converters) can enforce authentication and authorization
+   policies using appropriate mechanisms.  For example, a non-exhaustive
+   list of methods to achieve authorization is provided hereafter: 
+   
+      o  The network provider may enforce a policy based on the
+      International Mobile Subscriber Identity (IMSI) to verify that a
+      user is allowed to benefit from the aggregation service.  If that
+      authorization fails, the Packet Data Protocol (PDP) context
+      /bearer will not be mounted.  This method does not require any
+      interaction with the Converter.
+      
+     o  The network provider may enforce a policy based upon Access
+      Control Lists (ACLs), e.g., at a Broadband Network Gateway (BNG)
+      to control the hosts that are authorized to communicate with 
+      a Converter.  These ACLs may be installed as a result of RADIUS exchanges,
+      for instance ([I-D.boucadair-mptcp-radius]).  This method does not
+      require any interaction with the Converter.
+
+     o  The device that embeds the Converter may also host a RADIUS client that
+      will solicit an AAA server to check whether connections received
+      from a given source IP address are authorized or not
+      ([I-D.boucadair-mptcp-radius]).
+
+   A first safeguard against the misuse of Converter resources by illegitimate
+   users (e.g., users with access networks that are not managed by the
+   same provider that operates the Converter) is the Converter to reject 
+   MPTCP connections received on its Internet-facing interfaces.  Only 
+   MPTCP connections received on the customer-facing interfaces of a Converter will
+   be accepted.
 
 # IANA Considerations
 
