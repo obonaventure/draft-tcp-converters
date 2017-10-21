@@ -206,22 +206,22 @@ until they are supported by many servers.
                      +------------+   
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc title="A Transport Converter relays data between pairs of transport connections"}
+{: #figtc title="A Transport Converter relays data between pairs of connections"}
 
 
 Transport converters can be operated by network operators or 
 third parties. The Client is configured, through means that are outside the 
 scope of this document, 
 with the names and/or the addresses of one or more Transport Converters. The 
-packets belonging to a transport connection that pass through a transport 
-converter 
-may follow a different path than the packets directly exchanged 
-between
-the Client and the Server. Deployments should minimize the possible additional delay 
-by carefully selecting the location of the Transport Converter used to reach 
-a given destination. 
+packets belonging to the pair of connection between the Client and Server
+passing through a Transport Converter 
+may follow a different path than the packets directly exchanged between the
+Client and the Server. Deployments should minimize the possible additional delay
+by carefully selecting the location of the Transport Converter used to reach a
+given destination. 
 
-A transport converter can be embedded in a standalone device or be activated as a service on a router. How such function is enabled is deployement-specific. 
+A transport converter can be embedded in a standalone device or be activated as
+a service on a router. How such function is enabled is deployement-specific. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
