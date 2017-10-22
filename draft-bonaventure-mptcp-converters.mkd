@@ -298,10 +298,13 @@ TFO Cookie and inside its payload the addresses and ports of the destination
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the destination Server. If this
 second connection succeeds, the Transport Converter confirms the establishment of
-the connection to the Client by returning a SYN+ACK which contains information
-about the TCP Options that were negotiated with the final Server. This information
+the connection to the Client by returning a SYN+ACK and the first bytes of
+the bytestream contain information about the TCP Options that were negotiated 
+with the final Server. This information
 is sent at the beginning of the bytestream, either directly in the SYN+ACK or in 
-a subsequent packet.
+a subsequent packet. For graphical reasons, the figures in the section show
+that the Converter returns information in the SYN+ACK packet. An implementation
+could also place this information in a packet that it sent shortly after the SYN+ACK.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -382,7 +385,7 @@ Client                   Converter                    Server
                                  <--------------------
                                          SYN+ACK 
      <--------------------
-       SYN+ACK,MPC
+       SYN+ACK,MPC [ ]
 
      -------------------->
          ACK,MPC
@@ -397,16 +400,17 @@ MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and po
 of the final Server and the Transport Converter attempts to initiate a Multipath TCP 
 connection towards this Server. Since the Server does not support Multipath TCP, it 
 replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport 
-Converter notes that the connection with the Server does not support Multipath TCP.
+Converter notes that the connection with the Server does not support Multipath TCP
+and returns the TCP Options received from the Server to the Client.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it 
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option. 
 Upon reception of this SYN+ACK, the Transport Converter confirms the establishment 
-of the connection to the Client and indicates in the SYN+ACK packet sent to 
+of the connection to the Client and indicates to 
 the Client that the Server supports Multipath TCP. With this information, 
 the Client has discovered that the Server supports Multipath TCP 
 natively. This will enable it to bypass the Transport Converter for the next 
-Multipath TCP connection that it will initiate towards this Server or by creating a subflow to the server directly. The one established via the transport converter can be closed. 
+Multipath TCP connection that it will initiate towards this Server.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
                          Transport
@@ -429,31 +433,6 @@ Client                   Converter                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestabok title="Establishment of a Multipath TCP connection through a converter"}
 
-## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
-
-An example of an incoming converter-assisted Multipath TCP connection is depicted in {{fig-inestab}}. In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into a Multipath TCP connection. 
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-H1                   Converter                       Remote Host
-                                <-------------------
-                                  SYN
-
-     <-------------------
-    SYN, MPC[Remote Host:port]                  
-
-     --------------------->
-            SYN+ACK, MPC
-                                --------------------->
-                                        SYN+ACK
-
-                                <---------------------
-                                           ACK
-     <-------------------
-              ACK, MPC
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
 
 
 ## Differences with SOCKSv5 {#sec-socks}
