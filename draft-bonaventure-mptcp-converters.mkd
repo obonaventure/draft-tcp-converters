@@ -207,7 +207,7 @@ until they are supported by many servers.
                      +------------+   
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc title="A Transport Converter relays data between pairs of connections"}
+{: #figtc title="A Transport Converter relays data between pairs of TCP connections"}
 
 
 Transport converters can be operated by network operators or 
@@ -220,6 +220,7 @@ may follow a different path than the packets directly exchanged between the
 Client and the Server. Deployments should minimize the possible additional delay
 by carefully selecting the location of the Transport Converter used to reach a
 given destination. 
+
 
 A transport converter can be embedded in a standalone device or be activated as
 a service on a router. How such function is enabled is deployement-specific. 
@@ -237,7 +238,7 @@ a service on a router. How such function is enabled is deployement-specific.
 {: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
 
 
-When establishing a transport connection, the Client can, depending on local policies, 
+When establishing a connection, the Client can, depending on local policies, 
 either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, which is the case we consider in this document, the Client
 initiates a connection towards the Transport Converter and indicates the address and port number of 
@@ -249,7 +250,7 @@ it to the Client.
 The client places the
 destination address and port number of the target Server in the payload of the SYN sent to the Converter by
 leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter 
-maintains two transport connections that are combined together. The upstream 
+maintains two connections that are combined together. The upstream 
 connection is the one between the Client and the Transport Converter. The 
 downstream connection is between the Transport Converter and the remote Server. Any user data received by the Transport Converter over the upstream (resp., downstream) 
 connection is relayed over the downstream (resp., upstream) connection.
