@@ -687,10 +687,10 @@ an optional value, it shall copy the entire option for use in the connection wit
 
 ### External Connect TLV {#sec-extrnl-connect}
 The External Connect TLV is used when a Remote Host initiates a connection with
-an internal host. This TLV is exactly the same as {{fig-connect}} with the only
-difference being the value used for the Type field of the TLV. The value used
+an internal Host. This TLV is exactly the same as {{fig-connect}} with the only
+difference being the value used for the Type field in the TLV. The value used
 for the External Connect TLV is depicted in {{tab-converter-tlv}}. The values
-for the different fields follow the same rules as described in {{sec-connect}}.
+for the other fields follow the same rules as described in {{sec-connect}}.
 
 
 ### Extended TCP Header TLV {#sec-ext-header}
