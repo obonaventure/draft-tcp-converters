@@ -431,15 +431,14 @@ Client                   Converter                       Server
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
-Remote hosts can use the Transport Converter to connect to another host.  We
-come across this situation typically when the host is present in a private
-network and is not  directly accessible from outside. Similar to the case
-described in {{sec-oconn}},
-this document assumes that the remote host is configured with set the of
-Transport Converters and the information about the end host to which the
-connection is initiated.  This document also assumes that the access controls to
-enable such an operation are also enabled. The connection establishment follows
-the steps as depicted in {{fig-inestab}}. The incoming Converted-Assisted
+Remote Hosts can use the Transport Converter to connect to another Host.  We
+come across this situation typically when the Host is present in a private
+network and is not  directly accessible from outside. The connection
+establishment follows the steps as depicted in {{fig-inestab}}. Similar to
+{{sec-oconn}}, this document assumes that the Remote Host is configured with the
+set of Transport Converters and the information about the end Host to which the
+connection is initiated. This document also assumes that the access controls to
+enable such an operation are also enabled.  The incoming Converted-Assisted
 connection is slightly different from {{fig-estab}}. The information about the
 remote host, wishing to connect to an internal host, is included in the TLV.
 This information must be available to the internal host to make a decision on
