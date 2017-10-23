@@ -359,7 +359,7 @@ Also, the Converter may behave in a Cookie-less mode when appropriate means are 
 at the converter and the network in-between to protect against attacks such as spoofing 
 and SYN flood. Under such deployments, the use of TFO is not required.  
 
-## Sample Examples of Converter-Assisted Multipath TCP Connections
+## Sample Examples of Converter-Assisted Multipath TCP Connections {#sec-oconn}
 
 As an example, let us consider how such a protocol can help the deployment of 
 Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport 
@@ -431,13 +431,25 @@ Client                   Converter                       Server
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
-An example of an incoming converter-assisted Multipath TCP connection is depicted in {{fig-inestab}}. In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into a Multipath TCP connection. 
+Remote hosts can use the Transport Converter to connect to another host.  We
+come across this situation typically when the host is present in a private
+network and is not  directly accessible from outside. Similar to the case
+described in {{sec-oconn}},
+this document assumes that the remote host is configured with set the of
+Transport Converters and the information about the end host to which the
+connection is initiated.  This document also assumes that the access controls to
+enable such an operation are also enabled. The connection establishment follows
+the steps as depicted in {{fig-inestab}}. The incoming Converted-Assisted
+connection is slightly different from {{fig-estab}}. The information about the
+remote host, wishing to connect to an internal host, is included in the TLV.
+This information must be available to the internal host to make a decision on
+whether to accept an incoming connection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
 H1                   Converter                       Remote Host
                                 <-------------------
-                                  SYN
+                                  SYN[->Host:port]
 
      <-------------------
     SYN, MPC[Remote Host:port]                  
@@ -453,7 +465,9 @@ H1                   Converter                       Remote Host
               ACK, MPC
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
+{: #fig-inestab title="Establishment of an Incoming TCP Connection through a
+Converter"}
+
 
 
 ## Differences with SOCKSv5 {#sec-socks}
@@ -585,6 +599,7 @@ Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}
 |------+---------|-----------------------------------------------|
 |   1  |    1    | Bootstrap TLV                                 | 
 |  10  | Variable| Connect TLV                                   |
+|  11  | Variable| External Connect TLV                                   |
 |  20  | Variable| Extended TCP Header TLV                       |
 |  21  | Variable| Supported TCP Options TLV                     |
 |  30  | Variable| Error TLV                                     |
@@ -669,6 +684,14 @@ policies. For the
 TCP Options that are listed without an optional value, the Converter MUST generate its
 own value. For the TCP Options that are included in the 'TCP Options' field with
 an optional value, it shall copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open.
+
+
+### External Connect TLV {#sec-extrnl-connect}
+The External Connect TLV is used when a Remote Host initiates a connection with
+an internal host. This TLV is exactly the same as {{fig-connect}} with the only
+difference being the value used for the Type field of the TLV. The value used
+for the External Connect TLV is depicted in {{tab-converter-tlv}}. The values
+for the different fields follow the same rules as described in {{sec-connect}}.
 
 
 ### Extended TCP Header TLV {#sec-ext-header}
@@ -761,7 +784,6 @@ The following errors are defined in this document:
  +-------+------+-----------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-error-types title="The different error codes"}
-
 
 ### The Bootstrap TLV {#sec-bootstrap-tlv}
 
@@ -937,6 +959,7 @@ Five types of Converter messages are defined:
  - 30: Error TLV  
 
 Furthermore, it also defines the following error codes:
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
  +-------+------+-----------------------------------------------+
  | Error | Hex  | Description                                   |
