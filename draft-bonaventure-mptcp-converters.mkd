@@ -212,9 +212,10 @@ and the downstream connection. This encourages the deployment of new TCP extensi
 until they are supported by many servers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
                      +------------+
-   <--- upstream --->| transport  |<--- downstream --->
-                     | converter  |
+   <--- upstream --->| Transport  |<--- downstream --->
+                     | Converter  |
                      +------------+   
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -434,7 +435,7 @@ Client                   Converter                       Server
 An example of an incoming converter-assisted Multipath TCP connection is depicted in {{fig-inestab}}. In order to support incoming connections from remote hosts, the client may use PCP {{RFC6887}} to instruct the converter to create dynamic mappings. Those mappings will be used by the converter to intercept an incoming TCP connection destined to the client and convert it into a Multipath TCP connection. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
+                     Transport
 H1                   Converter                       Remote Host
                                 <-------------------
                                   SYN
@@ -553,6 +554,8 @@ Transport Converter MUST send the fixed-sized header shown in {{fig-header}} as
 the first four bytes of the bytestream.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
    |  Version      |  Total Length |          Reserved             |
    +---------------+---------------+-------------------------------+
@@ -580,15 +583,15 @@ TCP connections MUST be closed. All fields are encoded using the network byte or
 
 Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}.
 
-|------+---------|-----------------------------------------------|
++------+---------+-----------------------------------------------+
 | Type | Length  | Description                                   |
-|------+---------|-----------------------------------------------|
++------+---------+-----------------------------------------------+
 |   1  |    1    | Bootstrap TLV                                 | 
 |  10  | Variable| Connect TLV                                   |
 |  20  | Variable| Extended TCP Header TLV                       |
 |  21  | Variable| Supported TCP Options TLV                     |
 |  30  | Variable| Error TLV                                     |
-|------+---------|-----------------------------------------------|
++------+---------+-----------------------------------------------+
 {: #tab-converter-tlv title="The TLVs used by the Converter protocol"}
 
 To use a given Transport Converter, a Client MUST first obtain a valid 
@@ -623,6 +626,8 @@ Converter MUST use the default TCP options that correspond to its local
 policy. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
    |     Type      |     Length    |      Remote Peer Port         |
    +---------------+---------------+-------------------------------+
@@ -651,12 +656,14 @@ always ends on a 32 bits boundary after being padded with zeros.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   +---------------------------------------------------------------+
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+---------------+---------------+
    |  TCPOpt type  | TCPOpt Length | Value  (opt)  |  ....         |
-   +---------------+---------------+-------------------------------+
+   +---------------+---------------+---------------+---------------+
    |                             ....                              |
    +---------------------------------------------------------------+
-   |                               |         Padded with zeros     |
+   |                              ...                              |
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpopt title="The TCP Options field"}
@@ -680,6 +687,8 @@ a Connect TLV to request the establishment of a connection.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
    |     Type      |     Length    |           Reserved            |
    +---------------+---------------+-------------------------------+
@@ -706,9 +715,11 @@ the connection could be established with the final destination, then
 the error TLV will be carried in the payload. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   +---------------+---------------+-------------------------------+
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+----------------+--------------+
    |     Type      |     Length    |    Error       |  Value       |
-   +---------------+---------------+-------------------------------+
+   +---------------+---------------+----------------+--------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-error title="The Error TLV"}
 
@@ -772,6 +783,8 @@ capabilities. The Transport Converter replies with the Supported TCP
 Options TLV described in {{sec-supported}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
    |     Type      |     Length    |             Zero              |
    +---------------+---------------+-------------------------------+
@@ -784,22 +797,22 @@ Options TLV described in {{sec-supported}}.
 The Supported TCP Options TLV is used by a Converter to announce the 
 TCP options that it supports. Each supported TCP Option is encoded
 with its TCP option Kind listed in the TCP Parameters registry 
-maintained by IANA. TCP option Kinds 0, 1 and 2 defined in 
+maintained by IANA. TCP option Kinds 0, 1, and 2 defined in 
 {{RFC0793}} are supported by all TCP implementations and thus cannot
 appear in this list. The list of supported TCP Options is padded with
 0 to end on a 32 bits boundary.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
    |     Type      |     Length    |           Reserved            |
    +---------------+---------------+-------------------------------+
    |     Kind #1   |     Kind #2   |           ...                 |
    +---------------+---------------+-------------------------------+   
+   /                              ...                              /
    /                                                               /
-   /                                                               /
-   +---------------+---------------+-------------------------------+   
-   |                               |     Kind #n    |   Zero       |
-   +---------------------------------------------------------------+
+   +---------------------------------------------------------------+   
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-supported title="The Supported Options TLV"}
 
