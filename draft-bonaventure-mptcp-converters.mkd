@@ -580,17 +580,15 @@ TCP connections MUST be closed. All fields are encoded using the network byte or
 
 Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+------+------+----------+-----------------------------------------+
-| Type |  Hex | Length   | Description                             |
-+------+------+----------+-----------------------------------------+
-|   1  |  0x1 |    1     | Bootstrap TLV                           |
-|  10  |  0xA | Variable | Connect TLV                             |
-|  20  | 0x14 | Variable | Extended TCP Header TLV                 |
-|  21  | 0x15 | Variable | Supported TCP Options TLV               |
-|  30  | 0x1E | Variable | Error TLV                               |
-+------+------+----------+-----------------------------------------+
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|------|-----|----------|-----------------------------------------------|
+| Type | Hex |  Length  | Description                                   |
+|------|-----|----------|-----------------------------------------------|
+|   1  | 0x1 |    1     | Bootstrap TLV                                 | 
+|  10  | 0xA |  Variable| Connect TLV                                   |
+|  20  | 0x14|  Variable| Extended TCP Header TLV                       |
+|  21  | 0x15|  Variable| Supported TCP Options TLV                     |
+|  30  | 0x1E|  Variable| Error TLV                                     |
+|------|-----|----------|-----------------------------------------------|
 {: #tab-converter-tlv title="The TLVs used by the Converter protocol"}
 
 To use a given Transport Converter, a Client MUST first obtain a valid 
@@ -747,10 +745,9 @@ The following errors are defined in this document:
 
 {{tab-error-types}} summarizes the different error codes.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
- +-------+------+-----------------------------------------------+
+ |-------|------|-----------------------------------------------|
  | Error | Hex  | Description                                   |
- +-------+------+-----------------------------------------------+
+ |-------|------|-----------------------------------------------|
  |    0  | 0x00 | Unsupported version                           |
  |    1  | 0x01 | Malformed Message                             | 
  |    2  | 0x02 | Unsupported Message                           | 
@@ -760,8 +757,7 @@ The following errors are defined in this document:
  |   65  | 0x41 | Network Failure                               |
  |   96  | 0x60 | Connection Reset                              |
  |   97  | 0x61 | Destination Unreachable                       |
- +-------+------+-----------------------------------------------+
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ |-------|------|-----------------------------------------------|
 {: #tab-error-types title="The different error codes"}
 
 
