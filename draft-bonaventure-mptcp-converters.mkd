@@ -122,10 +122,10 @@ This specification assumes an explicit model, where the proxy is explicitly conf
 
 Transport protocols like TCP evolve regularly {{RFC7414}}. TCP has been improved in different
 ways. Some improvements such as changing the initial window size or modifying the
-congestion control scheme can be applied independently on client and servers. 
+congestion control scheme can be applied independently on clients and servers. 
 Other improvements such as Selective Acknowledgements {{RFC2018}} or large windows {{RFC7323}} require
-a new TCP option or change the semantics some field in the TCP header. These modifications must
-be deployed on both client and servers to be actually used on the Internet.
+a new TCP option or to change the semantics of some fields in the TCP header. These modifications must
+be deployed on both clients and servers to be actually used on the Internet.
 Experience with the latter TCP extensions reveals that their deployment can 
 require many years. Fukuda reports in {{Fukuda2011}} results of a decade of measurements showing
 the deployment of Selective Acknowledgements, Window Scale and TCP Timestamps. Trammel et al. provide in
@@ -206,9 +206,9 @@ Further, the architecture allows for making use of TCP new extensions if those a
 A Transport Converter is a network function that relays all data exchanged over one
 upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing interface, client-facing interface). The 
 converter, thus, maintains state that associates one upstream connection to
-a corresponding downstream interface. One of the benefits of this design 
+a corresponding downstream connection. One of the benefits of this design 
 is that different transport protocol extensions can be used on the upstream
-and the downstream connection. This encourages the deployment of new TCP extensions 
+and the downstream connections. This encourages the deployment of new TCP extensions 
 until they are supported by many servers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -225,7 +225,7 @@ Transport converters can be operated by network operators or
 third parties. The Client is configured, through means that are outside the 
 scope of this document, 
 with the names and/or the addresses of one or more Transport Converters. The 
-packets belonging to the pair of connection between the Client and Server
+packets belonging to the pair of connections between the Client and Server
 passing through a Transport Converter 
 may follow a different path than the packets directly exchanged between the
 Client and the Server. Deployments should minimize the possible additional delay
@@ -849,7 +849,7 @@ access to the payload of all the packets that it processes. As such, it must be 
 
 Furthermore, ingress filtering policies MUST be enforced at the network boundaries {{RFC2827}}.
 
-This document assumes that all network attachements are managed by the same administrative entity. Therefore, enforcing anti-spoofing filters at these network ensures that hosts are not sending trafic with spoofed source IP addresses.
+This document assumes that all network attachements are managed by the same administrative entity. Therefore, enforcing anti-spoofing filters at these network ensures that hosts are not sending traffic with spoofed source IP addresses.
 
 ## Authorization
 
@@ -867,8 +867,8 @@ Another possible risk is the amplification attacks since a Transport Converter s
 a SYN towards a remote Server upon reception of a SYN from a Client. This could 
 lead to amplification attacks if the SYN sent by the Transport Converter were larger
 than the SYN received from the Client or if the Transport Converter retransmits the
-SYN. To mitigate such attack,s the Transport Converter SHOULD rate limit the number of 
-pending requested for a given Client. It SHOULD also avoid sending to remote Servers SYNs 
+SYN. To mitigate such attacks, the Transport Converter SHOULD rate limit the number of 
+pending requests for a given Client. It SHOULD also avoid sending to remote Servers SYNs 
 that are significantly longer than the SYN received from the Client. In practice, 
 Transport Converters SHOULD NOT advertise to a Server TCP Options that were not specified
 by the Client in the received SYN. Finally, the Transport Converter SHOULD only retransmit
@@ -885,7 +885,7 @@ attacks MUST also be enabled {{RFC4987}}.
 
    Traffic theft is a risk if an illegitimate Converter is inserted in the
    path.  Indeed, inserting an illegitimate Converter in the forwarding path
-   allows traffic intercept and can therefore provide access to
+   allows traffic interception and can therefore provide access to
    sensitive data issued by or destined to a host. Converter discovery and configuration are out of scope of this document.
    
 ## Multipath TCP-specific Considerations
