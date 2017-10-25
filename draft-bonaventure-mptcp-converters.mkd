@@ -598,7 +598,8 @@ Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}
 |------+---------|-----------------------------------------------|
 |   1  |    1    | Bootstrap TLV                                 | 
 |  10  | Variable| Connect TLV                                   |
-|  11  | Variable| External Connect TLV                                   |
+|  11  | Variable| Listen TLV                                    |
+|  12  |         | Listen Setup TLV                              |   
 |  20  | Variable| Extended TCP Header TLV                       |
 |  21  | Variable| Supported TCP Options TLV                     |
 |  30  | Variable| Error TLV                                     |
@@ -685,13 +686,24 @@ own value. For the TCP Options that are included in the 'TCP Options' field with
 an optional value, it shall copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open.
 
 
-### External Connect TLV {#sec-extrnl-connect}
-The External Connect TLV is used when a Remote Host initiates a connection with
-an internal Host. This TLV is exactly the same as {{fig-connect}} with the only
-difference being the value used for the Type field in the TLV. The value used
-for the External Connect TLV is depicted in {{tab-converter-tlv}}. The values
-for the other fields follow the same rules as described in {{sec-connect}}.
+### Listen TLV {#sec-listen}
+The Listen TLV ({{fig-listen-tlv}}) is used to support incoming connections to
+hosts through the Transport Converter. The Local Port field is a 2 byte unsigned
+value that conatins the port number on the Host to which the incoming
+connections needs to be forwarded. The Lifetime field is a 2 byte unsigned
+value that indicates for long, in minutes, the Transport Converter should enable
+incoming connection. The converter responds with the Listen Setup TLV
+({{sec-listen-setup}}) upon a successful handling of the Listen TLV request.
+The Listen TLV can also be used to extend the lifetime of an already existing
+incoming connection setup.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   +---------------+---------------+-------------------------------+
+   |     Type      |     Length    |  Local Port   |   Lifetime    |
+   +---------------+---------------+-------------------------------+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-listen-tlv title="The Listen TLV"}
 
 ### Extended TCP Header TLV {#sec-ext-header}
 
