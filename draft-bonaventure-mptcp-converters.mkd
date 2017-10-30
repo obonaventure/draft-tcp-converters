@@ -235,7 +235,7 @@ given destination.
 
 
 A transport converter can be embedded in a standalone device or be activated as
-a service on a router. How such function is enabled is deployement-specific. 
+a service on a router. How such function is enabled is deployment-specific. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
