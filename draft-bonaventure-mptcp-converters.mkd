@@ -409,8 +409,8 @@ replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
 Upon reception of this SYN+ACK, the Transport Converter confirms the establishment 
 of the connection to the Client and indicates to 
 the Client that the Server supports Multipath TCP. With this information, 
-the Client has discovered that the Server supports Multipath TCP 
-natively. This will enable it to bypass the Transport Converter for the next 
+the Client has discovered that the Server supports Multipath TCP. 
+This will enable it to bypass the Transport Converter for the next 
 Multipath TCP connection that it will initiate towards this Server.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
@@ -739,7 +739,7 @@ Four classes of errors are defined:
 
  - Message validation and processing errors (0<= error code < 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs). 
  - Client-side errors (32<= error code < 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation). 
- - Converter-side errors (64<= error code <96) : problems encountered on the Converter (e.g., lack of ressources) which prevent it from fulfilling the Client's request.
+ - Converter-side errors (64<= error code <96) : problems encountered on the Converter (e.g., lack of resources) which prevent it from fulfilling the Client's request.
  - Errors caused by destination server (96<= error code < 127) : the final destination could not be reached or it replied with a reset message.
 
 The following errors are defined in this document:
@@ -869,7 +869,7 @@ access to the payload of all the packets that it processes. As such, it must be 
 
 Furthermore, ingress filtering policies MUST be enforced at the network boundaries {{RFC2827}}.
 
-This document assumes that all network attachements are managed by the same administrative entity. Therefore, enforcing anti-spoofing filters at these network ensures that hosts are not sending traffic with spoofed source IP addresses.
+This document assumes that all network attachments are managed by the same administrative entity. Therefore, enforcing anti-spoofing filters at these network ensures that hosts are not sending traffic with spoofed source IP addresses.
 
 ## Authorization
 
