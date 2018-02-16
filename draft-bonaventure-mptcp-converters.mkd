@@ -1,13 +1,13 @@
 ---
 title: 0-RTT TCP Converter 
 abbrev: 
-docname: draft-bonaventure-mptcp-converters-02
-date: 2017-10-30
+docname: draft-ietf-tcpm-converters-00
+date: 2018-02-16
 category: exp
 
 ipr: trust200902
 area: Transport
-workgroup: MPTCP Working Group
+workgroup: TCPM Working Group
 keyword: Internet-Draft
 
 coding: us-ascii 
