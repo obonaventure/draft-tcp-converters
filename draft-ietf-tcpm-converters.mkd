@@ -737,10 +737,10 @@ Different types of errors can occur while processing Converter protocol
 messages. Each error is identified by a code represented as an unsigned integer.
 Four classes of errors are defined: 
 
- - Message validation and processing errors (0<= error code < 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs). 
- - Client-side errors (32<= error code < 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation). 
+ - Message validation and processing errors (0<= error code <= 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs). 
+ - Client-side errors (32<= error code <= 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation). 
  - Converter-side errors (64<= error code <96) : problems encountered on the Converter (e.g., lack of ressources) which prevent it from fulfilling the Client's request.
- - Errors caused by destination server (96<= error code < 127) : the final destination could not be reached or it replied with a reset message.
+ - Errors caused by destination server (96<= error code <= 127) : the final destination could not be reached or it replied with a reset message.
 
 The following errors are defined in this document:
 
