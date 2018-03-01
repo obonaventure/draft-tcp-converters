@@ -589,6 +589,7 @@ the protocol in the future.
 A given TLV can only appear once on a connection. If two or more
 copies of the same TLV are exchanged over a Converter connection, the associated
 TCP connections MUST be closed. All fields are encoded using the network byte order.
+The length field is the number of 32 bits words.
 
 Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}.
 
