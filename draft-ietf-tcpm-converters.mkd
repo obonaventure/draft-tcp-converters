@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Converter 
 abbrev: 
-docname: draft-ietf-tcpm-converters-00
-date: 2018-02-16
+docname: draft-ietf-tcpm-converters-01
+date: 2018-03-05
 category: exp
 
 ipr: trust200902
@@ -47,8 +47,14 @@ normative:
   RFC6824:
   RFC7413:
   RFC4987:
+  RFC2119:
+  RFC8174:
+  RFC4727:
+  RFC5482:
+  RFC5925:
 
 informative:
+  RFC1323:      
   RFC1919:
   RFC1928:
   RFC2018:
@@ -112,8 +118,9 @@ informative:
 --- abstract
 
 This document specifies an application proxy, called Transport Converter, to
-assist the deployment of Multipath TCP. This proxy is designed to avoid inducing extra 
-delay when involved in a network-assisted connection (that is, 0-RTT).
+assist the deployment TCP extensions such as Multipath TCP. 
+This proxy is designed to avoid inducing extra delay when involved in 
+a network-assisted connection (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitly configured on hosts.
 
 --- middle
@@ -173,10 +180,13 @@ This document assumes that a client is configured with one or a list of transpor
 This document is organized as follows. We first provide a brief explanation of the
 operation of Transport Converters in {{sec-arch}}. We compare them in
 {{sec-socks}} with SOCKS proxies that are already used to deploy
-Multipath TCP in cellular networks {{IETFJ16}}. We then describe the Converter
-Protocol in {{sec-protocol}}.
+Multipath TCP in cellular networks {{IETFJ16}}. We describe the Converter
+Protocol in {{sec-protocol}}. We discuss in {{sec-tcpoptions}} how Transport 
+Converters can be used to support different TCP options.
 We then discuss the interactions with middleboxes
 ({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
+
+
 
 # Applicability Scope {#scope}
 
@@ -554,6 +564,15 @@ The Converter Protocol uses a 32 bits long fixed header that is sent
 by both the Client and the Transport Converter. This header indicates both
 the version of the protocol used and the length of the CP message. 
 
+## Requirements 
+
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in
+{{RFC2119}} {{RFC8174}} when, and only when, they appear in all capitals,
+as shown here.
+
 
 ## The Fixed Header {#sec-header}
 
@@ -825,6 +844,138 @@ appear in this list. The list of supported TCP Options is padded with
 {: #fig-supported title="The Supported TCP Options TLV"}
 
 
+# Support for specific TCP extensions {#sec-tcpoptions}
+
+In this section, we discuss how several standard track TCP options can be
+supported through the proposed converter. The non-standard track options and
+the experimental options will be discussed in other documents. 
+
+
+## Original TCP options 
+
+Three TCP options were initially defined in {{RFC0793}} : End-of-Option List (Kind=0), 
+No-Operation (Kind=1) and Maximum Segment Size (Kind=2). The first two options are
+mainly used to pad the TCP extended header. There is no reason for a client
+to request a converter to specifically send these options towards the 
+final destination.
+
+The Maximum Segment Size option (Kind=2) is used by a host to indicate the largest
+segment that it can receive over each connection. This value is function of the
+stack that terminates the TCP connection. There is no reason for a client to request
+a converter to advertise a specific MSS value to a remote server.
+
+A converter MUST ignore options with Kind=0, 1 or 2 if they appear
+in a Connect TLV. It MUST not announce them in a Bootstrap TLV.
+
+## Window Scale
+
+The Window Scale option (Kind=3) is defined in {{RFC7323}}. As for the MSS option, the
+window scale factor that is used for a connection strongly depends on the TCP stack
+that handles the connection. When a converter opens a TCP connection towards a
+remote server on behalf of a client, it SHOULD use a WSCALE option with a scaling factor
+that corresponds to the configuration of its stack and MAY be function of the scaling
+factor of the incoming connection. 
+
+There is no benefit from a deployment viewpoint in enabling a client of a converter to
+specifically request the utilisation of the WSCALE option (Kind=3) with a specific
+scaling factor towards a remote server. For this reason, a converter MUST ignore 
+option Kind=3 if it appears in a Connect TLV. It MUST not announce it in a Bootstrap TLV.
+
+## Selective Acknowledgements
+
+Two distinct TCP options were defined to support selective acknowledgements in {{RFC2018}}.
+This first one, SACK Permitted (Kind=4), is used to negotiate the utilisation of selective
+acknowledgements during the three-way handshake. The second one, SACK (Kind=5), carries
+the selective acknowledgements inside regular segments. 
+
+The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter in
+the Bootstrap TLV. In this case, clients connected to this Transport Converter MAY include
+the SACK Permitted option in the Connect TLV.
+
+The SACK option (Kind=5) cannot be used during the three-way handshake. For this
+reason, a Transport Converter MUST ignore 
+option Kind=5 with if it appears in a Connect TLV. It MUST not announce it in a Bootstrap TLV.
+
+## Timestamp
+
+The Timestamp option was initially defined in {{RFC1323}} which has been replaced
+by {{RFC7323}}. It can be used during the three-way handshake to negotiate the utilisation
+of the timestamps during the TCP connection. It is notably used to improve round-trip-time estimations
+and to provide protection against wrapped sequence numbers (PAWS). As for the WSCALE option,
+the timestamps are a property of a connection and there is limited benefit in
+enabling a client to request a converter to use the timestamp option when establishing a
+connection to a remote server. Furthermore, the timestamps that are used by TCP stacks 
+are specific to each stack and there is no benefit in enabling a client to specify the
+timestamp value that a converter could use to establish a connection to a remote server.
+
+A Transport Converter MAY advertise the Timestamp option (Kind=8) in the Bootstrap TLV. The clients
+connected to this Converter MAY include the Timestamp option in the Connect TLV but without
+any timestamp.
+
+## Multipath TCP
+
+The Multipath TCP options are defined in {{RFC6824}}. {{RFC6824}}
+defines one variable length TCP option (Kind=30) that includes a
+subtype field to support several Multipath TCP options. There are
+several operational use cases where clients would like to use 
+Multipath TCP through a converter {{IETFJ16}}. However, none of
+these use cases require the client to specify the content of
+the Multipath TCP option that the converter should send to a
+remote server. 
+
+A Transport Converter MAY advertise the Multipath TCP option (Kind=30) in the Bootstrap TLV. The clients
+connected to this Converter MAY include the Multipath TCP option in the Connect TLV but without
+any content.
+
+## TCP Fast Open
+
+The TCP Fast Open Cookie option (Kind=34) is defined in {{RFC7413}}. There are two different
+usages of this option that need to be supported by Transport Converters.
+The first utilisation of the Fast Open Cookie is to request a cookie from the server.
+In this case, the option is sent with an empty cookie by the client and the server returns
+the cookie. The second utilisation of the Fast Open Cookie is to send a cookie to the
+server. In this case, the option contains a cookie. 
+
+A Transport Converter MAY advertise the TCP Fast Open Cookie option (Kind=34) in the Bootstrap TLV. 
+If a Transport Converter has advertised the support for TCP Fast Open in its Bootstrap TLV, it needs
+to be able to process two types of Connect TLV. If such a Transport Converter receives a Connect TLV
+with the TCP Fast Open Cookie option that does not contain a cookie, it MUST add an empty
+TCP Fast Open Cookie option in the SYN sent to the remote server. If such a Transport Converter
+receives a Connect TLV with the TCP Fast Open Cookie option that contains a cookie, it MUST copy the
+TCP Fast Open Cookie option in the SYN sent to the remote server.
+
+
+## TCP User Timeout
+
+The TCP User Timeout option is defined in {{RFC5482}}. The associated
+TCP option (Kind=28) does not appear to be widely deployed.
+
+Editor's Note: Feedback requested for the utilisation of this option by
+deployed TCP stacks.
+
+## TCP-AO
+
+TCP-AO {{RFC5925}} provides a technique to authenticate all the
+packets exchanged over a TCP connection. Given the nature of this 
+extension, it is unlikely that the applications that require their
+packets to be authenticated end-to-end would want their connections
+to pass through a converter. For this reason, we do not recommend 
+the support of the TCP-AO option by Transport Converters.
+
+A Converter MUST not advertise the TCP-AO option (Kind=29) in the Bootstrap TLV. 
+If a converter receives a Connect TLV that contains the TCP-AO option,
+it MUST reject the establishment of the connection with error code set to 33.
+
+
+## TCP Experimental Options
+
+The TCP Experimental options are defined in {{RFC4727}}. Given the variety of
+semantics for these options and their experimental nature, it is impossible
+to discuss them in details in this document. A future companion document
+will discuss the known utilisations of the TCP Experimental options 
+to determine how these options should be supported by a
+Transport Converter. 
+
 
 # Interactions with middleboxes {#sec-middleboxes}
 
@@ -980,7 +1131,8 @@ we would like to thank Joe Touch and Juliusz Chroboczek whose
 comments on the MPTCP mailing list have forced
 us to reconsider the design of the solution several times.
 
-We would like to thank Raphael Bauduin and Stefano Secci for their help
+We would like to thank Raphael Bauduin, Stefano Secci and 
+Benjamin Hesmans for their help
 in preparing this draft. Sri Gundavelli and Nandini Ganesh provided 
 valuable feedback about the handling of TFO and the error codes. 
 Thanks to them.
@@ -1032,4 +1184,9 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
  - Olivier Bonaventure
 
 
+# Change Log
 
+This section to be removed before publication.
+
+ -00 to -01 : added section {{sec-tcpoptions}} describing the support of different
+ standard tracks TCP options by Transport Converters.
