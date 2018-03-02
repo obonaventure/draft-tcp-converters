@@ -118,7 +118,7 @@ informative:
 --- abstract
 
 This document specifies an application proxy, called Transport Converter, to
-assist the deployment TCP extensions such as Multipath TCP.
+assist the deployment of TCP extensions such as Multipath TCP.
 This proxy is designed to avoid inducing extra delay when involved in
 a network-assisted connection (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitly configured on hosts.
