@@ -19,27 +19,32 @@ author:
   ins: O. Bonaventure
   name: Olivier Bonaventure
   organization: Tessares
+  country: Belgium
   email: Olivier.Bonaventure@tessares.net
  -
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  country: France
   email: mohamed.boucadair@orange.com
  -
   ins: B. Peirens
   name: Bart Peirens
   organization: Proximus
+  country: Belgium
   email: bart.peirens@proximus.com
  -
   ins: S. Seo
   name: SungHoon Seo
   organization: Korea Telecom
+  country: Korea
   email: sh.seo@kt.com
  -
   ins: A. Nandugudi
   name: Anandatirtha Nandugudi
-  organization: Tessares
-  email: anand.nandugudi@tessares.net
+  organization: Memphis University
+  country: USA
+  email: nndugudi@memphis.edu
 
 normative:
   RFC0793:
