@@ -1,8 +1,8 @@
 ---
-title: 0-RTT TCP Converter 
-abbrev: 
-docname: draft-ietf-tcpm-converters-00
-date: 2018-02-16
+title: 0-RTT TCP Converter
+abbrev:
+docname: draft-ietf-tcpm-converters-01
+date: 2018-03-05
 category: exp
 
 ipr: trust200902
@@ -10,7 +10,7 @@ area: Transport
 workgroup: TCPM Working Group
 keyword: Internet-Draft
 
-coding: us-ascii 
+coding: us-ascii
 stand_alone: yes
 pi: [toc, sortrefs, symrefs]
 
@@ -19,27 +19,32 @@ author:
   ins: O. Bonaventure
   name: Olivier Bonaventure
   organization: Tessares
+  country: Belgium
   email: Olivier.Bonaventure@tessares.net
  -
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  country: France
   email: mohamed.boucadair@orange.com
  -
   ins: B. Peirens
   name: Bart Peirens
   organization: Proximus
+  country: Belgium
   email: bart.peirens@proximus.com
  -
-  ins: S. Seo 
+  ins: S. Seo
   name: SungHoon Seo
   organization: Korea Telecom
+  country: Korea
   email: sh.seo@kt.com
  -
   ins: A. Nandugudi
   name: Anandatirtha Nandugudi
-  organization: Tessares
-  email: anand.nandugudi@tessares.net
+  organization: Memphis University
+  country: USA
+  email: nndugudi@memphis.edu
 
 normative:
   RFC0793:
@@ -47,8 +52,14 @@ normative:
   RFC6824:
   RFC7413:
   RFC4987:
+  RFC2119:
+  RFC8174:
+  RFC4727:
+  RFC5482:
+  RFC5925:
 
 informative:
+  RFC1323:
   RFC1919:
   RFC1928:
   RFC2018:
@@ -65,7 +76,7 @@ informative:
   I-D.peirens-mptcp-transparent:
   I-D.arkko-arch-low-latency:
   I-D.ietf-mptcp-rfc6824bis:
-  I-D.boucadair-mptcp-radius:      
+  I-D.boucadair-mptcp-radius:
   Fukuda2011:
     author:
       - ins: K. Fukuda
@@ -73,17 +84,17 @@ informative:
     seriesinfo: Traffic Monitoring and Analysis. TMA 2011. Lecture Notes in Computer Science, vol 6613.
     date: 2011
   ANRW17:
-    author: 
+    author:
       - ins: B. Trammell
       - ins: M. Kuhlewind
       - ins: P. De Vaere
-      - ins: I. Learmonth 
+      - ins: I. Learmonth
       - ins: G. Fairhurst
     title: Tracking transport-layer evolution with PATHspider
     seriesinfo: Applied Networking Research Workshop 2017 (ANRW17)
-    date: July 2017, Prague  
+    date: July 2017, Prague
   IMC11:
-    author: 
+    author:
       - ins: K. Honda
       - ins: Y. Nishida
       - ins: C. Raiciu
@@ -92,7 +103,7 @@ informative:
       - ins: T. Hideyuki
     title: Is it still possible to extend TCP ?
     seriesinfo: Proceedings of the 2011 ACM SIGCOMM conference on Internet measurement conference
-    date: 2011 
+    date: 2011
   IETFJ16:
     author:
       - ins: O. Bonaventure
@@ -108,12 +119,13 @@ informative:
     seriesinfo: HotMiddlebox'13
     date: Dec. 2013
     target: http://inl.info.ucl.ac.be/publications/multipath-middlebox
-                   
+
 --- abstract
 
 This document specifies an application proxy, called Transport Converter, to
-assist the deployment of Multipath TCP. This proxy is designed to avoid inducing extra 
-delay when involved in a network-assisted connection (that is, 0-RTT).
+assist the deployment of TCP extensions such as Multipath TCP.
+This proxy is designed to avoid inducing extra delay when involved in
+a network-assisted connection (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitly configured on hosts.
 
 --- middle
@@ -122,36 +134,36 @@ This specification assumes an explicit model, where the proxy is explicitly conf
 
 Transport protocols like TCP evolve regularly {{RFC7414}}. TCP has been improved in different
 ways. Some improvements such as changing the initial window size or modifying the
-congestion control scheme can be applied independently on clients and servers. 
+congestion control scheme can be applied independently on clients and servers.
 Other improvements such as Selective Acknowledgements {{RFC2018}} or large windows {{RFC7323}} require
 a new TCP option or to change the semantics of some fields in the TCP header. These modifications must
 be deployed on both clients and servers to be actually used on the Internet.
-Experience with the latter TCP extensions reveals that their deployment can 
+Experience with the latter TCP extensions reveals that their deployment can
 require many years. Fukuda reports in {{Fukuda2011}} results of a decade of measurements showing
 the deployment of Selective Acknowledgements, Window Scale and TCP Timestamps. Trammel et al. provide in
 {{ANRW17}} measurements showing that TCP Fast Open {{RFC7413}} (TFO) is still not widely deployed.
 
-There are some situations where the transport stack used on clients (resp. servers) 
-can be upgraded at a faster pace than the transport stack running on servers (resp. 
-clients). In those situations, clients would typically want to benefit from the 
-features of an improved transport protocol even if the servers have not yet been 
-upgraded and conversely. In the past, Performance Enhancing Proxies have been 
-proposed and deployed {{RFC3135}} as solutions to improve TCP performance over 
-links with specific characteristics. 
+There are some situations where the transport stack used on clients (resp. servers)
+can be upgraded at a faster pace than the transport stack running on servers (resp.
+clients). In those situations, clients would typically want to benefit from the
+features of an improved transport protocol even if the servers have not yet been
+upgraded and conversely. In the past, Performance Enhancing Proxies have been
+proposed and deployed {{RFC3135}} as solutions to improve TCP performance over
+links with specific characteristics.
 
-Recent examples of TCP extensions include Multipath TCP 
+Recent examples of TCP extensions include Multipath TCP
 {{RFC6824}} or TCPINC {{I-D.ietf-tcpinc-tcpcrypt}}. Those extensions
-provide features that are interesting for clients such as wireless devices. 
-With Multipath TCP, those devices could seamlessly use WLAN and cellular networks, 
-for bonding purposes, faster handovers, or better resiliency. 
-Unfortunately, deploying those extensions on both a wide range of clients and 
-servers remains difficult. 
+provide features that are interesting for clients such as wireless devices.
+With Multipath TCP, those devices could seamlessly use WLAN and cellular networks,
+for bonding purposes, faster handovers, or better resiliency.
+Unfortunately, deploying those extensions on both a wide range of clients and
+servers remains difficult.
 
 This document specifies an application proxy, called Transport Converter (TC). A
 Transport Converter is a function that is installed by a network
 operator to aid the deployment of TCP extensions and to provide the benefits of such extensions to clients.
-A Transport Converter supports one or more TCP extensions. The Converter Protocol (CP) is an application layer protocol 
-that uses a TCP port number (see IANA section). The Transport Converter adheres to the main principles as drawn in {{RFC1919}}. In particular, the Converter achieves the following: 
+A Transport Converter supports one or more TCP extensions. The Converter Protocol (CP) is an application layer protocol
+that uses a TCP port number (see IANA section). The Transport Converter adheres to the main principles as drawn in {{RFC1919}}. In particular, the Converter achieves the following:
 
 - Listen for client sessions;
 - Receive from a client the address of the final target server;
@@ -160,35 +172,38 @@ that uses a TCP port number (see IANA section). The Transport Converter adheres 
 - Perform access controls according to local policies.
 
 
-The main advantage of network-assisted converters is that they enable new TCP extensions to be used on 
-a subset of the end-to-end path, which encourages the deployment of these extensions. The 
+The main advantage of network-assisted converters is that they enable new TCP extensions to be used on
+a subset of the end-to-end path, which encourages the deployment of these extensions. The
 Transport Converter allows the client and the server to directly negotiate some options
-between the endpoints. This document focuses on Multipath TCP {{RFC6824}} and TCP Fast Open 
+between the endpoints. This document focuses on Multipath TCP {{RFC6824}} and TCP Fast Open
 {{RFC7413}}.  The support for other TCP extensions will be discussed in other documents.
 
 This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the traffic will be forwarded to a converter according to a set of policies. Furthermore, it is possible to bypass the converter to connect to the servers that already support the required TCP extension.
 
-This document assumes that a client is configured with one or a list of transport converters. Configuration means are outside the scope of this document. 
+This document assumes that a client is configured with one or a list of transport converters. Configuration means are outside the scope of this document.
 
 This document is organized as follows. We first provide a brief explanation of the
 operation of Transport Converters in {{sec-arch}}. We compare them in
 {{sec-socks}} with SOCKS proxies that are already used to deploy
-Multipath TCP in cellular networks {{IETFJ16}}. We then describe the Converter
-Protocol in {{sec-protocol}}.
+Multipath TCP in cellular networks {{IETFJ16}}. We describe the Converter
+Protocol in {{sec-protocol}}. We discuss in {{sec-tcpoptions}} how Transport
+Converters can be used to support different TCP options.
 We then discuss the interactions with middleboxes
 ({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
 
+
+
 # Applicability Scope {#scope}
 
-This specification is designed with Multipath TCP {{RFC6824}}{{I-D.ietf-mptcp-rfc6824bis}} 
+This specification is designed with Multipath TCP {{RFC6824}}{{I-D.ietf-mptcp-rfc6824bis}}
 and TCP Fast Open {{RFC7413}}
-in mind. That is, the specification draws 
-how network-assisted Multipath TCP connections can be established even if the remote server 
-is not Multipath TCP-capable without inducing extra connection delays (0-RTT proxy). Further, 
-the specification allows the client for end-to-end Multipath TCP connections with or without proxy involvement. 
+in mind. That is, the specification draws
+how network-assisted Multipath TCP connections can be established even if the remote server
+is not Multipath TCP-capable without inducing extra connection delays (0-RTT proxy). Further,
+the specification allows the client for end-to-end Multipath TCP connections with or without proxy involvement.
 Assessing the applicability of the solution to other use cases and other TCP extensions
-such as {{I-D.ietf-tcpinc-tcpcrypt}} is outside the scope of this document. 
-Future documents are required to specify the 
+such as {{I-D.ietf-tcpinc-tcpcrypt}} is outside the scope of this document.
+Future documents are required to specify the
 exact behavior when the converter is deployed in other contexts than Multipath TCP.
 
 # Architecture {#sec-arch}
@@ -200,15 +215,15 @@ The architecture considers three types of endhosts:
 - Server endhosts.
 
 It does not mandate anything on the server side. The architecture assumes that
-new software will be installed on the Client hosts and on Transport Converters. 
-Further, the architecture allows for making use of TCP new extensions if those are supported by a given server. 
+new software will be installed on the Client hosts and on Transport Converters.
+Further, the architecture allows for making use of TCP new extensions if those are supported by a given server.
 
 A Transport Converter is a network function that relays all data exchanged over one
-upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing interface, client-facing interface). The 
+upstream connection to one downstream connection and vice versa. A connection can be initiated from both interfaces of the transport converter (Internet-facing interface, client-facing interface). The
 converter, thus, maintains state that associates one upstream connection to
-a corresponding downstream connection. One of the benefits of this design 
+a corresponding downstream connection. One of the benefits of this design
 is that different transport protocol extensions can be used on the upstream
-and the downstream connections. This encourages the deployment of new TCP extensions 
+and the downstream connections. This encourages the deployment of new TCP extensions
 until they are supported by many servers.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,26 +231,26 @@ until they are supported by many servers.
                      +------------+
    <--- upstream --->| Transport  |<--- downstream --->
                      | Converter  |
-                     +------------+   
+                     +------------+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc title="A Transport Converter relays data between pairs of TCP connections"}
 
 
-Transport converters can be operated by network operators or 
-third parties. The Client is configured, through means that are outside the 
-scope of this document, 
-with the names and/or the addresses of one or more Transport Converters. The 
+Transport converters can be operated by network operators or
+third parties. The Client is configured, through means that are outside the
+scope of this document,
+with the names and/or the addresses of one or more Transport Converters. The
 packets belonging to the pair of connections between the Client and Server
-passing through a Transport Converter 
+passing through a Transport Converter
 may follow a different path than the packets directly exchanged between the
 Client and the Server. Deployments should minimize the possible additional delay
 by carefully selecting the location of the Transport Converter used to reach a
-given destination. 
+given destination.
 
 
 A transport converter can be embedded in a standalone device or be activated as
-a service on a router. How such function is enabled is deployement-specific. 
+a service on a router. How such function is enabled is deployement-specific.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -250,21 +265,21 @@ a service on a router. How such function is enabled is deployement-specific.
 {: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
 
 
-When establishing a connection, the Client can, depending on local policies, 
+When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, which is the case we consider in this document, the Client
-initiates a connection towards the Transport Converter and indicates the address and port number of 
-the ultimate Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate 
-a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the 
-confirmation that the Server agrees to establish the connection before confirming 
-it to the Client. 
+initiates a connection towards the Transport Converter and indicates the address and port number of
+the ultimate Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate
+a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the
+confirmation that the Server agrees to establish the connection before confirming
+it to the Client.
 
 The client places the
 destination address and port number of the target Server in the payload of the SYN sent to the Converter by
-leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter 
-maintains two connections that are combined together. The upstream 
-connection is the one between the Client and the Transport Converter. The 
-downstream connection is between the Transport Converter and the remote Server. Any user data received by the Transport Converter over the upstream (resp., downstream) 
+leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter
+maintains two connections that are combined together. The upstream
+connection is the one between the Client and the Transport Converter. The
+downstream connection is between the Transport Converter and the remote Server. Any user data received by the Transport Converter over the upstream (resp., downstream)
 connection is relayed over the downstream (resp., upstream) connection.
 
 At a high level, the objective of the Transport Converter is to allow the
@@ -278,21 +293,21 @@ with =) while the Converter uses a regular TCP connection with the Server.
                          Transport
 Client                   Converter                       Server
      ======================>
-      
+
                                  -------------------->
-                                         
+
                                  <--------------------
-                                         
+
      <======================
        Multipath TCP packets      Regular TCP packets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-highlevel title="Different TCP variants can be used on the Client-Converter path and on the Converter-Server path"}
 
 
-{{fig-estab}} illustrates the 
+{{fig-estab}} illustrates the
 establishment of a TCP connection by the Client through a Transport Converter. The
-information shown between brackets is part of the Converter protocol 
-described later in this document. 
+information shown between brackets is part of the Converter protocol
+described later in this document.
 
 The Client sends a SYN destined to the Transport Converter. This SYN contains a
 TFO Cookie and inside its payload the addresses and ports of the destination
@@ -300,9 +315,9 @@ Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the destination Server. If this
 second connection succeeds, the Transport Converter confirms the establishment of
 the connection to the Client by returning a SYN+ACK and the first bytes of
-the bytestream contain information about the TCP Options that were negotiated 
+the bytestream contain information about the TCP Options that were negotiated
 with the final Server. This information
-is sent at the beginning of the bytestream, either directly in the SYN+ACK or in 
+is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
 a subsequent packet. For graphical reasons, the figures in this section show
 that the Converter returns this information in the SYN+ACK packet. An implementation
 could also place this information in a packet that it sent shortly after the SYN+ACK.
@@ -326,13 +341,13 @@ Client                   Converter                       Server
 {: #fig-estab title="Establishment of a TCP connection through a Converter"}
 
 
-The connection can also be established from the Internet towards a client via a transport converter. 
-This is typically the case when the client embeds a server (video server, for example). 
+The connection can also be established from the Internet towards a client via a transport converter.
+This is typically the case when the client embeds a server (video server, for example).
 
 The procedure described in {{fig-estab}} assumes that the Client has obtained a TFO Cookie
 from the Transport Converter. This is part of the Bootstrap procedure which is illustrated
 in {{fig-bootstrapex}}. The Client sends a SYN with a TFO Request option to obtain a
-valid cookie from the Converter. The Converter replies with a TFO cookie in the SYN+ACK. 
+valid cookie from the Converter. The Converter replies with a TFO cookie in the SYN+ACK.
 Once this connection has been established, the Client sends a Bootstrap message to request
 the list of TCP options supported by the Transport Converter. Thanks to this procedure, the
 Client knows which TCP options are supported by a given Transport Converter.
@@ -341,16 +356,16 @@ Client knows which TCP options are supported by a given Transport Converter.
                          Transport
 Client                   Converter                       Server
      -------------------->
-      SYN TFO(empty) 
-                          
+      SYN TFO(empty)
+
      <--------------------
-       SYN+ACK TFO(cookie) 
+       SYN+ACK TFO(cookie)
 
      -------------------->
          [Bootstrap]
 
      <--------------------
-       [Supported TCP Options] 
+       [Supported TCP Options]
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -359,19 +374,19 @@ Client                   Converter                       Server
 Note that the Converter may rely on local policies to decide whether it can service a given
 requesting client. That is, the Converter may not return a cookie for that client.
 
-Also, the Converter may behave in a Cookie-less mode when appropriate means are enforced 
-at the converter and the network in-between to protect against attacks such as spoofing 
-and SYN flood. Under such deployments, the use of TFO is not required.  
+Also, the Converter may behave in a Cookie-less mode when appropriate means are enforced
+at the converter and the network in-between to protect against attacks such as spoofing
+and SYN flood. Under such deployments, the use of TFO is not required.
 
 ## Sample Examples of Converter-Assisted Multipath TCP Connections
 
-As an example, let us consider how such a protocol can help the deployment of 
-Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport 
-Converter support Multipath TCP, but consider two different cases depending  
+As an example, let us consider how such a protocol can help the deployment of
+Multipath TCP {{RFC6824}}. We assume that both the Client and the Transport
+Converter support Multipath TCP, but consider two different cases depending
 whether the Server supports Multipath TCP or not. A Multipath TCP connection is created
 by placing the MP\_CAPABLE (MPC) option in the SYN sent by the Client.
 
-{{fig-mpestab}} describes the operation of the Transport Converter 
+{{fig-mpestab}} describes the operation of the Transport Converter
 if the Server does not support Multipath TCP.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -384,7 +399,7 @@ Client                   Converter                    Server
                                        SYN, MPC
 
                                  <--------------------
-                                         SYN+ACK 
+                                         SYN+ACK
      <--------------------
        SYN+ACK,MPC [ ]
 
@@ -396,24 +411,24 @@ Client                   Converter                    Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestab title="Establishment of a Multipath TCP connection through a Converter"}
 
-The Client tries to initiate a Multipath TCP connection by sending a SYN with the 
-MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port number 
-of the final Server and the Transport Converter attempts to initiate a Multipath TCP 
-connection towards this Server. Since the Server does not support Multipath TCP, it 
-replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport 
+The Client tries to initiate a Multipath TCP connection by sending a SYN with the
+MP\_CAPABLE option (MPC in {{fig-mpestab}}). The SYN includes the address and port number
+of the final Server and the Transport Converter attempts to initiate a Multipath TCP
+connection towards this Server. Since the Server does not support Multipath TCP, it
+replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport
 Converter notes that the connection with the Server does not support Multipath TCP
 and returns the TCP Options received from the Server to the Client.
 
-{{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it 
-replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option. 
-Upon reception of this SYN+ACK, the Transport Converter confirms the establishment 
-of the connection to the Client and indicates to 
-the Client that the Server supports Multipath TCP. With this information, 
-the Client has discovered that the Server supports Multipath TCP 
-natively. This will enable it to bypass the Transport Converter for the next 
+{{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it
+replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
+Upon reception of this SYN+ACK, the Transport Converter confirms the establishment
+of the connection to the Client and indicates to
+the Client that the Server supports Multipath TCP. With this information,
+the Client has discovered that the Server supports Multipath TCP
+natively. This will enable it to bypass the Transport Converter for the next
 Multipath TCP connection that it will initiate towards this Server.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
 Client                   Converter                       Server
      -------------------->
@@ -437,11 +452,11 @@ Client                   Converter                       Server
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
-An example of an incoming converter-assisted Multipath TCP connection is depicted 
-in {{fig-inestab}}. In order to support incoming connections from remote hosts, 
-the client may use PCP {{RFC6887}} to instruct the converter to create dynamic 
-mappings. Those mappings will be used by the converter to intercept an incoming 
-TCP connection destined to the client and convert it into a Multipath TCP connection. 
+An example of an incoming converter-assisted Multipath TCP connection is depicted
+in {{fig-inestab}}. In order to support incoming connections from remote hosts,
+the client may use PCP {{RFC6887}} to instruct the converter to create dynamic
+mappings. Those mappings will be used by the converter to intercept an incoming
+TCP connection destined to the client and convert it into a Multipath TCP connection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                      Transport
@@ -450,7 +465,7 @@ H1                   Converter                       Remote Host
                                   SYN
 
      <-------------------
-    SYN, MPC[Remote Host:port]                  
+    SYN, MPC[Remote Host:port]
 
      --------------------->
             SYN+ACK, MPC
@@ -468,24 +483,24 @@ H1                   Converter                       Remote Host
 
 ## Differences with SOCKSv5 {#sec-socks}
 
-The description above is a simplified description of the Converter protocol. 
-At a first glance, the proposed solution could seem similar to the SOCKS v5 protocol 
+The description above is a simplified description of the Converter protocol.
+At a first glance, the proposed solution could seem similar to the SOCKS v5 protocol
 {{RFC1928}}. This protocol is used to proxy TCP connections. The Client creates
 a connection to a SOCKS proxy, exchanges authentication information and indicates
 the destination address and port of the final server. At this point, the SOCKS
 proxy creates a connection towards the final server and relays all data between
 the two proxied connections. The operation of an implementation based on SOCKSv5 is illustrated in {{fig-socks5}}.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~                                                 
-                         
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Client                     SOCKS Proxy                  Server
      -------------------->
-             SYN 
+             SYN
      <--------------------
            SYN+ACK
      -------------------->
              ACK
-             
+
      -------------------->
      Version=5, Auth Methods
      <--------------------
@@ -518,20 +533,20 @@ Client                     SOCKS Proxy                  Server
 
 The Converter protocol also relays data
 between an upstream and a downstream connection, but there are important
-differences with SOCKSv5. 
+differences with SOCKSv5.
 
 A first difference is that the Converter protocol leverages the TFO option {{RFC7413}}
 to exchange all control information during the three-way handshake. This reduces
 the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream connection towards
-the final destination. In today's Internet, latency is a important metric and 
+the final destination. In today's Internet, latency is a important metric and
 various protocols have been tuned to reduce their latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to SOCKS also leverages the TFO
-option {{I-D.olteanu-intarea-socks-6}}. 
+option {{I-D.olteanu-intarea-socks-6}}.
 
 A second difference is that the Converter protocol explicitly takes the TCP extensions
 into account. By using the Converter protocol, the Client can learn whether
-a given TCP extension is supported by the destination Server. This enables the Client to 
-bypass the Transport Converter when the destination supports the required 
+a given TCP extension is supported by the destination Server. This enables the Client to
+bypass the Transport Converter when the destination supports the required
 TCP extension. Neither SOCKS v5 {{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
 provide such a feature.
 
@@ -539,20 +554,29 @@ A third difference is that a Transport Converter will only accept the connection
 initiated by the Client provided that the downstream connection is accepted by
 the Server. If the Server refuses the connection establishment attempt from
 the Transport Converter, then the upstream connection from the Client
-is rejected as well. This feature is important for applications that check the 
+is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
-selection of a Server {{RFC6555}}. 
+selection of a Server {{RFC6555}}.
 
 
 # The Converter Protocol {#sec-protocol}
 
 We now describe in details the messages that are exchanged between a Client and
 a Transport Converter. The Converter Protocol (CP) leverages the TCP Fast Open
-extension defined in {{RFC7413}}. 
+extension defined in {{RFC7413}}.
 
 The Converter Protocol uses a 32 bits long fixed header that is sent
 by both the Client and the Transport Converter. This header indicates both
-the version of the protocol used and the length of the CP message. 
+the version of the protocol used and the length of the CP message.
+
+## Requirements
+
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in
+{{RFC2119}} {{RFC8174}} when, and only when, they appear in all capitals,
+as shown here.
 
 
 ## The Fixed Header {#sec-header}
@@ -579,11 +603,11 @@ consume more than 1020 bytes of data. This limits the number of bytes
 that a Transport Converter needs to process. A
 Total Length of zero is invalid and the connection MUST be reset upon
 reception of such a header. The Reserved field MUST be set to zero in this
-version of the protocol. 
+version of the protocol.
 
 ## Transport Converter TLVs {#sec-tlv}
 
-The Converter protocol uses variable length messages that are encoded using 
+The Converter protocol uses variable length messages that are encoded using
 a TLV format to simplify the parsing of the messages and leave room to extend
 the protocol in the future.
 A given TLV can only appear once on a connection. If two or more
@@ -597,7 +621,7 @@ Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}
 |------|-----|----------|-----------------------------------------------|
 | Type | Hex |  Length  | Description                                   |
 |------|-----|----------|-----------------------------------------------|
-|   1  | 0x1 |    1     | Bootstrap TLV                                 | 
+|   1  | 0x1 |    1     | Bootstrap TLV                                 |
 |  10  | 0xA |  Variable| Connect TLV                                   |
 |  20  | 0x14|  Variable| Extended TCP Header TLV                       |
 |  21  | 0x15|  Variable| Supported TCP Options TLV                     |
@@ -605,36 +629,36 @@ Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}
 |------|-----|----------|-----------------------------------------------|
 {: #tab-converter-tlv title="The TLVs used by the Converter protocol"}
 
-To use a given Transport Converter, a Client MUST first obtain a valid 
+To use a given Transport Converter, a Client MUST first obtain a valid
 TFO cookie from it. This is the bootstrap procedure during which the Client
-opens a connection to the Transport Converter with an empty TFO option. 
+opens a connection to the Transport Converter with an empty TFO option.
 According to {{RFC7413}}, the Transport Converter returns its cookie in the SYN+ACK.
-Then the Client sends a Bootstrap TLV and the Transport Converter replies with 
+Then the Client sends a Bootstrap TLV and the Transport Converter replies with
 the Supported TCP Options TLV that lists the TCP options that it
-supports (section {{sec-supported}}). 
+supports (section {{sec-supported}}).
 
 With the TFO Cookie of the Transport Converter, the Client can request
 the establishment of connections to remote servers with the Connect TLV
 (see {{sec-connect}}). If the connection can be established with the final server,
 the Transport Converter replies with the Extended TCP Header TLV
-and returns an Error TLV inside a RST packet 
+and returns an Error TLV inside a RST packet
 (see section {{sec-error}}).
 
 ### Connect TLV {#sec-connect}
 
-This TLV ({{fig-connect}}) is used to request the establishment of a connection via a Transport Converter. 
+This TLV ({{fig-connect}}) is used to request the establishment of a connection via a Transport Converter.
 
-The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the destination port and IP address of the target server for an outgoing connection towards a server located on the Internet. For incoming connections destined to a client serviced via a Converter, these fields convey the source port and IP address. 
+The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the destination port and IP address of the target server for an outgoing connection towards a server located on the Internet. For incoming connections destined to a client serviced via a Converter, these fields convey the source port and IP address.
 
 The Remote Peer IP Address MUST be encoded
-as an IPv6 address. IPv4 addresses MUST be encoded using the 
+as an IPv6 address. IPv4 addresses MUST be encoded using the
 IPv4-Mapped IPv6 Address format defined in {{RFC4291}}.
 
-The optional 'TCP Options' field is used to specify how specific TCP Options 
+The optional 'TCP Options' field is used to specify how specific TCP Options
 should be advertised by the Transport Converter
-to the final destination of a connection. If this field is not supplied, the Transport 
-Converter MUST use the default TCP options that correspond to its local 
-policy. 
+to the final destination of a connection. If this field is not supplied, the Transport
+Converter MUST use the default TCP options that correspond to its local
+policy.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -655,15 +679,15 @@ policy.
 
 The 'TCP Options' field is a variable length field that carries
 a list of TCP Option fields ({{fig-tcpopt}}). Each TCP Option field is encoded as a
-block of 2+n bytes where the first byte is the TCP 
+block of 2+n bytes where the first byte is the TCP
 Option Type and the second byte is the length of the TCP Option
-as specified in {{RFC0793}}. The minimum value for the TCP Option Length is 2. 
-The TCP Options that do not include a length subfield, i.e., option types 
-0 (EOL) and 1 (NOP) defined in {{RFC0793}} cannot be placed inside the 
-TCP Options field of the Connect TLV. The optional Value field 
-contains the variable-length part of the TCP option. A length of two 
-indicates the absence of the Value field. The TCP Options field 
-always ends on a 32 bits boundary after being padded with zeros. 
+as specified in {{RFC0793}}. The minimum value for the TCP Option Length is 2.
+The TCP Options that do not include a length subfield, i.e., option types
+0 (EOL) and 1 (NOP) defined in {{RFC0793}} cannot be placed inside the
+TCP Options field of the Connect TLV. The optional Value field
+contains the variable-length part of the TCP option. A length of two
+indicates the absence of the Value field. The TCP Options field
+always ends on a 32 bits boundary after being padded with zeros.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -683,7 +707,7 @@ always ends on a 32 bits boundary after being padded with zeros.
 If a Transport Converter receives a Connect TLV with a non-empty TCP Options
 field, it shall present those options to the destination
 peer in addition to the TCP Options that it would have used according to its local
-policies. For the 
+policies. For the
 TCP Options that are listed without an optional value, the Converter MUST generate its
 own value. For the TCP Options that are included in the 'TCP Options' field with
 an optional value, it shall copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open.
@@ -691,7 +715,7 @@ an optional value, it shall copy the entire option for use in the connection wit
 
 ### Extended TCP Header TLV {#sec-ext-header}
 
-The Extended TCP Header TLV is used by the Transport Converter to send 
+The Extended TCP Header TLV is used by the Transport Converter to send
 to the Client the extended TCP header that was returned by the Server in the
 SYN+ACK packet. This TLV is only sent if the Client sent
 a Connect TLV to request the establishment of a connection.
@@ -710,20 +734,20 @@ a Connect TLV to request the establishment of a connection.
 {: #fig-tcpheader title="The Extended TCP Header TLV"}
 
 The Returned Extended TCP header field is a copy of the extended header
-that was received in the SYN+ACK by the Transport Converter. The 
-Reserved field is set to zero by the transmitter and ignored by the 
-receiver. 
+that was received in the SYN+ACK by the Transport Converter. The
+Reserved field is set to zero by the transmitter and ignored by the
+receiver.
 
 ### Error TLV {#sec-error}
 
 This optional TLV can be used by the Transport Converter to provide
 information about some errors that occurred during the processing
 of a request to convert a connection. This TLV appears after
-the Converter header in a RST segment returned by the 
+the Converter header in a RST segment returned by the
 Transport Converter if the error is fatal and prevented the
 establishment of the connection. If the error is not fatal and
 the connection could be established with the final destination, then
-the error TLV will be carried in the payload. 
+the error TLV will be carried in the payload.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -736,33 +760,33 @@ the error TLV will be carried in the payload.
 
 Different types of errors can occur while processing Converter protocol
 messages. Each error is identified by a code represented as an unsigned integer.
-Four classes of errors are defined: 
+Four classes of errors are defined:
 
- - Message validation and processing errors (0<= error code <= 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs). 
- - Client-side errors (32<= error code <= 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation). 
+ - Message validation and processing errors (0<= error code <= 31): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs).
+ - Client-side errors (32<= error code <= 63): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation).
  - Converter-side errors (64<= error code <96) : problems encountered on the Converter (e.g., lack of ressources) which prevent it from fulfilling the Client's request.
  - Errors caused by destination server (96<= error code <= 127) : the final destination could not be reached or it replied with a reset message.
 
 The following errors are defined in this document:
 
- - Unsupported Version (0): The version number indicated in the fixed header of a message received from a peer is not supported. This error code MUST be generated by a Converter when it receives a request having a version number that it does not support. The value field MUST be set to the version supported by the Converter. When multiple versions are supported by the converter, it includes the list of supported version in the value field; each version is encoded in 8 bits. Upon receipt of this error code, the client checks whether it supports one of the versions returned by the Converter. The highest common supported version MUST be used by the client in subsequent exchanges with the Converter.     
+ - Unsupported Version (0): The version number indicated in the fixed header of a message received from a peer is not supported. This error code MUST be generated by a Converter when it receives a request having a version number that it does not support. The value field MUST be set to the version supported by the Converter. When multiple versions are supported by the converter, it includes the list of supported version in the value field; each version is encoded in 8 bits. Upon receipt of this error code, the client checks whether it supports one of the versions returned by the Converter. The highest common supported version MUST be used by the client in subsequent exchanges with the Converter.
  - Malformed Message (1): This error code is sent to indicate that a message can not be successfully parsed. To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
  - Unsupported Message (2): This error code is sent to indicate that a message type is not supported by the converter. To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of an unsupported message.
  - Not Authorized (32): This error code indicates that the Converter refused to create a connection because of a lack of authorization (e.g., administratively prohibited, authorization failure, etc.). The Value field is set to zero. This error code MUST be sent by the Converter when a request cannot be successfully processed because the authorization failed.
  - Unsupported TCP Option (33). A TCP Option that the Client requested to
    advertise to the final Server is not supported by the Transport
    Converter. The Value field is set to the type of the unsupported
-   TCP Option. If several unsupported TCP Options were specified in the 
+   TCP Option. If several unsupported TCP Options were specified in the
    Connect TLV, only one of them is returned in the Value.
- - Resource Exceeded (64): This error indicates that the Transport Converter does 
-   not have enough resources to perform the request. This error MUST be sent by the Converter when it does not have sufficient resources to handle a new connection.  
+ - Resource Exceeded (64): This error indicates that the Transport Converter does
+   not have enough resources to perform the request. This error MUST be sent by the Converter when it does not have sufficient resources to handle a new connection.
  - Network Failure (65): This error indicates that the converter is experiencing a network failure to relay the request. The converter MUST send this error code when it experiences forwarding issues to relay a connection.
  - Connection Reset (96): This error indicates that the final
-   destination responded with a RST packet. The Value field is set to zero. 
- - Destination Unreachable (97): This error indicates that an ICMP destination 
+   destination responded with a RST packet. The Value field is set to zero.
+ - Destination Unreachable (97): This error indicates that an ICMP destination
    unreachable, port unreachable, or network unreachable was received
-   by the  Converter. The Value field contains the Code 
-   field of the received ICMP message. This error message MUST be sent by the Converter when it receives an error message that is bound to a message it relayed previously. 
+   by the  Converter. The Value field contains the Code
+   field of the received ICMP message. This error message MUST be sent by the Converter when it receives an error message that is bound to a message it relayed previously.
 
 
 {{tab-error-types}} summarizes the different error codes.
@@ -771,8 +795,8 @@ The following errors are defined in this document:
  | Error | Hex  | Description                                   |
  |-------|------|-----------------------------------------------|
  |    0  | 0x00 | Unsupported version                           |
- |    1  | 0x01 | Malformed Message                             | 
- |    2  | 0x02 | Unsupported Message                           | 
+ |    1  | 0x01 | Malformed Message                             |
+ |    2  | 0x02 | Unsupported Message                           |
  |   32  | 0x20 | Not Authorized                                |
  |   33  | 0x21 | Unsupported TCP Option                        |
  |   64  | 0x40 | Resource Exceeded                             |
@@ -785,7 +809,7 @@ The following errors are defined in this document:
 
 ### The Bootstrap TLV {#sec-bootstrap-tlv}
 
-The Bootstrap TLV is sent by a Client to request the TCP Extensions that are 
+The Bootstrap TLV is sent by a Client to request the TCP Extensions that are
 supported by a Transport Converter. It is typically sent on the first connection
 that a Client establishes with a Transport Converter to learn its
 capabilities. The Transport Converter replies with the Supported TCP
@@ -803,10 +827,10 @@ Options TLV described in {{sec-supported}}.
 
 ### Supported TCP Options TLV {#sec-supported}
 
-The Supported TCP Options TLV is used by a Converter to announce the 
+The Supported TCP Options TLV is used by a Converter to announce the
 TCP options that it supports. Each supported TCP Option is encoded
-with its TCP option Kind listed in the TCP Parameters registry 
-maintained by IANA. TCP option Kinds 0, 1, and 2 defined in 
+with its TCP option Kind listed in the TCP Parameters registry
+maintained by IANA. TCP option Kinds 0, 1, and 2 defined in
 {{RFC0793}} are supported by all TCP implementations and thus cannot
 appear in this list. The list of supported TCP Options is padded with
 0 to end on a 32 bits boundary.
@@ -818,13 +842,145 @@ appear in this list. The list of supported TCP Options is padded with
    |     Type      |     Length    |           Reserved            |
    +---------------+---------------+-------------------------------+
    |     Kind #1   |     Kind #2   |           ...                 |
-   +---------------+---------------+-------------------------------+   
+   +---------------+---------------+-------------------------------+
    /                              ...                              /
    /                                                               /
-   +---------------------------------------------------------------+   
+   +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-supported title="The Supported TCP Options TLV"}
 
+
+# Support for specific TCP extensions {#sec-tcpoptions}
+
+In this section, we discuss how several standard track TCP options can be
+supported through the proposed converter. The non-standard track options and
+the experimental options will be discussed in other documents.
+
+
+## Original TCP options
+
+Three TCP options were initially defined in {{RFC0793}} : End-of-Option List (Kind=0),
+No-Operation (Kind=1) and Maximum Segment Size (Kind=2). The first two options are
+mainly used to pad the TCP extended header. There is no reason for a client
+to request a converter to specifically send these options towards the
+final destination.
+
+The Maximum Segment Size option (Kind=2) is used by a host to indicate the largest
+segment that it can receive over each connection. This value is function of the
+stack that terminates the TCP connection. There is no reason for a client to request
+a converter to advertise a specific MSS value to a remote server.
+
+A converter MUST ignore options with Kind=0, 1 or 2 if they appear
+in a Connect TLV. It MUST not announce them in a Bootstrap TLV.
+
+## Window Scale
+
+The Window Scale option (Kind=3) is defined in {{RFC7323}}. As for the MSS option, the
+window scale factor that is used for a connection strongly depends on the TCP stack
+that handles the connection. When a converter opens a TCP connection towards a
+remote server on behalf of a client, it SHOULD use a WSCALE option with a scaling factor
+that corresponds to the configuration of its stack and MAY be function of the scaling
+factor of the incoming connection.
+
+There is no benefit from a deployment viewpoint in enabling a client of a converter to
+specifically request the utilisation of the WSCALE option (Kind=3) with a specific
+scaling factor towards a remote server. For this reason, a converter MUST ignore
+option Kind=3 if it appears in a Connect TLV. It MUST not announce it in a Bootstrap TLV.
+
+## Selective Acknowledgements
+
+Two distinct TCP options were defined to support selective acknowledgements in {{RFC2018}}.
+This first one, SACK Permitted (Kind=4), is used to negotiate the utilisation of selective
+acknowledgements during the three-way handshake. The second one, SACK (Kind=5), carries
+the selective acknowledgements inside regular segments.
+
+The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter in
+the Bootstrap TLV. In this case, clients connected to this Transport Converter MAY include
+the SACK Permitted option in the Connect TLV.
+
+The SACK option (Kind=5) cannot be used during the three-way handshake. For this
+reason, a Transport Converter MUST ignore
+option Kind=5 with if it appears in a Connect TLV. It MUST not announce it in a Bootstrap TLV.
+
+## Timestamp
+
+The Timestamp option was initially defined in {{RFC1323}} which has been replaced
+by {{RFC7323}}. It can be used during the three-way handshake to negotiate the utilisation
+of the timestamps during the TCP connection. It is notably used to improve round-trip-time estimations
+and to provide protection against wrapped sequence numbers (PAWS). As for the WSCALE option,
+the timestamps are a property of a connection and there is limited benefit in
+enabling a client to request a converter to use the timestamp option when establishing a
+connection to a remote server. Furthermore, the timestamps that are used by TCP stacks
+are specific to each stack and there is no benefit in enabling a client to specify the
+timestamp value that a converter could use to establish a connection to a remote server.
+
+A Transport Converter MAY advertise the Timestamp option (Kind=8) in the Bootstrap TLV. The clients
+connected to this Converter MAY include the Timestamp option in the Connect TLV but without
+any timestamp.
+
+## Multipath TCP
+
+The Multipath TCP options are defined in {{RFC6824}}. {{RFC6824}}
+defines one variable length TCP option (Kind=30) that includes a
+subtype field to support several Multipath TCP options. There are
+several operational use cases where clients would like to use
+Multipath TCP through a converter {{IETFJ16}}. However, none of
+these use cases require the client to specify the content of
+the Multipath TCP option that the converter should send to a
+remote server.
+
+A Transport Converter MAY advertise the Multipath TCP option (Kind=30) in the Bootstrap TLV. The clients
+connected to this Converter MAY include the Multipath TCP option in the Connect TLV but without
+any content.
+
+## TCP Fast Open
+
+The TCP Fast Open Cookie option (Kind=34) is defined in {{RFC7413}}. There are two different
+usages of this option that need to be supported by Transport Converters.
+The first utilisation of the Fast Open Cookie is to request a cookie from the server.
+In this case, the option is sent with an empty cookie by the client and the server returns
+the cookie. The second utilisation of the Fast Open Cookie is to send a cookie to the
+server. In this case, the option contains a cookie.
+
+A Transport Converter MAY advertise the TCP Fast Open Cookie option (Kind=34) in the Bootstrap TLV.
+If a Transport Converter has advertised the support for TCP Fast Open in its Bootstrap TLV, it needs
+to be able to process two types of Connect TLV. If such a Transport Converter receives a Connect TLV
+with the TCP Fast Open Cookie option that does not contain a cookie, it MUST add an empty
+TCP Fast Open Cookie option in the SYN sent to the remote server. If such a Transport Converter
+receives a Connect TLV with the TCP Fast Open Cookie option that contains a cookie, it MUST copy the
+TCP Fast Open Cookie option in the SYN sent to the remote server.
+
+
+## TCP User Timeout
+
+The TCP User Timeout option is defined in {{RFC5482}}. The associated
+TCP option (Kind=28) does not appear to be widely deployed.
+
+Editor's Note: Feedback requested for the utilisation of this option by
+deployed TCP stacks.
+
+## TCP-AO
+
+TCP-AO {{RFC5925}} provides a technique to authenticate all the
+packets exchanged over a TCP connection. Given the nature of this
+extension, it is unlikely that the applications that require their
+packets to be authenticated end-to-end would want their connections
+to pass through a converter. For this reason, we do not recommend
+the support of the TCP-AO option by Transport Converters.
+
+A Converter MUST not advertise the TCP-AO option (Kind=29) in the Bootstrap TLV.
+If a converter receives a Connect TLV that contains the TCP-AO option,
+it MUST reject the establishment of the connection with error code set to 33.
+
+
+## TCP Experimental Options
+
+The TCP Experimental options are defined in {{RFC4727}}. Given the variety of
+semantics for these options and their experimental nature, it is impossible
+to discuss them in details in this document. A future companion document
+will discuss the known utilisations of the TCP Experimental options
+to determine how these options should be supported by a
+Transport Converter.
 
 
 # Interactions with middleboxes {#sec-middleboxes}
@@ -832,13 +988,13 @@ appear in this list. The list of supported TCP Options is padded with
 The Converter protocol was designed to be used in networks that do not
 contain middleboxes that interfere with TCP. We describe in this
 section how a Client can detect middlebox interference and stop using
-the Transport Converter affected by this interference. 
+the Transport Converter affected by this interference.
 
-Internet measurements {{IMC11}} 
-have shown that middleboxes can affect the deployment of TCP extensions. 
+Internet measurements {{IMC11}}
+have shown that middleboxes can affect the deployment of TCP extensions.
 In this section, we only discuss the middleboxes
 that modify SYN and SYN+ACK packets since the Converter protocol places
-its messages in such packets. 
+its messages in such packets.
 
 Let us first consider a middlebox that removes the TFO Option from the SYN packet.
 This interference will be detected by the Client during the bootstrap procedure
@@ -846,15 +1002,15 @@ shown in {{fig-bootstrapex}}. A Client should not use a Transport Converter
 that does not reply with the TFO option during the Bootstrap.
 
 Consider a middlebox that removes the SYN payload after the bootstrap
-procedure. The Client can detect this problem by looking at the 
+procedure. The Client can detect this problem by looking at the
 acknowledgement number field of
-the SYN+ACK returned by the Transport Converter. 
-The Client should stop to use this 
+the SYN+ACK returned by the Transport Converter.
+The Client should stop to use this
 Transport Converter given the middlebox interference.
 
-As explained in {{RFC7413}}, some carrier-grade NATs can affect the operation of 
+As explained in {{RFC7413}}, some carrier-grade NATs can affect the operation of
 TFO if they assign different IP addresses to the same end host. Such carrier-grade
-NATs could affect the operation of the TFO Option used by the Converter protocol. 
+NATs could affect the operation of the TFO Option used by the Converter protocol.
 See also the discussion in section 7.1 of {{RFC7413}}.
 
 
@@ -862,7 +1018,7 @@ See also the discussion in section 7.1 of {{RFC7413}}.
 
 ## Privacy & Ingress Filtering
 
-The Converter may have access to privacy-related information (e.g., subscriber credentials). 
+The Converter may have access to privacy-related information (e.g., subscriber credentials).
 The Converter MUST NOT leak such sensitive information outside a local domain.
 
 Given its function and its location in the network, a Transport Converter has
@@ -875,40 +1031,40 @@ This document assumes that all network attachements are managed by the same admi
 ## Authorization
 
 The Converter protocol is intended to be used in managed networks where end hosts
-can be identified by their IP address. Thanks to the Bootstrap procedure 
+can be identified by their IP address. Thanks to the Bootstrap procedure
 ({{fig-bootstrapex}}), the Transport Converter can verify that
 the Client correctly receives packets sent by the Converter. Stronger authentication
 schemes should be defined to use the Converter protocol in more open network environments.
 
 See below for authorization considerations that are specific for Multipath TCP.
 
-## Denial of Service 
+## Denial of Service
 
 Another possible risk is the amplification attacks since a Transport Converter sends
-a SYN towards a remote Server upon reception of a SYN from a Client. This could 
+a SYN towards a remote Server upon reception of a SYN from a Client. This could
 lead to amplification attacks if the SYN sent by the Transport Converter were larger
 than the SYN received from the Client or if the Transport Converter retransmits the
-SYN. To mitigate such attacks, the Transport Converter SHOULD rate limit the number of 
-pending requests for a given Client. It SHOULD also avoid sending to remote Servers SYNs 
-that are significantly longer than the SYN received from the Client. In practice, 
+SYN. To mitigate such attacks, the Transport Converter SHOULD rate limit the number of
+pending requests for a given Client. It SHOULD also avoid sending to remote Servers SYNs
+that are significantly longer than the SYN received from the Client. In practice,
 Transport Converters SHOULD NOT advertise to a Server TCP Options that were not specified
 by the Client in the received SYN. Finally, the Transport Converter SHOULD only retransmit
-a SYN to a Server after having received a retransmitted SYN from the corresponding Client. 
-   
+a SYN to a Server after having received a retransmitted SYN from the corresponding Client.
+
 Upon reception of a SYN that contains a valid TFO Cookie and a Connect TLV, the
 Transport Converter attempts to establish a TCP connection to a remote Server. There is a
 risk of denial of service attack if a Client requests too many connections
-in a short period of time. Implementations SHOULD limit the number of pending 
+in a short period of time. Implementations SHOULD limit the number of pending
 connections from a given Client. Means to protect against SYN flooding
 attacks MUST also be enabled {{RFC4987}}.
 
-## Traffic Theft 
+## Traffic Theft
 
    Traffic theft is a risk if an illegitimate Converter is inserted in the
    path.  Indeed, inserting an illegitimate Converter in the forwarding path
    allows traffic interception and can therefore provide access to
    sensitive data issued by or destined to a host. Converter discovery and configuration are out of scope of this document.
-   
+
 ## Multipath TCP-specific Considerations
 
 Multipath TCP-related security threats are discussed in {{RFC6181}} and
@@ -917,17 +1073,17 @@ Multipath TCP-related security threats are discussed in {{RFC6181}} and
 The operator that manages the various network attachments
 (including the Converters) can enforce authentication and authorization
 policies using appropriate mechanisms.  For example, a non-exhaustive
-list of methods to achieve authorization is provided hereafter: 
-   
+list of methods to achieve authorization is provided hereafter:
+
  - The network provider may enforce a policy based on the
    International Mobile Subscriber Identity (IMSI) to verify that a
    user is allowed to benefit from the aggregation service. If that
-   authorization fails, the Packet Data Protocol (PDP) context/bearer 
+   authorization fails, the Packet Data Protocol (PDP) context/bearer
    will not be mounted. This method does not require any
-   interaction with the Converter.   
+   interaction with the Converter.
  - The network provider may enforce a policy based upon Access
    Control Lists (ACLs), e.g., at a Broadband Network Gateway (BNG)
-   to control the hosts that are authorized to communicate with 
+   to control the hosts that are authorized to communicate with
    a Converter. These ACLs may be installed as a result of RADIUS exchanges,
    e.g. {{I-D.boucadair-mptcp-radius}}.  This method does not
    require any interaction with the Converter.
@@ -938,8 +1094,8 @@ list of methods to achieve authorization is provided hereafter:
 
 A first safeguard against the misuse of Converter resources by illegitimate
 users (e.g., users with access networks that are not managed by the
-same provider that operates the Converter) is the Converter to reject 
-Multipath TCP connections received on its Internet-facing interfaces. Only 
+same provider that operates the Converter) is the Converter to reject
+Multipath TCP connections received on its Internet-facing interfaces. Only
 Multipath PTCP connections received on the customer-facing interfaces of a Converter will
 be accepted.
 
@@ -948,14 +1104,14 @@ be accepted.
 This document requests the allocation of a reserved service name and port
 number for the converter protocol at https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml.
 
-This documents specifies version 1 of the Converter protocol. 
+This documents specifies version 1 of the Converter protocol.
 Five types of Converter messages are defined:
 
- -  1: Bootstrap TLV  
- - 10: Connect TLV   
- - 20: Extended TCP Header TLV  
- - 21: Supported TCP Options TLV 
- - 30: Error TLV  
+ -  1: Bootstrap TLV
+ - 10: Connect TLV
+ - 20: Extended TCP Header TLV
+ - 21: Supported TCP Options TLV
+ - 30: Error TLV
 
 Furthermore, it also defines the following error codes:
 
@@ -963,8 +1119,8 @@ Furthermore, it also defines the following error codes:
  | Error | Hex  | Description                                   |
  |-------|------|-----------------------------------------------|
  |    0  | 0x00 | Unsupported version                           |
- |    1  | 0x01 | Malformed Message                             | 
- |    2  | 0x02 | Unsupported Message                           | 
+ |    1  | 0x01 | Malformed Message                             |
+ |    2  | 0x02 | Unsupported Message                           |
  |   32  | 0x20 | Not Authorized                                |
  |   33  | 0x21 | Unsupported TCP Option                        |
  |   64  | 0x40 | Resource Exceeded                             |
@@ -976,18 +1132,19 @@ Furthermore, it also defines the following error codes:
 
 # Acknowledgements
 
-Although they could disagree with the contents of the document, 
-we would like to thank Joe Touch and Juliusz Chroboczek whose 
+Although they could disagree with the contents of the document,
+we would like to thank Joe Touch and Juliusz Chroboczek whose
 comments on the MPTCP mailing list have forced
 us to reconsider the design of the solution several times.
 
-We would like to thank Raphael Bauduin and Stefano Secci for their help
-in preparing this draft. Sri Gundavelli and Nandini Ganesh provided 
-valuable feedback about the handling of TFO and the error codes. 
+We would like to thank Raphael Bauduin, Stefano Secci and
+Benjamin Hesmans for their help
+in preparing this draft. Sri Gundavelli and Nandini Ganesh provided
+valuable feedback about the handling of TFO and the error codes.
 Thanks to them.
 
 This document builds upon earlier documents that proposed various forms
-of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}}, 
+of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
 {{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
 
 From {{I-D.boucadair-mptcp-plain-mode}}:
@@ -1009,7 +1166,7 @@ From {{I-D.boucadair-mptcp-plain-mode}}:
 
 ## Contributors
 
-As noted above, this document builds on two previous documents. 
+As noted above, this document builds on two previous documents.
 
 The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
  - Mohamed Boucadair
@@ -1033,4 +1190,9 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
  - Olivier Bonaventure
 
 
+# Change Log
 
+This section to be removed before publication.
+
+ -00 to -01 : added section {{sec-tcpoptions}} describing the support of different
+ standard tracks TCP options by Transport Converters.
