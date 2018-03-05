@@ -1,5 +1,5 @@
 ---
-title: 0-RTT TCP Converter Protocol
+title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-01
 date: 2018-03-5
@@ -19,11 +19,13 @@ author:
   ins: O. Bonaventure
   name: Olivier Bonaventure
   organization: Tessares
+  role: editor
   email: Olivier.Bonaventure@tessares.net
  -
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  role: editor
   email: mohamed.boucadair@orange.com
  -
   ins: B. Peirens
@@ -194,8 +196,7 @@ The Transport Converter adheres to the main principles as drawn in {{RFC1919}}. 
 
 The main advantage of network-assisted Converters is that they enable new TCP extensions to be used on
 a subset of the end-to-end path, which encourages the deployment of these extensions. The
-Transport Converter allows the client and the server to directly negotiate some options
-between the endpoints.
+Transport Converter allows the client and the server to directly negotiate TCP options.
 
 
 This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the traffic will be forwarded to a Converter according to a set of policies. Furthermore, it is possible to bypass the Converter to connect to the servers that already support the required TCP extension.
@@ -226,8 +227,8 @@ This specification was initially designed with Multipath TCP {{RFC6824}}{{I-D.ie
 and TCP Fast Open {{RFC7413}}
 in mind. That is, the specification draws
 how network-assisted Multipath TCP connections can be established even if the remote server
-is not Multipath TCP-capable without inducing extra connection delays (0-RTT proxy). Further,
-the specification allows the client for end-to-end Multipath TCP connections with or without proxy involvement.
+is not Multipath TCP-capable without inducing extra connection delays (0-RTT proxy) or overheads. Further,
+the specification allows the client to establish end-to-end Multipath TCP connections with or without proxy involvement.
 
 Assessing the applicability of the solution to other use cases and other TCP extensions
 such as {{I-D.ietf-tcpinc-tcpcrypt}} is outside the scope of this document.
@@ -244,13 +245,12 @@ The architecture considers three types of endhosts:
 - Transport Converters;
 - Server endhosts.
 
-
-
 A Transport Converter is a network function that relays all data exchanged over one
 upstream connection to one downstream connection and vice versa ({{figtc}}). 
-A connection can be initiated from both sides of the Transport Converter (Internet-facing interface, client-facing interface). The
-Converter, thus, maintains state that associates one upstream connection to
+The Converter, thus, maintains state that associates one upstream connection to
 a corresponding downstream connection.
+
+A connection can be initiated from both sides of the Transport Converter (Internet-facing interface, client-facing interface).
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -264,7 +264,9 @@ a corresponding downstream connection.
 
 
 Transport Converters can be operated by network operators or
-third parties. Furthermore, a Transport Converter can be embedded in a
+third parties. Nevertheless, this document focuses on the single administrative deployment case where the entity offering the connectivity service to a client is also the entity which owns and operates the Transport Converter.  
+
+A Transport Converter can be embedded in a
 standalone device or be activated as a service on a router.
 How such function is enabled is deployment-specific ({{figtc2}}).
 
@@ -293,7 +295,7 @@ The architecture does not mandate anything on the server side.
 One of the benefits of this design
 is that different transport protocol extensions can be used on the upstream
 and the downstream connections. This encourages the deployment of new TCP extensions
-until they are supported by many servers.
+until they are widely supported by servers.
 
 ## Theory of Operation
 
@@ -373,14 +375,16 @@ Client                   Converter                       Server
 {: #fig-estab title="Establishment of a TCP connection through a Converter"}
 
 The Client sends a SYN destined to the Transport Converter. This SYN contains a
-TFO Cookie and inside its payload the addresses and ports of the destination
+TFO cookie and inside its payload the addresses and ports of the destination
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the destination Server. If this
 second connection succeeds, the Transport Converter confirms the establishment of
-the connection to the Client by returning a SYN+ACK.
-The first bytes of the bytestream, either directly in the SYN+ACK or in
-a subsequent packet, contain information about the TCP Options that were negotiated
-with the final Server. For graphical reasons, the figures in this section show
+
+the connection to the Client by returning a SYN+ACK and the first bytes of
+the bytestream contain information about the TCP options that were negotiated
+with the final Server. This information
+is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
+a subsequent packet. For graphical reasons, the figures in this section show
 that the Converter returns this information in the SYN+ACK packet. An implementation
 could also place this information in a packet that it sent shortly after the SYN+ACK.
 
@@ -572,7 +576,7 @@ future use {{RFC8126}}.
 
 ### Generic Convert TLV Format
 
-The Converter protocol uses variable length messages that are encoded using
+The Convert protocol uses variable length messages that are encoded using
 the generic TLV format depicted in {{fi-generictlv}}.
 All TLV fields are encoded using the network byte order.
 
@@ -661,7 +665,7 @@ The Bootstrap TLV ({{fig-bootstrap}} is sent by a Client to request the TCP exte
 supported by a Transport Converter and for which it provides a conversion
 service. It is typically sent on the first connection
 that a Client establishes with a Transport Converter to learn its
-capabilities. The Transport Converter replies with the Supported TCP
+capabilities. Assuming a Client is entitled to invoke the Converter, this latter replies with the Supported TCP
 Extensions Services TLV described in {{sec-supported}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -703,7 +707,7 @@ appear in this list.
 The list of Supported TCP Extension Services is padded with
 0 to end on a 32 bits boundary.
 
-
+Typically, if the Converter only supports Multipath TCP conversion service, solely Kind=30 will be present in the Supported TCP Extension Services TLV returned by the Converter to a requesting Client.
 
 
 ### Connect TLV {#sec-connect}
@@ -767,12 +771,14 @@ always ends on a 32 bits boundary after being padded with zeros.
 
 
 If a Transport Converter receives a Connect TLV with a non-empty TCP options
-field, it SHALL present those options to the destination
+field, and the Converter accets to process the request, it SHALL present those options to the destination
 peer in addition to the TCP options that it would have used according to its local
 policies. For the
 TCP options that are listed without an optional value, the Converter MUST generate its
 own value. For the TCP options that are included in the 'TCP Options' field with
 an optional value, it SHALL copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open.
+
+The Converter may discard a Connect TLV request for many reasons (e.g., bad TFO cookie, authorization failed, out of resources). An error message indicating the encountered error is returned to the requesting Client {{sec-error}}. In order to prevent denial-of-service attacks, error messages sent to a Client SHOULD be rate-limited.  
 
 
 ### Extended TCP Header TLV {#sec-ext-header}
