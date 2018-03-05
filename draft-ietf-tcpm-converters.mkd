@@ -129,12 +129,11 @@ This proxy is designed to avoid inducing extra delay when involved in
 a network-assisted connection (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitly configured on hosts.
 
---- Editorial Note (To be removed by RFC Editor)	
-{: numbered="no"}
+--- Editorial Note (To be removed by RFC Editor)        
 
-Please update these statements with the RFC number to be assigned to this document:	
-[This-RFC]	
- 		
+Please update these statements with the RFC number to be assigned to this document:     
+[This-RFC]      
+                
 Please update TBA statements with the port number to be assigned to 
 the Converter Protocol.
 
@@ -163,7 +162,7 @@ proposed and deployed {{RFC3135}} as solutions to improve TCP performance over
 links with specific characteristics.
 
 Recent examples of TCP extensions include Multipath TCP
-{{RFC6824}} or TCPINC {{I-D.ietf-tcpinc-tcpcrypt}}. Those extensions
+{{RFC6824}}{{I-D.ietf-mptcp-rfc6824bis}} or TCPINC {{I-D.ietf-tcpinc-tcpcrypt}}. Those extensions
 provide features that are interesting for clients such as wireless devices.
 With Multipath TCP, those devices could seamlessly use WLAN and cellular networks,
 for bonding purposes, faster handovers, or better resiliency.
@@ -198,10 +197,16 @@ The main advantage of network-assisted Converters is that they enable new TCP ex
 a subset of the end-to-end path, which encourages the deployment of these extensions. The
 Transport Converter allows the client and the server to directly negotiate TCP options.
 
+The Convert Protocol is a generic mechanism to provide 0-RTT conversion service. 
+As a sample applicability use case, this document specifies how the Convert Protocol 
+applies for Multiptah TCP. It is out of scope of this document to provide a comprehensive 
+list of potential all conversion services; separate documents may be edited in 
+the future for other conversion services upon need.
 
 This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the traffic will be forwarded to a Converter according to a set of policies. Furthermore, it is possible to bypass the Converter to connect to the servers that already support the required TCP extension.
 
-This document assumes that a client is configured with one or a list of Converters. Configuration means are outside the scope of this document.
+This document assumes that a client is configured with one or a list of Converters. Configuration means are outside the scope of this document. 
+
 
 This document is organized as follows. We first provide a brief explanation of the
 operation of Transport Converters in {{sec-arch}}. We describe the Converter
@@ -215,25 +220,11 @@ used to deploy Multipath TCP in some cellular networks.
 
 # Requirements
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",	
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and	
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",     
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and    
 "OPTIONAL" in this document are to be interpreted as described in
-{{RFC2119}} {{RFC8174}} when, and only when, they appear in all capitals,	
+{{RFC2119}} {{RFC8174}} when, and only when, they appear in all capitals,       
 as shown here.
-
-# Applicability Scope {#scope}
-
-This specification was initially designed with Multipath TCP {{RFC6824}}{{I-D.ietf-mptcp-rfc6824bis}}
-and TCP Fast Open {{RFC7413}}
-in mind. That is, the specification draws
-how network-assisted Multipath TCP connections can be established even if the remote server
-is not Multipath TCP-capable without inducing extra connection delays (0-RTT proxy) or overheads. Further,
-the specification allows the client to establish end-to-end Multipath TCP connections with or without proxy involvement.
-
-Assessing the applicability of the solution to other use cases and other TCP extensions
-such as {{I-D.ietf-tcpinc-tcpcrypt}} is outside the scope of this document.
-Future documents are required to specify the
-exact behavior when the Converter is deployed in other contexts than Multipath TCP.
 
 # Architecture {#sec-arch}
 
@@ -609,16 +600,17 @@ TCP connections MUST be closed.
 
 This document specifies the following Convert TLVs:
 
-
-+------+-----+----------+-----------------------------------------------+
-| Type | Hex |  Length  | Description                                   |
-+------+-----+----------+-----------------------------------------------+
-|   1  | 0x1 |    1     | Bootstrap TLV                                 |
-|  10  | 0xA |  Variable| Connect TLV                                   |
-|  20  | 0x14|  Variable| Extended TCP Header TLV                       |
-|  21  | 0x15|  Variable| Supported TCP Extension Services TLV          |
-|  30  | 0x1E|  Variable| Error TLV                                     |
-+------+-----+----------+-----------------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
++------+-----+----------+------------------------------------------+
+| Type | Hex |  Length  | Description                              |
++------+-----+----------+------------------------------------------+
+|   1  | 0x1 |    1     | Bootstrap TLV                            |
+|  10  | 0xA |  Variable| Connect TLV                              |
+|  20  | 0x14|  Variable| Extended TCP Header TLV                  |
+|  21  | 0x15|  Variable| Supported TCP Extension Services TLV     |
+|  30  | 0x1E|  Variable| Error TLV                                |
++------+-----+----------+------------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-converter-tlv title="The TLVs used by the Converter protocol"}
 
 To establish a connection via a Transport Converter, a Client MUST first obtain a valid
@@ -636,24 +628,24 @@ the Transport Converter replies with the Extended TCP Header TLV
 and returns an Error TLV inside a RST packet
 (see {{sec-error}}).
 
-When the Transport Converter receives an incoming connection	
+When the Transport Converter receives an incoming connection    
 establishment from a Client, it MUST process the TCP options found in
 the SYN and the Connect TLV.  In general, the Transport Converter
 MUST add to the proxied SYN the TCP options that were included in the
-Connect TLV.  It SHOULD add to the proxied SYN the TCP options that	
+Connect TLV.  It SHOULD add to the proxied SYN the TCP options that     
 were included in the incoming SYN provided that it supports the
 corresponding TCP extension.
 
-There are some exceptions to these rules given the semantics of some	
- TCP options.  First, TCP options with Kinds 0 (EOL), 1 (NOP), 2	
-(MSS), and 3 (WS) MUST be used according to the configuration of the	
-TCP stack of the Transport Converter.  The Timestamps option	
-(Kind=10) SHOULD be used in the proxied SYN if it was present in the	
-incoming SYN, but the contents of the option in the proxied SYN	
-SHOULD be set by the Converter's stack. The MP_CAPABLE option SHOULD	
-be added to the proxied SYN if it was present in the incoming SYN,	
-but the content of the option in the proxied SYN SHOULD be set by the	
-Converter's stack.  The TCP Fast Open cookie option SHOULD be handled	
+There are some exceptions to these rules given the semantics of some    
+ TCP options.  First, TCP options with Kinds 0 (EOL), 1 (NOP), 2        
+(MSS), and 3 (WS) MUST be used according to the configuration of the    
+TCP stack of the Transport Converter.  The Timestamps option    
+(Kind=10) SHOULD be used in the proxied SYN if it was present in the    
+incoming SYN, but the contents of the option in the proxied SYN 
+SHOULD be set by the Converter's stack. The MP_CAPABLE option SHOULD    
+be added to the proxied SYN if it was present in the incoming SYN,      
+but the content of the option in the proxied SYN SHOULD be set by the   
+Converter's stack.  The TCP Fast Open cookie option SHOULD be handled   
 as described in Section 6.
 
 As a general rule, when an error is encountered an Error TLV with the
@@ -888,6 +880,7 @@ The following error codes are defined in this document:
 
 {{tab-error-types}} summarizes the different error codes.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
  +-------+------+-----------------------------------------------+
  | Error | Hex  | Description                                   |
  +-------+------+-----------------------------------------------+
@@ -901,6 +894,7 @@ The following error codes are defined in this document:
  |   96  | 0x60 | Connection Reset                              |
  |   97  | 0x61 | Destination Unreachable                       |
  +-------+------+-----------------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-error-types title="Convert Error Values"}
 
 
@@ -1165,39 +1159,42 @@ from the "Service Name and Transport Protocol Port Number Registry" available at
 
 ## The Converter Protocol (Convert) Parameters
 
-IANA is requested to create a new "The Converter Protocol (Convert)	
-Parameters" registry.	
- 		
-The following subsections detail new registries within "The Converter	
+IANA is requested to create a new "The Converter Protocol (Convert)     
+Parameters" registry.   
+                
+The following subsections detail new registries within "The Converter   
 Protocol (Convert) Parameters" registry.
 
 ### Convert Versions
 
-IANA is requested to create the "Convert versions" sub-registry. New	
-values are assigned via Standards Action.	
- 		
-The initial values to be assigned at the creation of the registry are	
+IANA is requested to create the "Convert versions" sub-registry. New    
+values are assigned via Standards Action.       
+                
+The initial values to be assigned at the creation of the registry are   
 as follows:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
  +---------+--------------------------------------+-------------+
  | Version | Description                          | Reference   |
  +---------+--------------------------------------+-------------+
  |    0    | Reserved by this document            | [This-RFC]  |
  |    1    | Assigned by this document            | [This-RFC]  |
  +---------+--------------------------------------+-------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Convert TLVs
 
 IANA is requested to create the "Convert TLVs" sub-registry.  The 
-procedure for assigning values from this registry is as follows:	
+procedure for assigning values from this registry is as follows:        
 
- -  The values in the range 1-127 can be assigned via Standards Action.	
- -  The values in the range 128-191 can be assigned via Specification Required.	
+ -  The values in the range 1-127 can be assigned via Standards Action. 
+ -  The values in the range 128-191 can be assigned via Specification Required. 
  -  The values in the range 192-255 can be assigned for Private Use.
 
-The initial values to be assigned at the creation of the registry are	
+The initial values to be assigned at the creation of the registry are   
 as follows:
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
  +---------+--------------------------------------+-------------+
  |  Code   | Name                                 | Reference   |
  +---------+--------------------------------------+-------------+
@@ -1208,6 +1205,7 @@ as follows:
  |   22    | Supported TCP Extension Services TLV | [This-RFC]  |
  |   30    | Error TLV                            | [This-RFC]  |
  +---------+--------------------------------------+-------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ### Convert Error Messages
 
@@ -1216,21 +1214,21 @@ in this registry are assigned as a function of the error type. Four
 types are defined; the following ranges are reserved for each of 
 these types:
 
- - Message validation and processing errors: 0-31	
- - Client-side errors: 32-63	
- - Converter-side errors: 64-95	
- - Errors caused by destination server: 96-127	
- 		
-The procedure for assigning values from this sub-registry is as	
-follows:	
- 		
-  - 0-191: Values in this range are assigned via Standards Action.	
-  - 192-255: Values in this range are assigned via Specification Required.	
- 		
-The initial values to be assigned at the creation of the registry are	
+ - Message validation and processing errors: 0-31       
+ - Client-side errors: 32-63    
+ - Converter-side errors: 64-95 
+ - Errors caused by destination server: 96-127  
+                
+The procedure for assigning values from this sub-registry is as 
+follows:        
+                
+  - 0-191: Values in this range are assigned via Standards Action.      
+  - 192-255: Values in this range are assigned via Specification Required.      
+                
+The initial values to be assigned at the creation of the registry are   
 as follows:
 
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
  +-------+------+-----------------------------------+-----------+
  | Error | Hex  | Description                       | Reference |
  +-------+------+-----------------------------------+-----------+
@@ -1244,10 +1242,10 @@ as follows:
  |   96  | 0x60 | Connection Reset                  | [This-RFC]|
  |   97  | 0x61 | Destination Unreachable           | [This-RFC]|
  +-------+------+-----------------------------------+-----------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-error-summary title="The Convert Error Codes"}
 
 # Acknowledgements
-{: numbered="no"}
 
 Although they could disagree with the contents of the document,
 we would like to thank Joe Touch and Juliusz Chroboczek whose
@@ -1282,7 +1280,6 @@ From {{I-D.boucadair-mptcp-plain-mode}}:
    Srinivasan, and Raghavendra Mallya for the discussion.
 
 ## Contributors
-{: numbered="no"}
 
 As noted above, this document builds on two previous documents.
 
@@ -1308,11 +1305,11 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
  - Olivier Bonaventure
 
 # Change Log
-{: numbered="no"}
 
 This section to be removed before publication.
 
- -00 to -01 : added section {{sec-tcpoptions}} describing the support of different
+ - 00 : initial version, designed to support Multipath TCP and TFO only
+ - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different
  standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
 
 
