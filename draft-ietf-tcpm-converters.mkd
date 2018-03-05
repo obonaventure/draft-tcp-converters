@@ -176,7 +176,7 @@ Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth
 as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes 
 are inside or ouside of the mobile core.
 In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation 
-mobile network, Mutlpath TCP and its proxy mechanism must be optimized reduce latency. 
+mobile network, Multipath TCP and its proxy mechanism must be optimized to reduce latency. 
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -379,6 +379,7 @@ TFO cookie and inside its payload the addresses and ports of the destination
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the destination Server. If this
 second connection succeeds, the Transport Converter confirms the establishment of
+
 the connection to the Client by returning a SYN+ACK and the first bytes of
 the bytestream contain information about the TCP options that were negotiated
 with the final Server. This information
