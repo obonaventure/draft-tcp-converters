@@ -19,30 +19,35 @@ author:
   ins: O. Bonaventure
   name: Olivier Bonaventure
   organization: Tessares
+  street: ''
   country: Belgium
   email: Olivier.Bonaventure@tessares.net
  -
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  street: ''
   country: France
   email: mohamed.boucadair@orange.com
  -
   ins: B. Peirens
   name: Bart Peirens
   organization: Proximus
+  street: ''
   country: Belgium
   email: bart.peirens@proximus.com
  -
   ins: S. Seo
   name: SungHoon Seo
   organization: Korea Telecom
+  street: ''
   country: Korea
   email: sh.seo@kt.com
  -
   ins: A. Nandugudi
   name: Anandatirtha Nandugudi
   organization: Memphis University
+  street: ''
   country: USA
   email: nndugudi@memphis.edu
 
@@ -158,6 +163,10 @@ With Multipath TCP, those devices could seamlessly use WLAN and cellular network
 for bonding purposes, faster handovers, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
+
+More recently, there is an experimentation of bonding 5G, which has very scarece coverage, into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy.
+Even the 5G and the 4G bonding by using Multipath TCP increases the bandwidth to data transfer, it is as well crucial to minimize latency for all the way between endhosts regardless of intermediate nodes are inside or ouside of the mobile core.
+In order to handling uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation mobile network, Mutlpath TCP and its proxy mechanism must be optimized to make latency be zero. 
 
 This document specifies an application proxy, called Transport Converter (TC). A
 Transport Converter is a function that is installed by a network
@@ -506,7 +515,7 @@ Client                     SOCKS Proxy                  Server
      <--------------------
            Method
      -------------------->
-         Auth Request (if "No auth" method negotiated)
+         Auth Request (unless "No auth" method negotiated)
      <--------------------
          Auth Response
      -------------------->
@@ -613,6 +622,7 @@ the protocol in the future.
 A given TLV can only appear once on a connection. If two or more
 copies of the same TLV are exchanged over a Converter connection, the associated
 TCP connections MUST be closed. All fields are encoded using the network byte order.
+The length field is the number of 32 bits words.
 
 Five TLVs are defined in this document. They are listed in {{tab-converter-tlv}}.
 
