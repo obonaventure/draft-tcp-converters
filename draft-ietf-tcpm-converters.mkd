@@ -1,7 +1,7 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-01
+docname: draft-ietf-tcpm-converters-02
 date: 2018-03-5
 category: exp
 
@@ -28,10 +28,10 @@ author:
   role: editor
   email: mohamed.boucadair@orange.com
  -
-  ins: B. Peirens
-  name: Bart Peirens
-  organization: Proximus
-  email: bart.peirens@proximus.com
+  ins: S. Gundavelli
+  name: Sri Gundavelli
+  organization: Cisco
+  email: sgundave@cisco.com
  -
   ins: S. Seo
   name: SungHoon Seo
@@ -1247,7 +1247,7 @@ us to reconsider the design of the solution several times.
 
 We would like to thank Raphael Bauduin, Stefano Secci, and
 Benjamin Hesmans for their help
-in preparing this document. Sri Gundavelli and Nandini Ganesh provided
+in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Thanks to them.
 
@@ -1273,6 +1273,8 @@ From {{I-D.boucadair-mptcp-plain-mode}}:
    Srinivasan, and Raghavendra Mallya for the discussion.
 
 ## Contributors
+
+Bart Peirens contributed to an early version of the document.
 
 As noted above, this document builds on two previous documents.
 
