@@ -77,7 +77,7 @@ informative:
   I-D.peirens-mptcp-transparent:
   I-D.arkko-arch-low-latency:
   I-D.ietf-mptcp-rfc6824bis:
-  I-D.boucadair-mptcp-radius:
+  I-D.boucadair-radext-tcpm-converter:
   Fukuda2011:
     author:
       - ins: K. Fukuda
@@ -1128,12 +1128,12 @@ list of methods to achieve authorization is provided hereafter:
    Control Lists (ACLs), e.g., at a Broadband Network Gateway (BNG)
    to control the hosts that are authorized to communicate with
    a Converter. These ACLs may be installed as a result of RADIUS exchanges,
-   e.g. {{I-D.boucadair-mptcp-radius}}.  This method does not
+   e.g. {{I-D.boucadair-radext-tcpm-converter}}.  This method does not
    require any interaction with the Converter.
   - A device that embeds the Converter may also host a RADIUS client that
     will solicit an AAA server to check whether connections received
     from a given source IP address are authorized or not
-    {{I-D.boucadair-mptcp-radius}}.
+    {{I-D.boucadair-radext-tcpm-converter}}.
 
 A first safeguard against the misuse of Converter resources by illegitimate
 users (e.g., users with access networks that are not managed by the
