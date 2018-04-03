@@ -71,6 +71,7 @@ informative:
   RFC6928:
   RFC6978:
   RFC7323:
+  I-D.boucadair-tcpm-dhc-converter:
   I-D.ietf-tcpinc-tcpcrypt:
   I-D.olteanu-intarea-socks-6:
   I-D.boucadair-mptcp-plain-mode:
@@ -205,7 +206,7 @@ the future for other conversion services upon need.
 
 This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the traffic will be forwarded to a Converter according to a set of policies. Furthermore, it is possible to bypass the Converter to connect to the servers that already support the required TCP extension.
 
-This document assumes that a client is configured with one or a list of Converters. Configuration means are outside the scope of this document. 
+This document assumes that a client is configured with one or a list of Converters (e.g., {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside the scope of this document. 
 
 
 This document is organized as follows. We first provide a brief explanation of the
