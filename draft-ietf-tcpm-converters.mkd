@@ -707,7 +707,7 @@ Typically, if the Converter only supports Multipath TCP conversion service, sole
 
 The Connect TLV ({{fig-connect}}) is used to request the establishment of a connection via a Transport Converter.
 
-The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the destination port and IP address of the target server for an outgoing connection towards a server located on the Internet. For incoming connections destined to a client serviced via a Converter, these fields convey the source port and IP address.
+The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the destination port number and IP address of the target server for an outgoing connection towards a server located on the Internet. For incoming connections destined to a client serviced via a Converter, these fields convey the source port and IP address.
 
 The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
@@ -718,6 +718,8 @@ should be advertised by the Transport Converter
 to the final destination of a connection. If this field is not supplied, the Transport
 Converter MUST use the default TCP options that correspond to its local
 policy.
+
+The Connect TLV could be designed to be generic to include the DNS name of the remote peer, but that design was not adopted because it induces an extra load on the Converter to handle and manage resolution requests.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
