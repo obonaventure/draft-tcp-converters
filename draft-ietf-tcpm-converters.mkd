@@ -284,6 +284,8 @@ with the names and/or the addresses of one or more Transport Converters.
 
 The architecture does not mandate anything on the server side.
 
+Similar to address sharing mechanisms, the architecture does not interfere with end-to-end TLS connections between the client and the server.
+
 One of the benefits of this design
 is that different transport protocol extensions can be used on the upstream
 and the downstream connections. This encourages the deployment of new TCP extensions
