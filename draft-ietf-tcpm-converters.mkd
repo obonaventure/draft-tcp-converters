@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-02
-date: 2018-03-5
+date: 2018-07-01
 category: exp
 
 ipr: trust200902
@@ -37,11 +37,7 @@ author:
   name: SungHoon Seo
   organization: Korea Telecom
   email: sh.seo@kt.com
- -
-  ins: A. Nandugudi
-  name: Anandatirtha Nandugudi
-  organization: Memphis University
-  email: nndugudi@memphis.edu
+
 
 normative:
   RFC0793:
@@ -173,10 +169,10 @@ servers remains difficult.
 More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted 
 into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy.
 Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth to data transfer, it is 
-as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes 
-are inside or ouside of the mobile core.
+as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes
+are inside or outside of the mobile core.
 In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation 
-mobile network, Multipath TCP and its proxy mechanism must be optimized to reduce latency. 
+mobile network, Multipath TCP and its proxy mechanism must be optimised to reduce latency. 
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -200,7 +196,7 @@ Transport Converter allows the client and the server to directly negotiate TCP o
 
 The Convert Protocol is a generic mechanism to provide 0-RTT conversion service. 
 As a sample applicability use case, this document specifies how the Convert Protocol 
-applies for Multiptah TCP. It is out of scope of this document to provide a comprehensive 
+applies for Multipath TCP. It is out of scope of this document to provide a comprehensive 
 list of potential all conversion services; separate documents may be edited in 
 the future for other conversion services upon need.
 
@@ -714,7 +710,10 @@ to the final destination of a connection. If this field is not supplied, the Tra
 Converter MUST use the default TCP options that correspond to its local
 policy.
 
-The Connect TLV could be designed to be generic to include the DNS name of the remote peer, but that design was not adopted because it induces an extra load on the Converter to handle and manage resolution requests.
+The Connect TLV could be designed to be generic to include the DNS name of the remote peer
+instead of its IP address as in SOCKS {{RFC1928}}.  However, that design was not adopted 
+because it induces both an extra load and increased delays 
+on the Converter to handle and manage DNS resolution requests.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -761,7 +760,7 @@ always ends on a 32 bits boundary after being padded with zeros.
 
 
 If a Transport Converter receives a Connect TLV with a non-empty TCP options
-field, and the Converter accets to process the request, it SHALL present those options to the destination
+field, and the Converter acceptss to process the request, it SHALL present those options to the destination
 peer in addition to the TCP options that it would have used according to its local
 policies. For the
 TCP options that are listed without an optional value, the Converter MUST generate its
@@ -1245,13 +1244,14 @@ as follows:
 
 # Acknowledgements
 
+
 Although they could disagree with the contents of the document,
 we would like to thank Joe Touch and Juliusz Chroboczek whose
 comments on the MPTCP mailing list have forced
 us to reconsider the design of the solution several times.
 
-We would like to thank Raphael Bauduin, Stefano Secci, and
-Benjamin Hesmans for their help
+We would like to thank Raphael Bauduin, Stefano Secci, 
+Benjamin Hesmans and Anandatirtha Nandugudi for their help
 in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Thanks to them.
