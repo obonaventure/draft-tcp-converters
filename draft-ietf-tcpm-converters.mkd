@@ -582,16 +582,11 @@ All TLV fields are encoded using the network byte order.
 {: #fi-generictlv title="Converter Generic TLV Format"}
 
 
-<<<<<<< HEAD
 A given TLV LUST  only appear once on a connection. If two or more
 copies of the same TLV are exchanged over a Converter connection, the associated
 TCP connections MUST be closed. All fields are encoded using the network byte order.
 The length field is the number of 32 bits words.
-=======
-A given TLV MUST  only appear once on a connection. If two or more
-instances of the same TLV are exchanged over a Converter connection, the associated
-TCP connections MUST be closed. 
->>>>>>> Update draft-ietf-tcpm-converters.mkd (#31)
+
 
 
 ### Summary of Supported Convert TLVs
@@ -1291,6 +1286,7 @@ Bart Peirens contributed to an early version of the document.
 As noted above, this document builds on two previous documents.
 
 The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
+
  - Mohamed Boucadair
  - Christian Jacquenet
  - Olivier Bonaventure
@@ -1306,6 +1302,7 @@ The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
  - Bart Peirens
 
 The authors of {{I-D.peirens-mptcp-transparent}} were:
+
  - Bart Peirens
  - Gregory Detal
  - Sebastien Barre
@@ -1318,7 +1315,7 @@ This section to be removed before publication.
  - 00 : initial version, designed to support Multipath TCP and TFO only
  - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different
  standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
-
+ - 01 to -02 : Minor modifications
 
 
 --- back
