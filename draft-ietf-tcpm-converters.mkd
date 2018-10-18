@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-02
-date: 2018-07-01
+docname: draft-ietf-tcpm-converters-03
+date: 2018-10-18
 category: exp
 
 ipr: trust200902
@@ -1316,7 +1316,7 @@ This section to be removed before publication.
  - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different
  standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
  - 01 to -02 : Minor modifications
-
+ - 02 to -03 : Minor modifications
 
 --- back
 
