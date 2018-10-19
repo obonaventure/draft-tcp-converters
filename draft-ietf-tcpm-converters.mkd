@@ -51,6 +51,7 @@ normative:
   RFC5482:
   RFC5925:
   RFC8126:
+  RFC6890:
 
 informative:
   RFC1323:
@@ -60,7 +61,7 @@ informative:
   RFC2018:
   RFC2827:
   RFC3135:
-  RFC6555:
+  RFC8305:
   RFC6181:
   RFC7414:
   RFC6887:
@@ -581,7 +582,6 @@ All TLV fields are encoded using the network byte order.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Converter Generic TLV Format"}
 
-
 A given TLV MUST  only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Converter connection, the associated
 TCP connections MUST be closed. 
@@ -597,13 +597,15 @@ This document specifies the following Convert TLVs:
 | Type | Hex |  Length  | Description                              |
 +------+-----+----------+------------------------------------------+
 |   1  | 0x1 |    1     | Bootstrap TLV                            |
-|  10  | 0xA |  Variable| Connect TLV                              |
-|  20  | 0x14|  Variable| Extended TCP Header TLV                  |
-|  21  | 0x15|  Variable| Supported TCP Extension Services TLV     |
-|  30  | 0x1E|  Variable| Error TLV                                |
+|  10  | 0xA | Variable | Connect TLV                              |
+|  20  | 0x14| Variable | Extended TCP Header TLV                  |
+|  21  | 0x15| Variable | Supported TCP Extension Services TLV     |
+|  30  | 0x1E| Variable | Error TLV                                |
 +------+-----+----------+------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-converter-tlv title="The TLVs used by the Converter protocol"}
+
+Type 0x0 is a reserved valued. Implementations MUST discard messages with such TLV. 
 
 To establish a connection via a Transport Converter, a Client MUST first obtain a valid
 TFO cookie from that Converter. This is the bootstrap procedure during which the Client
@@ -702,7 +704,7 @@ The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the destinati
 
 The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
-IPv4-Mapped IPv6 Address format defined in {{RFC4291}}.
+IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer IP address field MUST NOT include multicast, broadcast, and host loopback addresses {{RFC6890}}.
 
 The optional 'TCP Options' field is used to specify how specific TCP Options
 should be advertised by the Transport Converter
@@ -767,7 +769,7 @@ TCP options that are listed without an optional value, the Converter MUST genera
 own value. For the TCP options that are included in the 'TCP Options' field with
 an optional value, it SHALL copy the entire option for use in the connection with the destination peer. This feature is required to support TCP Fast Open.
 
-The Converter may discard a Connect TLV request for many reasons (e.g., bad TFO cookie, authorization failed, out of resources). An error message indicating the encountered error is returned to the requesting Client {{sec-error}}. In order to prevent denial-of-service attacks, error messages sent to a Client SHOULD be rate-limited.  
+The Converter may discard a Connect TLV request for many reasons (e.g., bad TFO cookie, authorization failed, out of resources, invalid address type). An error message indicating the encountered error is returned to the requesting Client ({{sec-error}}). In order to prevent denial-of-service attacks, error messages sent to a Client SHOULD be rate-limited.  
 
 
 ### Extended TCP Header TLV {#sec-ext-header}
@@ -822,8 +824,8 @@ Four classes of errors are defined:
 
  - Message validation and processing errors (0-31 range): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs).
  - Client-side errors (32-63 range): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation).
- - Converter-side errors (64-95 range) : problems encountered on the Converter (e.g., lack of resources) which prevent it from fulfilling the Client's request.
- - Errors caused by destination server (96-127 range) : the final destination could not be reached or it replied with a reset message.
+ - Converter-side errors (64-95 range): problems encountered on the Converter (e.g., lack of resources) which prevent it from fulfilling the Client's request.
+ - Errors caused by destination server (96-127 range): the final destination could not be reached or it replied with a reset message.
 
 The following error codes are defined in this document:
 
@@ -835,8 +837,10 @@ The following error codes are defined in this document:
 
    Upon receipt of this error code, the client checks whether it supports one of the versions returned by the Converter. The highest common supported version MUST be used by the client in subsequent exchanges with the Converter.
 
- - Malformed Message (1): This error code is sent to indicate that a message can not be successfully parsed. 
+ - Malformed Message (1): This error code is sent to indicate that a message can not be successfully parsed and validated. 
 
+   Typically, this error message is sent by the Converter if it receives a Connect TLV enclosing a multicast, broadcast, or loopback IP address.
+   
    To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
 
  - Unsupported Message (2): This error code is sent to indicate that a message type is not supported by the Converter. 
@@ -906,7 +910,7 @@ the experimental options will be discussed in other documents.
 
 ## Base TCP Options
 
-Three TCP options were initially defined in {{RFC0793}} : End-of-Option List (Kind=0),
+Three TCP options were initially defined in {{RFC0793}}: End-of-Option List (Kind=0),
 No-Operation (Kind=1) and Maximum Segment Size (Kind=2). The first two options are
 mainly used to pad the TCP extended header. There is no reason for a client
 to request a Converter to specifically send these options towards the
@@ -1144,7 +1148,7 @@ A first safeguard against the misuse of Converter resources by illegitimate
 users (e.g., users with access networks that are not managed by the
 same provider that operates the Converter) is the Converter to reject
 Multipath TCP connections received on its Internet-facing interfaces. Only
-Multipath PTCP connections received on the customer-facing interfaces of a Converter will
+Multipath TCP connections received on the customer-facing interfaces of a Converter will
 be accepted.
 
 # IANA Considerations {#sec-iana}
@@ -1319,9 +1323,8 @@ This section to be removed before publication.
 
 # Differences with SOCKSv5 {#sec-socks}
 
-The description above is a simplified description of the Converter protocol.
-At a first glance, the proposed solution could seem similar to the SOCKS v5 protocol
-{{RFC1928}}. This protocol is used to proxy TCP connections. The Client creates
+At a first glance, the Convert solution could seem similar to the SOCKS v5 protocol
+{{RFC1928}} which is used to proxy TCP connections. The Client creates
 a connection to a SOCKS proxy, exchanges authentication information and indicates
 the destination address and port of the final server. At this point, the SOCKS
 proxy creates a connection towards the final server and relays all data between
@@ -1392,5 +1395,5 @@ the Server. If the Server refuses the connection establishment attempt from
 the Transport Converter, then the upstream connection from the Client
 is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
-selection of a Server {{RFC6555}}.
+selection of a Server {{RFC8305}}.
 
