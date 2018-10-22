@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-03
-date: 2018-10-18
+docname: draft-ietf-tcpm-converters-04
+date: 2018-10-22
 category: exp
 
 ipr: trust200902
@@ -194,11 +194,13 @@ The main advantage of network-assisted Converters is that they enable new TCP ex
 a subset of the end-to-end path, which encourages the deployment of these extensions. The
 Transport Converter allows the client and the server to directly negotiate TCP options.
 
+
 The Convert Protocol is a generic mechanism to provide 0-RTT conversion service. 
 As a sample applicability use case, this document specifies how the Convert Protocol 
 applies for Multipath TCP. It is out of scope of this document to provide a comprehensive 
-list of potential all conversion services; separate documents may be edited in 
+list of all potential conversion services; separate documents may be edited in 
 the future for other conversion services upon need.
+
 
 This document does not assume that all the traffic is eligible to the network-assisted conversion service. Only a subset of the traffic will be forwarded to a Converter according to a set of policies. Furthermore, it is possible to bypass the Converter to connect to the servers that already support the required TCP extension.
 
@@ -330,6 +332,7 @@ a connection towards that Server, without experiencing an extra delay. The Trans
 confirmation that the Server agrees to establish the connection before confirming
 it to the Client.
 
+
 The client places the
 destination address and port number of the target Server in the payload of the SYN sent to the Converter by
 leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter
@@ -341,6 +344,12 @@ maintains two connections that are combined together:
 Any user data received by the Transport Converter over the upstream (resp., downstream)
 connection is relayed over the downstream (resp., upstream) connection.
 
+
+
+{{fig-estab}} illustrates the
+establishment of a TCP connection by the Client through a Transport Converter. The
+information shown between brackets is part of the Converter Protocol
+described later in this document.
 
 {{fig-estab}} illustrates the
 establishment of a TCP connection by the Client through a Transport Converter. The
@@ -582,10 +591,10 @@ All TLV fields are encoded using the network byte order.
 {: #fi-generictlv title="Converter Generic TLV Format"}
 
 
-A given TLV LUST  only appear once on a connection. If two or more
-copies of the same TLV are exchanged over a Converter connection, the associated
-TCP connections MUST be closed. All fields are encoded using the network byte order.
-The length field is the number of 32 bits words.
+
+A given TLV MUST  only appear once on a connection. If two or more
+instances of the same TLV are exchanged over a Converter connection, the associated
+TCP connections MUST be closed. 
 
 
 
@@ -938,6 +947,7 @@ option Kind=3 if it appears in a Connect TLV. It MUST NOT announce it in a Boots
 
 ## Selective Acknowledgements
 
+
 Two distinct TCP options were defined to support selective acknowledgements in {{RFC2018}}.
 This first one, SACK Permitted (Kind=4), is used to negotiate the utilisation of selective
 acknowledgements during the three-way handshake. The second one, SACK (Kind=5), carries
@@ -952,6 +962,7 @@ reason, a Transport Converter MUST ignore
 option Kind=5 with if it appears in a Connect TLV. It MUST NOT announce it in a Bootstrap TLV.
 
 ## Timestamp
+
 
 The Timestamp option was initially defined in {{RFC1323}} which has been replaced
 by {{RFC7323}}. It can be used during the three-way handshake to negotiate the utilisation
@@ -1317,6 +1328,10 @@ This section to be removed before publication.
  standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
  - 01 to -02 : Minor modifications
  - 02 to -03 : Minor modifications
+ - 03 to -04 : Minor modifications
+
+
+
 
 --- back
 
