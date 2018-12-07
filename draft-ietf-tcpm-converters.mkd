@@ -499,10 +499,14 @@ Client                   Converter                       Server
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
 An example of an incoming Converter-assisted Multipath TCP connection is depicted
-in {{fig-inestab}}. In order to support incoming connections from remote hosts,
-the Client may use PCP {{RFC6887}} to instruct the Converter to create dynamic
-mappings. Those mappings will be used by the Converter to intercept an incoming
-TCP connection destined to the Client and convert it into a Multipath TCP connection.
+in {{fig-inestab}}. 
+
+In order to support incoming connections from remote hosts,
+the Client may use PCP {{RFC6887}} to instruct the Converter to create mappings for internal IP addresses and an internal port numbers bound to the Client. Those mappings will be used by the Converter to intercept incoming TCP connections destined to the Client and convert them into Multipath TCP connections. This assumes the Converter is also acting as a PCP server. 
+
+Typically, the Client sends a PCP MAP request to the Converter asking to create an explicit TCP mapping for (internal IP address, internal port number). The Converter accepts the request by creating a TCP mapping (internal IP address, internal port number, external IP address, external port number). The external IP address and external port number will be then advertised using an out-of-band mechanism so that remote hosts can initiate TCP connections to the Client via the Converter. Note that the external and internal information may be the same. 
+
+Then, when the Converter receives an incoming SYN, it checks its mapping table to verify if there is an active mapping matching the destination IP address and destination port of that SYN. If an entry is found, the Converter inserts an MP\_CAPABLE option and Connect TLV in the SYN packet, rewrites the source IP address to one of its IP addresses and, eventually, the destination IP address and port number in accordance with the information stored in the mapping. SYN-ACK and ACK will be then exchanged between the Client and the Converter to confirm the establishment of the initial subflow. The Client can add new subflows following normal Multipath TCP procedures.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                      Transport
@@ -525,7 +529,6 @@ Client               Converter                       Remote Host
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming TCP Connection through a Converter"}
-
 
 
 # The Converter Protocol (Convert) {#sec-protocol}
