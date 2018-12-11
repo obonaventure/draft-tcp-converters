@@ -303,8 +303,6 @@ Similar to address sharing mechanisms, the architecture does not interfere with 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Converter"}
 
-This document does not mandate nor preclude to make use of TLS between the Client and the Converter. This is deployment-specific. Neverthless, if TLS is enabled in that leg, the 0-RTT mode as discussed in Section 2.3 of {{RFC8446}} must be enabled. 
-
 One of the benefits of this design
 is that different transport protocol extensions can be used on the upstream
 and the downstream connections. This encourages the deployment of new TCP extensions
