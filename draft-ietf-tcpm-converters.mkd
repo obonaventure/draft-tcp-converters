@@ -432,9 +432,9 @@ requesting Client. That is, the Converter will not return a cookie for that Clie
 
 Also, the Converter may behave in a cookie-less mode when appropriate means are enforced
 at the Converter and the network in-between to protect against attacks such as spoofing
-and SYN flood. Under such deployments, the use of TFO is not required. That is, validation checks
-at the Converter side when receiving a Convert message are relaxed to not rely on the presence of
-TFO options. 
+and SYN flood. As discussed in section 7.3 of {{RFC7413}}, TFO may not be required when 
+the converter has protections against resource exhaustion and amplification attacks 
+through means that are outside the scope of this document. 
 
 ## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
 
