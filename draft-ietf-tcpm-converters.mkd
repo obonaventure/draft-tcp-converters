@@ -676,7 +676,7 @@ that a Client establishes with a Transport Converter to learn its
 capabilities. Assuming a Client is entitled to invoke the Converter, this latter replies with the Supported TCP
 Extensions Services TLV described in {{sec-supported}}.
 
-The bootstrap procedure MAY be disabled in deployments where the capabilities of the Transport Converter are configured by out-of-band means (e.g., dedicated PCO returned to a 3GPP User Equipement) and TFO validation checks are relaxed. 
+The bootstrap procedure MAY be disabled in deployments where the capabilities of the Transport Converter are configured by out-of-band means (e.g., dedicated PCO returned to a 3GPP User Equipment) and TFO validation checks are relaxed. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
