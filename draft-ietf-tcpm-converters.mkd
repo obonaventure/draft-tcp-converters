@@ -805,11 +805,13 @@ The Client may set Remote Peer Port and Remote Peer IP Address if it wants the m
 
 In order to detect an on-path translator, the Converter MUST compare the Internal IP address with the source IP address of the Convert message. If a mismatch is detected, the Converter MUST discard the Map request and return 'Address Mismatch' error to the Client. 
 
+The Unassigned field MUST be set to zero in this version of the protocol. These bits are available for future use [RFC8126].
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
-   |     Type      |     Length    |R|F|        Unassigned          |
+   |     Type      |     Length    |R|F|  Unassigned (14 bits)     |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
    |                     Lifetime (32 bits)                        |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -825,7 +827,7 @@ In order to detect an on-path translator, the Converter MUST compare the Interna
    |                                                               |
    |                                                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |       Remote Peer Port        |     Reserved (16 bits)        |
+   |       Remote Peer Port        |     Unassigned (16 bits)      |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |                                                               |
    |               Remote Peer IP Address (128 bits)               |
