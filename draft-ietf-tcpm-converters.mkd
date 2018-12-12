@@ -504,7 +504,9 @@ in {{fig-inestab}}.
 In order to support incoming connections from remote hosts,
 the Client may use PCP {{RFC6887}} to instruct the Converter to create mappings for internal IP addresses and an internal port numbers bound to the Client. Those mappings will be used by the Converter to intercept incoming TCP connections destined to the Client and convert them into Multipath TCP connections. This assumes the Converter is also acting as a PCP server. 
 
-Typically, the Client sends a PCP MAP request to the Converter asking to create an explicit TCP mapping for (internal IP address, internal port number). The Converter accepts the request by creating a TCP mapping (internal IP address, internal port number, external IP address, external port number). The external IP address and external port number will be then advertised using an out-of-band mechanism so that remote hosts can initiate TCP connections to the Client via the Converter. Note that the external and internal information may be the same. 
+Alternatively, the Client may use the Map TLV {{sec-map}} to instruct the Converter to create mappings for internal IP addresses and an internal port numbers bound to the Client. Those mappings will be used by the Converter to intercept incoming TCP connections destined to the Client and convert them into Multipath TCP connections. 
+
+Typically, the Client sends a Map request to the Converter asking to create an explicit TCP mapping for (internal IP address, internal port number). The Converter accepts the request by creating a TCP mapping (internal IP address, internal port number, external IP address, external port number). The external IP address and external port number will be then advertised using an out-of-band mechanism so that remote hosts can initiate TCP connections to the Client via the Converter. Note that the external and internal information may or may not be the same. 
 
 Then, when the Converter receives an incoming SYN, it checks its mapping table to verify if there is an active mapping matching the destination IP address and destination port of that SYN. If an entry is found, the Converter inserts an MP\_CAPABLE option and Connect TLV in the SYN packet, rewrites the source IP address to one of its IP addresses and, eventually, the destination IP address and port number in accordance with the information stored in the mapping. SYN-ACK and ACK will be then exchanged between the Client and the Converter to confirm the establishment of the initial subflow. The Client can add new subflows following normal Multipath TCP procedures.
 
@@ -612,6 +614,7 @@ This document specifies the following Convert TLVs:
 +------+-----+----------+------------------------------------------+
 |   1  | 0x1 |    1     | Bootstrap TLV                            |
 |  10  | 0xA | Variable | Connect TLV                              |
+|  11  | 0xB | Variable | Map TLV                                  |
 |  20  | 0x14| Variable | Extended TCP Header TLV                  |
 |  21  | 0x15| Variable | Supported TCP Extension Services TLV     |
 |  30  | 0x1E| Variable | Error TLV                                |
@@ -785,6 +788,57 @@ an optional value, it SHALL copy the entire option for use in the connection wit
 
 The Converter may discard a Connect TLV request for many reasons (e.g., bad TFO cookie, authorization failed, out of resources, invalid address type). An error message indicating the encountered error is returned to the requesting Client ({{sec-error}}). In order to prevent denial-of-service attacks, error messages sent to a Client SHOULD be rate-limited.  
 
+### Map TLV {#sec-map}
+
+The Map TLV ({{fig-map}}) is used to create a TCP mapping entry in a Transport Converter so that incoming connections can be forwarded appropriatly to the Client. 
+
+R-bit MUST be unset in a request and MUST be set in a response. 
+
+All included IP addresses MUST be encoded as IPv6 addresses. IPv4 addresses MUST be encoded using the
+IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, (Internal/Assigned/Remote) IP address field MUST NOT include multicast, broadcast, and host loopback addresses {{RFC6890}}.
+
+A Client indicates a suggested lifetime in a Map request, but it MUST be prepared to not be granted the requested lifetime. Which lifetime to be assigned for a mapping is policy-based and local to the Converter. A Client MAY extend the lifetime of a mapping it creates by sending a Map request, echoing the information conveyed in a Map response, before the expiry of the assigned lifetime. Upon expiry of the assigned lifetime, and absent any Map refresh, the Converter MUST silently delete the corresponding mapping. 
+
+The Client sets by default the Suggested External Port and Suggested External IP Address to the same values as Internal Port and Internal IP Address. The Client may use distinct values for setting these values to preserve the same IP address and port assigned by the Converter in a previous exhange. Note that distinct external IP address and/or port are returned by the Converter if it behaves in address sharing mode.   
+
+The Client may set Remote Peer Port and Remote Peer IP Address if it wants the mapping to be restricted to a specific peer. To that aim, the F-bit MUST be set. If the F-bit is unset, Remote Port and Remote Peer IP Address are not speified. That is, the mapping applies for any remote peet. 
+
+In order to detect an on-path translator, the Converter MUST compare the Internal IP address with the source IP address of the Convert message. If a mismatch is detected, the Converter MUST discard the Map request and return 'Address Mismatch' error to the Client. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   |     Type      |     Length    |R|F|        Unassigned          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+   |                     Lifetime (32 bits)                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        Internal Port          |         External Port         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   
+   |                                                               |
+   |               Internal IP Address (128 bits)                  |
+   |                                                               |
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   |                External IP Address (128 bits)                 |
+   |                                                               |
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |       Remote Peer Port        |     Reserved (16 bits)        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   |               Remote Peer IP Address (128 bits)               |
+   |                                                               |
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-map title="The Map TLV"}
+
+The Converter may discard a Map TLV request for many reasons (e.g., bad TFO cookie, authorization failed, out of resources, invalid address type, address mismatch). An error message indicating the encountered error is returned to the requesting Client ({{sec-error}}). In order to prevent denial-of-service attacks, error messages sent to a Client SHOULD be rate-limited.
+
+Upon successful validation and processing of a Map TLV, the Converter installs the corresponding mapping entry and returns the assigned values in a Map TLV to the Client. 
 
 ### Extended TCP Header TLV {#sec-ext-header}
 
@@ -873,6 +927,8 @@ The following error codes are defined in this document:
    TCP option. If several unsupported TCP options were specified in the
    Connect TLV, only one of them is returned in the Value.
 
+ - Address Mismatch (34): This error indicates that the Transport Converter detects an on-path translator between the Client and the Converter. 
+
  - Resource Exceeded (64): This error indicates that the Transport Converter does
    not have enough resources to perform the request. 
 
@@ -904,6 +960,7 @@ The following error codes are defined in this document:
  |    2  | 0x02 | Unsupported Message                           |
  |   32  | 0x20 | Not Authorized                                |
  |   33  | 0x21 | Unsupported TCP Option                        |
+ |   34  | 0x22 | Address Mismatch                              | 
  |   64  | 0x40 | Resource Exceeded                             |
  |   65  | 0x41 | Network Failure                               |
  |   96  | 0x60 | Connection Reset                              |
@@ -1255,6 +1312,7 @@ as follows:
  |    2  | 0x02 | Unsupported Message               | [This-RFC]|
  |   32  | 0x20 | Not Authorized                    | [This-RFC]|
  |   33  | 0x21 | Unsupported TCP Option            | [This-RFC]|
+ |   34  | 0x22 | Address Mismatch                  | [This-RFC]| 
  |   64  | 0x40 | Resource Exceeded                 | [This-RFC]|
  |   65  | 0x41 | Network Failure                   | [This-RFC]|
  |   96  | 0x60 | Connection Reset                  | [This-RFC]|
