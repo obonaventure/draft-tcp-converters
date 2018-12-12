@@ -799,9 +799,11 @@ IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, (Internal/Assig
 
 A Client indicates a suggested lifetime in a Map request, but it MUST be prepared to not be granted the requested lifetime. Which lifetime to be assigned for a mapping is policy-based and local to the Converter. A Client MAY extend the lifetime of a mapping it creates by sending a Map request, echoing the information conveyed in a Map response, before the expiry of the assigned lifetime. Upon expiry of the assigned lifetime, and absent any Map refresh, the Converter MUST silently delete the corresponding mapping. 
 
+A Client may delete an existing mapping by sending a Map TLV with a lifetime set to 0. The Converter confirms the withdrawal of a mapping using a Map TLV with a lifetime field set to 0.
+
 The Client sets by default the Suggested External Port and Suggested External IP Address to the same values as Internal Port and Internal IP Address. The Client may use distinct values for setting these values to preserve the same IP address and port assigned by the Converter in a previous exhange. Note that distinct external IP address and/or port are returned by the Converter if it behaves in address sharing mode.   
 
-The Client may set Remote Peer Port and Remote Peer IP Address if it wants the mapping to be restricted to a specific peer. To that aim, the F-bit MUST be set. If the F-bit is unset, Remote Port and Remote Peer IP Address are not speified. That is, the mapping applies for any remote peet. 
+Mappings created by using a Map TLV are, by default, endpoint-independent mappings (EIMs) with endpoint-independent filtering (EIF). Neverthless, the Client may set Remote Peer Port and Remote Peer IP Address if it wants the mapping to be restricted to a specific remote peer IP address and port number. To that aim, the F-bit MUST be set. If the F-bit is unset, Remote Port and Remote Peer IP Address are not speified. That is, the mapping applies for any remote peer. 
 
 In order to detect an on-path translator, the Converter MUST compare the Internal IP address with the source IP address of the Convert message. If a mismatch is detected, the Converter MUST discard the Map request and return 'Address Mismatch' error to the Client. 
 
