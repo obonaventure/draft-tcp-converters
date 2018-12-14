@@ -68,6 +68,9 @@ informative:
   RFC6928:
   RFC6978:
   RFC7323:
+  RFC8446:
+  RFC4279:
+  RFC7250:
   I-D.boucadair-tcpm-dhc-converter:
   I-D.ietf-tcpinc-tcpcrypt:
   I-D.olteanu-intarea-socks-6:
@@ -1100,7 +1103,7 @@ can be identified by their IP address. Thanks to the Bootstrap procedure,
 the Transport Converter can verify that
 the Client correctly receives packets sent by the Converter. 
 
-Stronger authentication schemes MUST be defined to use the Convert Protocol in more open network environments. Concretely,  the Converter SHOULD support certificate-based client authentication. If the Client does not support TLS client certificate authentication, it MUST support pre-shared key based [RFC4279] or raw public key based client authentication [RFC7250]. TLS-based authentication MUST be achieved during the bootstrap phase. If the authentication succeeds, the Converter returns a TFO cookie which content may be, for example, set to a hash using as input representation of the Subject Public Key Info (SPKI) of the client X.509 certificate, the Client raw public key, or the "Pre-Shared Key (PSK) identity" used by the Client in the TLS ClientKeyExchange message. Subsequent Connect messages will be authorized as a fucntion of the content of the TFO cookie. 
+Stronger authentication schemes MUST be defined to use the Convert Protocol in more open network environments. Concretely,  the Converter SHOULD support certificate-based client authentication. If the Client does not support TLS client certificate authentication, it MUST support pre-shared key based {{RFC4279}} or raw public key based client authentication {{RFC7250}}. TLS-based authentication MUST be achieved during the bootstrap phase. If the authentication succeeds, the Converter returns a TFO cookie which content may be, for example, set to a hash using as input the representation of the Subject Public Key Info (SPKI) of the client X.509 certificate, the Client raw public key, or the "Pre-Shared Key (PSK) identity" used by the Client in the TLS ClientKeyExchange message. Subsequent Connect messages will be authorized as a function of the content of the TFO cookie as per {{RFC7413}}. 
 
 See below for authorization considerations that are specific for Multipath TCP.
 
