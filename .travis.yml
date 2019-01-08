@@ -1,4 +1,6 @@
-install: gem install kramdown-rfc2629
+install: 
+ - gem install kramdown-rfc2629
+ - sudo apt-get install xml2rfc
 language: ruby
 # command to run tests
 script: make
