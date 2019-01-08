@@ -1,0 +1,4 @@
+install: sudo apt-get install ruby-kramdown-rfc2629
+language: ruby
+# command to run tests
+script: make
