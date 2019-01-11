@@ -351,19 +351,19 @@ When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, which is the case we consider in this document, the Client
 initiates a connection towards the Transport Converter and indicates the IP address and port number of
-the target Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate
+the Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate
 a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the
 confirmation that the Server agrees to establish the connection before confirming
 it to the Client.
 
 
 The client places the
-destination address and port number of the target Server in the payload of the SYN sent to the Converter by
+destination address and port number of the Server in the payload of the SYN sent to the Converter by
 leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter
 maintains two connections that are combined together: 
 
 - the upstream connection is the one between the Client and the Transport Converter. 
-- the downstream connection is between the Transport Converter and the target Server. 
+- the downstream connection is between the Transport Converter and the Server.
 
 Any user data received by the Transport Converter over the upstream (resp., downstream)
 connection is relayed over the downstream (resp., upstream) connection.
@@ -392,13 +392,13 @@ Client                   Converter                       Server
 {: #fig-estab title="Establishment of a TCP connection through a Converter"}
 
 The Client sends a SYN destined to the Transport Converter. This SYN leverages
-{{RFC7413}} and contains inside its payload the address and port number of the target
+{{RFC7413}} and contains inside its payload the address and port number of the
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the target Server. If this
-second connection succeeds, the Transport Converter confirms the establishment of
+upstream connection succeeds, the Transport Converter confirms the establishment of
 the connection to the Client by returning a SYN+ACK and the first bytes of
 the bytestream contain information about the TCP options that were negotiated
-with the target Server. This information is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
+with the Server. This information is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
 a subsequent packet. For graphical reasons, the figures in this section show
 that the Converter returns this information in the SYN+ACK packet.
 An implementation could also place this information in a packet that it sent shortly after the SYN+ACK.
@@ -644,7 +644,7 @@ the Transport Converter replies with
 the Supported TCP Extension Services TLV described in {{sec-supported}}.
 
 With the TFO cookie of the Transport Converter, the Client can request
-the establishment of connections to remote servers with the Connect TLV
+the establishment of connections to servers with the Connect TLV
 (see {{sec-connect}}). If the connection can be established with the final server,
 the Transport Converter replies with the Extended TCP Header TLV. If not, the Transport Converter
 returns an Error TLV inside a RST packet (see {{sec-error}}).
@@ -738,7 +738,7 @@ IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer IP 
 
 The optional 'TCP Options' field is used to specify how specific TCP options
 should be advertised by the Transport Converter
-to the final destination of a connection. If this field is not supplied, the Transport
+to the server. If this field is not supplied, the Transport
 Converter MUST use the default TCP options that correspond to its local
 policy.
 
