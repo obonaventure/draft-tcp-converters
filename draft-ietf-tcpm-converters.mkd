@@ -874,11 +874,11 @@ The following error codes are defined in this document:
 
    Typically, this error code is sent by the Converter if it receives a Connect TLV enclosing a multicast, broadcast, or loopback IP address.
    
-   To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
+   To ease troubleshooting, the value field MUST echo the received message shifted by one byte to keep to original alignment of the message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
 
  - Unsupported Message (2): This error code is sent to indicate that a message type is not supported by the Converter. 
 
-   To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of an unsupported message.
+   To ease troubleshooting, the value field MUST echo the received message shifted by one byte to keep to original alignment of the message. The Converter and the Client MUST send a RST containing this error upon reception of an unsupported message.
 
  - Missing TFO Cookie (3): If TFO validation checks are not relaxed, and a TFO cookie is missing in the Convert message, the Converter MUST send a RST containing this error to the requesting client. A Client which receives this error code MUST include a TFO cookie in subsequent Connect TLVs sent to that Converter. 
 
