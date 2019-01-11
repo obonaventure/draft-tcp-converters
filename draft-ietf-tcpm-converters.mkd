@@ -894,7 +894,8 @@ The following error codes are defined in this document:
 
    The Value field is set to the type of the unsupported
    TCP option. If several unsupported TCP options were specified in the
-   Connect TLV, only one of them is returned in the Value.
+   Connect TLV, then the list of unsupported TCP options is returned.
+   The list of unsupported TCP options should be padded with zeros to end on a 32 bits boundary.
 
   
  - Resource Exceeded (64): This error indicates that the Transport Converter does
