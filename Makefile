@@ -35,4 +35,4 @@ $(next).mkd: $(draft).mkd
 	$(xml2rfc) $< $@
 
 %.html: %.xml
-	$(xml2rfc) $< $@
+	$(xml2rfc) --html $< $@
