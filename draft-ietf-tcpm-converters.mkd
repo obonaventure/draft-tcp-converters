@@ -597,6 +597,9 @@ future use {{RFC8126}}.
 The Convert protocol uses variable length messages that are encoded using
 the generic TLV (Type, Length, Value) format depicted in {{fi-generictlv}}.
 
+Length is expressed in 32 bits word. In general zero padding should always be
+added if the value's length in bytes can not be expressed as 2 + (4 * n).
+
 All TLV fields are encoded using the network byte order.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
