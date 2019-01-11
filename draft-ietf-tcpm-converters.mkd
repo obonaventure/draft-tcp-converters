@@ -482,7 +482,7 @@ of the target Server, that are extracted and used by the Transport Converter to 
 connection towards this Server. Since the Server does not support Multipath TCP, it
 replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport
 Converter notes that the connection with the Server does not support Multipath TCP
-and returns the TCP options received from the Server to the Client.
+and returns the extended TCP header received from the Server to the Client.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
