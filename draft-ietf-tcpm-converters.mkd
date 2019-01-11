@@ -1241,7 +1241,7 @@ as follows:
  |    1    | Bootstrap TLV                        | [This-RFC]  |
  |   10    | Connect TLV                          | [This-RFC]  |
  |   20    | Extended TCP Header TLV              | [This-RFC]  |
- |   22    | Supported TCP Extension Services TLV | [This-RFC]  |
+ |   21    | Supported TCP Extension Services TLV | [This-RFC]  |
  |   30    | Error TLV                            | [This-RFC]  |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
