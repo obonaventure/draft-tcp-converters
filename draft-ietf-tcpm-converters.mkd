@@ -1,5 +1,10 @@
 ---
 title: 0-RTT TCP Convert Protocol
+<!---
+On first read, I got confused between the "Converter Protocol" and "Convert".
+I missed the line saying Convert is the short version. And the title says
+"Convert Protocol". I would just use the full name in the title: "The Converter Protocol". 
+-->
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-04
 date: 2018-10-22
@@ -169,7 +174,10 @@ servers remains difficult.
 
 More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted 
 into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy.
-Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth to data transfer, it is 
+<!---
+I do not understand the sentence above (into global range of...).
+-->
+Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth of data transfer, it is
 as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes
 are inside or outside of the mobile core.
 In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation 
@@ -283,6 +291,11 @@ with the names and/or the addresses of one or more Transport Converters.
 
 The architecture does not mandate anything on the server side.
 
+<!---
+I would explain a bit more why this does not impact TLS. Maybe just saying
+that TLS sits in the bytestream, after the Convert Protocol (I don't know
+what "address sharing mechanisms" refers to).
+-->
 Similar to address sharing mechanisms, the architecture does not interfere with end-to-end TLS connections between the client and the server.
 
 One of the benefits of this design
@@ -299,11 +312,16 @@ This is illustrated in {{fig-highlevel}} where the Client initiates a
 Multipath TCP connection with the Converter (Multipath packets are shown
 with "===") while the Converter uses a regular TCP connection with the Server.
 
+<!---
+Converter should be on path for Server initiated connections. Should this be
+mentionned somewhere? The next sentence got me thinking about this.
+-->
 The
 packets belonging to the pair of connections between the Client and Server
 passing through a Transport Converter
 may follow a different path than the packets directly exchanged between the
 Client and the Server. Deployments should minimize the possible additional delay
+
 by carefully selecting the location of the Transport Converter used to reach a
 given destination.
 
@@ -464,6 +482,11 @@ connection towards this Server. Since the Server does not support Multipath TCP,
 replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport
 Converter notes that the connection with the Server does not support Multipath TCP
 and returns the TCP options received from the Server to the Client.
+<!---
+The TCP options are returned in the Extended TCP Header TLV, which has not been
+introduced yet. I would clarify that these returned options sit in the bytestream,
+and are not the actual options on the SYN/ACK packet.
+-->
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
@@ -498,6 +521,9 @@ Client                   Converter                       Server
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
+<!---
+Converter must be on path. Mention this?
+-->
 An example of an incoming Converter-assisted Multipath TCP connection is depicted
 in {{fig-inestab}}. In order to support incoming connections from remote hosts,
 the Client may use PCP {{RFC6887}} to instruct the Converter to create dynamic
@@ -809,6 +835,11 @@ that was received in the SYN+ACK by the Transport Converter.
 The Unassigned field MUST be set to zero by the transmitter and ignored by the
 receiver. These bits are available for future use {{RFC8126}}.
 
+<!---
+Mention 32 bits aligment?
+-->
+
+
 ### Error TLV {#sec-error}
 
 The optional Error TLV ({{fig-error}}) can be used by the Transport Converter to provide
@@ -819,6 +850,11 @@ Transport Converter if the error is fatal and prevented the
 establishment of the connection. If the error is not fatal and
 the connection could be established with the final destination, then
 the error TLV will be carried in the payload.
+
+<!---
+Mention 32 bits aligment?
+-->
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -1060,6 +1096,10 @@ have shown that middleboxes can affect the deployment of TCP extensions.
 In this section, we only discuss the middleboxes
 that modify SYN and SYN+ACK packets since the Converter Protocol places
 its messages in such packets.
+<!---
+This is not true for the bootstrap. When requesting the cookie, the boostrap TLV
+and the supported TCP extensions TLV are not in the SYN or SYN/ACK?
+-->
 
 Let us first consider a middlebox that removes the TFO Option from the SYN packet.
 This interference will be detected by the Client during the bootstrap procedure
@@ -1129,6 +1169,12 @@ attacks MUST also be enabled {{RFC4987}}.
    path.  Indeed, inserting an illegitimate Converter in the forwarding path
    allows traffic interception and can therefore provide access to
    sensitive data issued by or destined to a host. Converter discovery and configuration are out of scope of this document.
+
+<!---
+This traffic theft security section is not very clear to me. I don't understand
+how this is any different from any other on-path device?
+-->
+
 
 ## Multipath TCP-specific Considerations
 
