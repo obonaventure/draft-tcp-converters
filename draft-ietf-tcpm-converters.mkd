@@ -351,19 +351,19 @@ When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the Server)
 or create the connection via a Transport Converter. In the latter case, which is the case we consider in this document, the Client
 initiates a connection towards the Transport Converter and indicates the IP address and port number of
-the target Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate
+the Server inside the connection establishment packet. Doing so enables the Transport Converter to immediately initiate
 a connection towards that Server, without experiencing an extra delay. The Transport Converter waits until the
 confirmation that the Server agrees to establish the connection before confirming
 it to the Client.
 
 
 The client places the
-destination address and port number of the target Server in the payload of the SYN sent to the Converter by
+destination address and port number of the Server in the payload of the SYN sent to the Converter by
 leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the Transport Converter
 maintains two connections that are combined together: 
 
 - the upstream connection is the one between the Client and the Transport Converter. 
-- the downstream connection is between the Transport Converter and the target Server. 
+- the downstream connection is between the Transport Converter and the Server.
 
 Any user data received by the Transport Converter over the upstream (resp., downstream)
 connection is relayed over the downstream (resp., upstream) connection.
@@ -392,13 +392,13 @@ Client                   Converter                       Server
 {: #fig-estab title="Establishment of a TCP connection through a Converter"}
 
 The Client sends a SYN destined to the Transport Converter. This SYN leverages
-{{RFC7413}} and contains inside its payload the address and port number of the target
+{{RFC7413}} and contains inside its payload the address and port number of the
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the target Server. If this
-second connection succeeds, the Transport Converter confirms the establishment of
+upstream connection succeeds, the Transport Converter confirms the establishment of
 the connection to the Client by returning a SYN+ACK and the first bytes of
 the bytestream contain information about the TCP options that were negotiated
-with the target Server. This information is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
+with the Server. This information is sent at the beginning of the bytestream, either directly in the SYN+ACK or in
 a subsequent packet. For graphical reasons, the figures in this section show
 that the Converter returns this information in the SYN+ACK packet.
 An implementation could also place this information in a packet that it sent shortly after the SYN+ACK.
@@ -482,7 +482,7 @@ of the target Server, that are extracted and used by the Transport Converter to 
 connection towards this Server. Since the Server does not support Multipath TCP, it
 replies with a SYN+ACK that does not contain the MP\_CAPABLE option. The Transport
 Converter notes that the connection with the Server does not support Multipath TCP
-and returns the TCP options received from the Server to the Client.
+and returns the extended TCP header received from the Server to the Client.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this case, it
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
@@ -597,6 +597,9 @@ future use {{RFC8126}}.
 The Convert protocol uses variable length messages that are encoded using
 the generic TLV (Type, Length, Value) format depicted in {{fi-generictlv}}.
 
+Length is expressed in 32 bits word. In general zero padding should always be
+added if the value's length in bytes can not be expressed as 2 + (4 * n).
+
 All TLV fields are encoded using the network byte order.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -644,7 +647,7 @@ the Transport Converter replies with
 the Supported TCP Extension Services TLV described in {{sec-supported}}.
 
 With the TFO cookie of the Transport Converter, the Client can request
-the establishment of connections to remote servers with the Connect TLV
+the establishment of connections to servers with the Connect TLV
 (see {{sec-connect}}). If the connection can be established with the final server,
 the Transport Converter replies with the Extended TCP Header TLV. If not, the Transport Converter
 returns an Error TLV inside a RST packet (see {{sec-error}}).
@@ -738,7 +741,7 @@ IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer IP 
 
 The optional 'TCP Options' field is used to specify how specific TCP options
 should be advertised by the Transport Converter
-to the final destination of a connection. If this field is not supplied, the Transport
+to the server. If this field is not supplied, the Transport
 Converter MUST use the default TCP options that correspond to its local
 policy.
 
@@ -852,7 +855,7 @@ Different types of errors can occur while processing Convert
 messages. Each error is identified by a code represented as an unsigned integer.
 Four classes of errors are defined:
 
- - Message validation and processing errors (0-31 range): returned upon reception of an an invalid message (including valid messages but with invalid or unknown TLVs).
+ - Message validation and processing errors (0-31 range): returned upon reception of an invalid message (including valid messages but with invalid or unknown TLVs).
  - Client-side errors (32-63 range): the Client sent a request that could not be accepted by the Converter (e.g., unsupported operation).
  - Converter-side errors (64-95 range): problems encountered on the Converter (e.g., lack of resources) which prevent it from fulfilling the Client's request.
  - Errors caused by destination server (96-127 range): the final destination could not be reached or it replied with a reset.
@@ -863,7 +866,7 @@ The following error codes are defined in this document:
 
    This error code MUST be generated by a Converter when it receives a request having a version number that it does not support. 
 
-   The value field MUST be set to the version supported by the Converter. When multiple versions are supported by the Converter, it includes the list of supported version in the value field; each version is encoded in 8 bits. 
+   The value field MUST be set to the version supported by the Converter. When multiple versions are supported by the Converter, it includes the list of supported version in the value field; each version is encoded in 8 bits. The list of supported versions should be padded with zeros to end on a 32 bits boundary.
 
    Upon receipt of this error code, the client checks whether it supports one of the versions returned by the Converter. The highest common supported version MUST be used by the client in subsequent exchanges with the Converter.
 
@@ -871,13 +874,15 @@ The following error codes are defined in this document:
 
    Typically, this error code is sent by the Converter if it receives a Connect TLV enclosing a multicast, broadcast, or loopback IP address.
    
-   To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
+   To ease troubleshooting, the value field MUST echo the received message shifted by one byte to keep to original alignment of the message. The Converter and the Client MUST send a RST containing this error upon reception of a malformed message.
 
  - Unsupported Message (2): This error code is sent to indicate that a message type is not supported by the Converter. 
 
-   To ease troubleshooting, the value field MUST echo the received message. The Converter and the Client MUST send a RST containing this error upon reception of an unsupported message.
+   To ease troubleshooting, the value field MUST echo the received message shifted by one byte to keep to original alignment of the message. The Converter and the Client MUST send a RST containing this error upon reception of an unsupported message.
 
  - Missing TFO Cookie (3): If TFO validation checks are not relaxed, and a TFO cookie is missing in the Convert message, the Converter MUST send a RST containing this error to the requesting client. A Client which receives this error code MUST include a TFO cookie in subsequent Connect TLVs sent to that Converter. 
+
+   The value field MUST be set to zero.
    
  - Not Authorized (32): This error code indicates that the Converter refused to create a connection because of a lack of authorization (e.g., administratively prohibited, authorization failure, invalid TFO cookie, etc.). The Value field MUST be set to zero. 
 
@@ -889,7 +894,8 @@ The following error codes are defined in this document:
 
    The Value field is set to the type of the unsupported
    TCP option. If several unsupported TCP options were specified in the
-   Connect TLV, only one of them is returned in the Value.
+   Connect TLV, then the list of unsupported TCP options is returned.
+   The list of unsupported TCP options should be padded with zeros to end on a 32 bits boundary.
 
   
  - Resource Exceeded (64): This error indicates that the Transport Converter does
@@ -1241,7 +1247,7 @@ as follows:
  |    1    | Bootstrap TLV                        | [This-RFC]  |
  |   10    | Connect TLV                          | [This-RFC]  |
  |   20    | Extended TCP Header TLV              | [This-RFC]  |
- |   22    | Supported TCP Extension Services TLV | [This-RFC]  |
+ |   21    | Supported TCP Extension Services TLV | [This-RFC]  |
  |   30    | Error TLV                            | [This-RFC]  |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
