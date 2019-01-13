@@ -37,7 +37,11 @@ author:
   name: SungHoon Seo
   organization: Korea Telecom
   email: sh.seo@kt.com
-
+ -
+  ins: B. Hesmans
+  name: Benjamin Hesmans
+  organization: Tessares
+  email: Benjamin.Hesmans@tessares.net
 
 normative:
   RFC0793:
@@ -1468,7 +1472,7 @@ comments on the MPTCP mailing list have forced
 us to reconsider the design of the solution several times.
 
 We would like to thank Raphael Bauduin, Stefano Secci,
-Benjamin Hesmans and Anandatirtha Nandugudi for their help
+Anandatirtha Nandugudi and Gregory Vander Schueren for their help
 in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Thanks to them.
@@ -1535,8 +1539,6 @@ This section to be removed before publication.
  - 01 to -02 : Minor modifications
  - 02 to -03 : Minor modifications
  - 03 to -04 : Minor modifications
-
-
 
 
 --- back
