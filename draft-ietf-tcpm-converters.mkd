@@ -847,11 +847,6 @@ to the server. If this field is not supplied, the Transport
 Converter MUST use the default TCP options that correspond to its local
 policy.
 
-We evaluated an alternate design for the Connect TLV that included the
-DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
-However, that design was not adopted
-because it induces both an extra load and increased delays
-on the Transport Converter to handle and manage DNS resolution requests.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -1687,3 +1682,11 @@ the Transport Converter, then the upstream connection from the Client
 is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
 selection of a Server {{RFC8305}}.
+
+A fourth difference is that the Convert protocol only allows the client to
+specify the address/port of the destination server and not a DNS name.
+We evaluated an alternate design for the Connect TLV that included the
+DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
+However, that design was not adopted
+because it induces both an extra load and increased delays
+on the Transport Converter to handle and manage DNS resolution requests.
