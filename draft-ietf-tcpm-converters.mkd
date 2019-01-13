@@ -680,7 +680,7 @@ This document specifies the following Convert TLVs:
 +------+-----+----------+------------------------------------------+
 | Type | Hex |  Length  | Description                              |
 +------+-----+----------+------------------------------------------+
-|   1  | 0x1 |    1     | Bootstrap TLV                            |
+|   1  | 0x1 |    1     | Info TLV                                 |
 |  10  | 0xA | Variable | Connect TLV                              |
 |  20  | 0x14| Variable | Extended TCP Header TLV                  |
 |  21  | 0x15| Variable | Supported TCP Extension Services TLV     |
@@ -692,18 +692,8 @@ This document specifies the following Convert TLVs:
 Type 0x0 is a reserved valued. Implementations MUST discard messages
 with such TLV.
 
-To establish a connection via a Transport Converter, a Client SHOULD first
-obtain a valid TFO cookie from that Transport Converter. This is the
-bootstrap procedure during which the Client
-opens a connection to the Transport Converter with an empty TFO option.
-According to {{RFC7413}}, the Transport Converter returns its cookie in
-the SYN+ACK.
-Then the Client sends a Bootstrap TLV ({{sec-bootstrap-tlv}}) to which
-the Transport Converter replies with
-the Supported TCP Extension Services TLV described in {{sec-supported}}.
-
-With the TFO cookie of the Transport Converter, the Client can request
-the establishment of connections to servers with the Connect TLV
+The Client can request the establishment of connections to servers
+by using the Connect TLV
 (see {{sec-connect}}). If the connection can be established with the final
 server,
 the Transport Converter replies with the Extended TCP Header TLV. If not,
@@ -713,11 +703,11 @@ returns an Error TLV inside a RST packet (see {{sec-error}}).
 When the Transport Converter receives a connection
 establishment (that is, SYN with Connect TLV) from a Client, it MUST
 process the TCP options found in
-the SYN and the Connect TLV.  In general, the Transport Converter
+the SYN and the Connect TLV. In general, the Transport Converter
 MUST add to the proxied SYN the TCP options that were included in the
 Connect TLV.  It SHOULD add to the proxied SYN the TCP options that
-were included in the incoming SYN provided that it supports the
-corresponding TCP extension.
+were included in the incoming SYN provided that it supports them.
+
 
 There are some exceptions to these rules given the semantics of some
  TCP options.  First, TCP options with Kinds 0 (EOL), 1 (NOP), 2
@@ -735,21 +725,15 @@ as described in Section 6.
 As a general rule, when an error is encountered an Error TLV with the
 appropriate error code MUST be returned by the Transport Converter.
 
-### The Bootstrap TLV {#sec-bootstrap-tlv}
+### The Info TLV {#sec-bootstrap-tlv}
 
-The Bootstrap TLV ({{fig-bootstrap}} is sent by a Client to request the
-TCP extensions that are
-supported by a Transport Converter and for which it provides a conversion
-service. It is typically sent on the first connection
+The Info TLV ({{fig-bootstrap}} is an optional TLV which can be sent by
+a Client to request the TCP extensions that are supported by a
+given Transport Converter. It is typically sent on the first connection
 that a Client establishes with a Transport Converter to learn its
 capabilities. Assuming a Client is entitled to invoke the Transport
 Converter, this latter replies with the Supported TCP
 Extensions Services TLV described in {{sec-supported}}.
-
-The bootstrap procedure MAY be disabled in deployments where the capabilities
-of the Transport Converter are configured by out-of-band means (e.g.,
-dedicated PCO returned to a 3GPP User Equipment) and TFO validation checks
-are relaxed.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -759,7 +743,7 @@ are relaxed.
    +---------------+---------------+-------------------------------+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-bootstrap title="The Bootstrap TLV"}
+{: #fig-bootstrap title="The Info TLV"}
 
 ### Supported TCP Extension Services TLV {#sec-supported}
 
@@ -1089,7 +1073,8 @@ reason for a Client to request
 a Transport Converter to advertise a specific MSS value to a remote server.
 
 A Transport Converter MUST ignore options with Kind=0, 1 or 2 if they appear
-in a Connect TLV. It MUST NOT announce them in a Bootstrap TLV.
+in a Connect TLV. It MUST NOT announce them in a Supported TCP Extensions
+Services TLV.
 
 ## Window Scale (WS)
 
@@ -1108,7 +1093,7 @@ specifically request the utilisation of the WS option (Kind=3) with a specific
 scaling factor towards a remote Server. For this reason, a Transport
 Converter MUST ignore
 option Kind=3 if it appears in a Connect TLV. It MUST NOT announce it in a
-Bootstrap TLV.
+Supported TCP Extensions Services TLV.
 
 ## Selective Acknowledgements
 
@@ -1122,13 +1107,14 @@ SACK (Kind=5), carries
 the selective acknowledgements inside regular segments.
 
 The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter
-in the Bootstrap TLV. In this case, Clients connected to this Transport
+in the Supported TCP Extensions Services TLV. In this case, Clients
+connected to this Transport
 Converter MAY include the SACK Permitted option in the Connect TLV.
 
 The SACK option (Kind=5) cannot be used during the three-way handshake. For
 this reason, a Transport Converter MUST ignore
 option Kind=5 with if it appears in a Connect TLV. It MUST NOT
-announce it in a Bootstrap TLV.
+announce it in a TCP Supported Extensions Services TLV.
 
 ## Timestamp
 
@@ -1152,7 +1138,7 @@ timestamp value that a Transport Converter could use to establish a
 connection to a remote server.
 
 A Transport Converter MAY advertise the Timestamp option (Kind=8) in the
-Bootstrap TLV. The clients
+TCP Supported Extensions Services TLV. The clients
 connected to this Transport Converter MAY include the Timestamp option in
 the Connect TLV but without
 any timestamp.
@@ -1169,7 +1155,8 @@ the Multipath TCP option that the Transport Converter should send to a
 remote server.
 
 A Transport Converter which supports Multipath TCP conversion service MUST
-advertise the Multipath TCP option (Kind=30) in the Bootstrap TLV. Clients
+advertise the Multipath TCP option (Kind=30) in the Supported TCP Extensions
+Services TLV. Clients
 serviced by this Transport Converter may include the Multipath TCP option
 in the Connect TLV but without
 any content.
@@ -1188,9 +1175,9 @@ cookie to the
 server. In this case, the option contains a cookie.
 
 A Transport Converter MAY advertise the TCP Fast Open cookie option (Kind=34)
-in the Bootstrap TLV.
+in the Supported TCP Extensions Services TLV.
 If a Transport Converter has advertised the support for TCP Fast Open in its
-Bootstrap TLV, it needs
+Supported TCP Extensions Services TLV, it needs
 to be able to process two types of Connect TLV. If such a Transport Converter
 receives a Connect TLV
 with the TCP Fast Open cookie option that does not contain a cookie, it
@@ -1224,7 +1211,7 @@ in this document are those where the
 TCP-AO-NAT extension  {{RFC6978}} is in use.
 
 A Transport Converter MUST NOT advertise the TCP-AO option (Kind=29) in
-the Bootstrap TLV.
+the Supported TCP Extensions Services TLV.
 If a Transport Converter receives a Connect TLV that contains the TCP-AO option,
 it MUST reject the establishment of the connection with error code set to
 "Unsupported TCP Option", except if the TCP-AO-NAT option is used.
@@ -1254,16 +1241,8 @@ In this section, we only discuss the middleboxes
 that modify SYN and SYN+ACK packets since the Convert Protocol places
 its messages in such packets.
 
-Let us first consider a middlebox that removes the TFO option from the
-SYN packet. This interference will be detected by the Client during the
-bootstrap procedure
-discussed in {{sec-bootstrap-tlv}} or during the connect establishment
-phase (error code set to 0x03). A Client may not use a Transport Converter
-that does not reply with the TFO option during the Bootstrap (absent explicit
-policy/configuration otherwise).
-
-Consider a middlebox that removes the SYN payload after the bootstrap
-procedure. The Client can detect this problem by looking at the
+Consider a middlebox that removes the SYN payload.
+The Client can detect this problem by looking at the
 acknowledgement number field of
 the SYN+ACK returned by the Transport Converter.
 The Client MUST stop to use this
@@ -1302,10 +1281,7 @@ addresses.
 ## Authorization
 
 The Convert Protocol is intended to be used in managed networks where end hosts
-can be identified by their IP address. Thanks to the Bootstrap procedure,
-the Transport Converter can verify that
-the Client correctly receives packets sent by the Transport Converter.
-Stronger authentication
+can be identified by their IP address. Stronger authentication
 schemes MUST be defined to use the Convert Protocol in more open network
 environments; such schemes are out of scope of this document.
 
@@ -1436,7 +1412,7 @@ as follows:
  |  Code   | Name                                 | Reference   |
  +---------+--------------------------------------+-------------+
  |    0    | Reserved                             | [This-RFC]  |
- |    1    | Bootstrap TLV                        | [This-RFC]  |
+ |    1    | Info TLV                             | [This-RFC]  |
  |   10    | Connect TLV                          | [This-RFC]  |
  |   20    | Extended TCP Header TLV              | [This-RFC]  |
  |   21    | Supported TCP Extension Services TLV | [This-RFC]  |
