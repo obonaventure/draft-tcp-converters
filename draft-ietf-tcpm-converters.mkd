@@ -269,11 +269,10 @@ The architecture considers three types of endhosts:
 - Server endhosts.
 
 A Transport Converter is a network function that relays all data exchanged
-over one
-upstream connection to one downstream connection and vice versa ({{figtc}}).
+over one upstream connection to one downstream connection and
+vice versa ({{figtc}}).
 The Transport Converter, thus, maintains state that associates one upstream
-connection to
-a corresponding downstream connection.
+connection to a corresponding downstream connection.
 
 A connection can be initiated from both sides of the Transport Converter
 (Internet-facing interface, client-facing interface).
@@ -305,6 +304,10 @@ How such function is enabled is deployment-specific ({{figtc2}}).
     Client -  |R| -- |R| -- |R| - - -  Server
               +-+    +-+    +-+
                       |
+                     +-+
+                     |R|
+                     +-+
+                      |
                  +---------+
                  |Transport|
                  |Converter|
@@ -314,15 +317,21 @@ How such function is enabled is deployment-specific ({{figtc2}}).
 {: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
 
 The architecture assumes that
-new software will be installed on the Client hosts and on Transport Converters.
-Further, the architecture allows for making use of TCP new extensions if
-those are supported by a given server.
+new software will be installed on the Client hosts to interact with one
+or more Transport Converters. Further, the architecture allows for
+making use of TCP new extensions even if those are not
+supported by a given server.
 
 The Client is configured, through means that are outside the
-scope of this document,
-with the names and/or the addresses of one or more Transport Converters.
+scope of this document, with the names and/or the addresses
+of one or more Transport Converters and the TCP extensions that they support.
 The procedure for selecting a Transport Converter among a list of
-configured Converters is outside the scope of this document.
+configured Transport Converters is outside the scope of this document.
+
+One of the benefits of this design
+is that different transport protocol extensions can be used on the upstream
+and the downstream connections. This encourages the deployment of new
+TCP extensions until they are widely supported by servers.
 
 The architecture does not mandate anything on the server side.
 
@@ -344,10 +353,7 @@ Server {{figtls}}.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-One of the benefits of this design
-is that different transport protocol extensions can be used on the upstream
-and the downstream connections. This encourages the deployment of new
-TCP extensions until they are widely supported by servers.
+
 
 ## Theory of Operation
 
@@ -358,16 +364,6 @@ This is illustrated in {{fig-highlevel}} where the Client initiates a
 Multipath TCP connection with the Transport Converter (packets belonging
 to the Multipath TCP connection are shown with "===") while the Transport
 Converter uses a regular TCP connection with the Server.
-
-The
-packets belonging to the pair of connections between the Client and Server
-passing through a Transport Converter
-may follow a different path than the packets directly exchanged between the
-Client and the Server. Deployments should minimize the possible additional delay
-by carefully selecting the location of the Transport Converter used to reach a
-given destination.
-
-
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
@@ -383,31 +379,32 @@ Client                   Converter                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-highlevel title="Different TCP variants can be used on the Client-Transport Converter path and on the Transport Converter-Server path"}
 
+The packets belonging to the pair of connections between the Client and Server
+passing through a Transport Converter
+may follow a different path than the packets directly exchanged between the
+Client and the Server. Deployments should minimize the possible additional
+delay by carefully selecting the location of the Transport Converter
+used to reach a given destination.
+
 
 When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the
-Server)
-or create the connection via a Transport Converter. In the latter case, which
-is the case we consider in this document, the Client
+Server) or create the connection via a Transport Converter. In the latter
+case, which is the case we consider in this document, the Client
 initiates a connection towards the Transport Converter and indicates the IP
-address and port number of
-the Server inside the connection establishment packet. Doing so enables the
-Transport Converter to immediately initiate
+address and port number of the Server inside the connection establishment
+packet. Doing so enables the Transport Converter to immediately initiate
 a connection towards that Server, without experiencing an extra delay. The
-Transport Converter waits until the
-confirmation that the Server agrees to establish the connection before
-confirming
-it to the Client.
+Transport Converter waits until the confirmation that the Server agrees
+to establish the connection before confirming it to the Client.
 
+The client places the destination address and port number of the Server
+in the payload of the SYN sent to the Transport Converter to minimise delays.
+In accordance with {{RFC1919}}, the Transport Converter maintains two
+connections that are combined together:
 
-The client places the
-destination address and port number of the Server in the payload of the SYN
-sent to the Transport Converter by
-leveraging TCP Fast Open {{RFC7413}}. In accordance with {{RFC1919}}, the
-Transport Converter
-maintains two connections that are combined together:
-
-- the upstream connection is the one between the Client and the Transport Converter. 
+- the upstream connection is the one between the Client and the
+  Transport Converter.
 - the downstream connection is between the Transport Converter and the Server.
 
 Any user data received by the Transport Converter over the upstream
@@ -415,17 +412,15 @@ Any user data received by the Transport Converter over the upstream
 (resp., upstream) connection.
 
 
-{{fig-estab}} illustrates the
-establishment of an outbound TCP connection by the Client through a
-Transport Converter. The
-information shown between brackets is part of the Convert Protocol
-described later in this document.
+{{fig-estab}} illustrates the establishment of an outbound TCP connection
+by a Client through a Transport Converter. The information shown between
+brackets is part of the Convert Protocol described later in this document.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                          Transport
 Client                   Converter                       Server
      -------------------->
-      SYN TFO [->Server:port]
+      SYN [->Server:port]
 
                                  -------------------->
                                           SYN
@@ -438,16 +433,15 @@ Client                   Converter                       Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab title="Establishment of a TCP connection through a Transport Converter (1)"}
 
-The Client sends a SYN destined to the Transport Converter. This SYN leverages
-{{RFC7413}} and contains inside its payload the address and port number of the
+The Client sends a SYN destined to the Transport Converter. The payload of
+this SYN contains the address and port number of the
 Server. The Transport Converter does not reply immediately to this SYN. It
 first tries to create a TCP connection towards the target Server. If this
 upstream connection succeeds, the Transport Converter confirms the
-establishment of
-the connection to the Client by returning a SYN+ACK and the first bytes of
-the bytestream contain information about the TCP options that were negotiated
-with the Server. This information is sent at the beginning of the bytestream,
-either directly in the SYN+ACK or in
+establishment of the connection to the Client by returning a SYN+ACK and
+the first bytes of the bytestream contain information about the TCP
+options that were negotiated with the Server. This information is sent
+at the beginning of the bytestream, either directly in the SYN+ACK or in
 a subsequent packet. For graphical reasons, the figures in this section show
 that the Transport Converter returns this information in the SYN+ACK packet.
 An implementation could also place this information in a packet that it sent
@@ -465,56 +459,26 @@ enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
 implies a default "IP address pooling" behavior of "Paired" (as defined in
 Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
 breaking applications that depend on the external address remaining constant.
-Also, maintaining the same external IP address for a client is meant to
-preserve the validity of the TFO cookie.
 
+Standard TCP ({{RFC0793}}, Section 3.4) allows a SYN packet to carry data inside
+its payload but forbids the receiver from delivering it to the application
+until completion of the three-way-handshake. This restriction was motivated
+by two concerns. First, duplicate SYNs can cause problems for some applications
+that rely on TCP {{RFC7413}}. Second, TCP suffers from SYN flooding attacks
+{{RFC4987}}. TCP Fast Open {{RFC7413}} solves these two problems for
+applications that can tolerate replays by using the TCP Fast Open option that
+includes a cookie. However, the utilisation of this option consummes space
+in the limited TCP extended header. Furthermore, there are situations,
+as noted in Section 7.3 of {{RFC7413}} where it is possible to accept
+the payload of SYN packets without creating additional security risks such as
+a network where addresses cannot be spoofed and the Transport Converter
+only serves a set of hosts that are identified by these addresses. For these
+reason, this specification does not mandate the utilisation of the TCP
+Fast Open option when the Client sends a connection establishment packet
+towards a Transport Converter. The Convert protocol includes an optional
+Cookie TLV that provides similar protection as the TCP Fast Open option
+without consumming space in the extended TCP header.
 
-The procedure described in {{fig-estab}} assumes that the Client has
-obtained a TFO cookie
-from the Transport Converter. This is part of the Bootstrap procedure which
-is illustrated
-in {{fig-bootstrapex}}. The Client sends a SYN with a TFO request option to
-obtain a
-valid cookie from the Transport Converter. The Transport Converter replies
-with a TFO cookie in the SYN+ACK.
-Once this connection has been established, the Client sends a Bootstrap
-message to request
-the list of TCP options for which the Transport Converter provides a
-conversion service.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                       Server
-     -------------------->
-      SYN TFO(empty)
-
-     <--------------------
-       SYN+ACK TFO(cookie)
-
-     -------------------->
-         [Bootstrap]
-
-     <--------------------
-       [Supported TCP Extension Services]
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-bootstrapex title="Bootstrapping a Client connection to a Transport Converter (2)"}
-
-Note that the Transport Converter may rely on local policies to decide
-whether it can service a given
-requesting Client. That is, the Transport Converter will not return a
-cookie for that Client. How such policies are supplied to the Transport
-Converter are out of scope.
-
-Also, the Transport Converter may behave in a cookie-less mode when
-appropriate means are enforced
-at the Transport Converter and the network in-between to protect against
-attacks such as spoofing
-and SYN flood. As discussed in section 7.3 of {{RFC7413}}, TFO may not be
-required when the converter has protections against resource exhaustion
-and amplification attacks
-through means that are outside the scope of this document.
 
 ## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
 
@@ -542,7 +506,7 @@ Client                   Converter                    Server
                                  <--------------------
                                          SYN+ACK
      <--------------------
-       SYN+ACK,MPC [ ]
+       SYN+ACK,MPC [.]
 
      -------------------->
          ACK,MPC
@@ -574,7 +538,7 @@ establishment of the connection to the Client and indicates to
 the Client that the Server supports Multipath TCP. With this information,
 the Client has discovered that the Server supports Multipath TCP
 natively. This will enable the Client to bypass the Transport Converter for
-the subsequent Multipath TCP connection that it will initiate towards
+the subsequent Multipath TCP connections that it will initiate towards
 this Server.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -639,11 +603,10 @@ Client               Converter                       Remote Host
 
 This section describes in details the messages that are exchanged between a
 Client and a Transport Converter. The Convert Protocol (Convert, for short)
-leverages the TCP Fast Open extension {{RFC7413}}.
-
-The Convert Protocol uses a 32 bits long fixed header that is sent
-by both the Client and the Transport Converter. This header indicates both
-the version of the protocol used and the length of a Convert message.
+uses a 32 bits long fixed header that is sent by both the Client and the
+Transport Converter over each established connection.
+This header indicates both the version of the protocol used and the length
+of the Convert message. 
 
 
 ## The Convert Fixed Header {#sec-header}
