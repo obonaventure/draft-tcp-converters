@@ -386,7 +386,7 @@ Client                   Converter                       Server
        SYN+ACK [ ]
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of a TCP connection through a Converter"}
+{: #fig-estab title="Establishment of a TCP connection through a Converter (1)"}
 
 The Client sends a SYN destined to the Transport Converter. This SYN contains a
 TFO cookie and inside its payload the address and port number of the destination
@@ -427,7 +427,7 @@ Client                   Converter                       Server
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-bootstrapex title="Bootstrapping a Client connection to a Transport Converter"}
+{: #fig-bootstrapex title="Bootstrapping a Client connection to a Transport Converter (2)"}
 
 Note that the Converter may rely on local policies to decide whether it can service a given
 requesting Client. That is, the Converter will not return a cookie for that Client. How such policies are supplied to the Converter are out of scope.
