@@ -883,12 +883,36 @@ that was received in the SYN+ACK by the Transport Converter.
 The Unassigned field MUST be set to zero by the transmitter and ignored by the
 receiver. These bits are available for future use {{RFC8126}}.
 
+### The Cookie TLV {#sec-cookie-tlv}
+
+The Cookie TLV ({{fig-cookie}} is an optional TLV which plays the same
+role as the TCP Fast Open Cookie {{RFC7413}}. A Transport Converter may want
+to verify that its Clients can receive the packets that it sends to prevent
+attacks from spoofed addresses. Upon reception of a Connect TLV, a Transport
+Converter may refuse it and return a Missing Cookie Error TLV that includes a
+Cookie that the Client needs to include in all its Convert messages.
+The Cookie SHOULD be computed as specfied in Section 4.1.2 of {{RFC7413}}. Its
+length MUST be a multiple of 4 bytes, with a suggest length of 16 bytes.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +---------------+---------------+-------------------------------+
+   |     Type      |     Length    |             Zero              |
+   +---------------+---------------+-------------------------------+
+   |                        Opaque  Cookie                         |
+   |                              ...                              |
+   +---------------------------------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-cookie title="The Cookie TLV"}
+
 ### Error TLV {#sec-error}
 
 The optional Error TLV ({{fig-error}}) can be used by the Transport
 Converter to provide
 information about some errors that occurred during the processing
-of a request to convert a connection. This TLV appears after
+of a request to convert a connection. This TLV has a variable length.
+It appears after
 the Convert header in the payload of a RST segment returned by the
 Transport Converter if the error is fatal and prevented the
 establishment of the connection. If the error is not fatal and
@@ -899,14 +923,14 @@ the error TLV will be carried in the payload of the SYN+ACK.
                         1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+----------------+--------------+
-   |     Type      |     Length    |    Error       |  Value       |
+   |     Type      |     Length    |    Error code  |  Value       |
    +---------------+---------------+----------------+--------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-error title="The Error TLV"}
 
 Different types of errors can occur while processing Convert
-messages. Each error is identified by a code represented as an unsigned integer.
-Four classes of errors are defined:
+messages. Each error is identified by an Error code represented
+as an unsigned integer. Four classes of Error codes are defined:
 
  - Message validation and processing errors (0-31 range): returned upon
    reception of an invalid message (including valid messages but with
@@ -916,8 +940,8 @@ Four classes of errors are defined:
  - Converter-side errors (64-95 range): problems encountered on the Transport
    Converter (e.g., lack of resources) which prevent it from fulfilling the
    Client's request.
- - Errors caused by destination server (96-127 range): the final destination
-   could not be reached or it replied with a reset.
+ - Errors caused by the destination server (96-127 range): the final
+   destination could not be reached or it replied with a reset.
 
 The following error codes are defined in this document:
 
@@ -958,13 +982,17 @@ The following error codes are defined in this document:
    Transport Converter and the Client MUST send a RST containing this
    error upon reception of an unsupported message.
 
- - Missing TFO Cookie (3): If TFO validation checks are not relaxed, and
-   a TFO cookie is missing in the Convert message, the Transport Converter
-   MUST send a RST containing this error to the requesting client. A Client
-   which receives this error code MUST include a TFO cookie in subsequent
-   Connect TLVs sent to that Transport Converter.
+ - Missing Cookie (3): If Transport Converter requires the utilisation of
+   Cookies to prevent spoofing attacks and a Cookie TLV was notincluded
+   in the Convert message, the Transport Converter MUST send a RST
+   containing this error to the requesting client. The first byte of the
+   value field MUST be set to zero and the remaining bytes of the Error TLV
+   contain the Cookie computed by the Transport Converter for this Client.
 
-   The value field MUST be set to zero.
+   A Client which receives this error code MUST cache the received Cookie and
+   include include it in subsequent Convert messages sent to that Transport
+   Converter.
+
 
  - Not Authorized (32): This error code indicates that the Transport
    Converter refused to create a connection because of a lack of
@@ -1021,7 +1049,7 @@ The following error codes are defined in this document:
  |    0  | 0x00 | Unsupported Version                           |
  |    1  | 0x01 | Malformed Message                             |
  |    2  | 0x02 | Unsupported Message                           |
- |    3  | 0x03 | Missing TFO Cookie                            |
+ |    3  | 0x03 | Missing Cookie                                |
  |   32  | 0x20 | Not Authorized                                |
  |   33  | 0x21 | Unsupported TCP Option                        |
  |   64  | 0x40 | Resource Exceeded                             |
@@ -1031,8 +1059,6 @@ The following error codes are defined in this document:
  +-------+------+-----------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-error-types title="Convert Error Values"}
-
-
 
 
 #Compatibility of Specific TCP Options with the Conversion Service {#sec-tcpoptions}
@@ -1082,31 +1108,25 @@ Supported TCP Extensions TLV.
 
 ## Selective Acknowledgements
 
-
 Two distinct TCP options were defined to support selective acknowledgements
-in {{RFC2018}}.
-This first one, SACK Permitted (Kind=4), is used to negotiate the utilisation
-of selective
-acknowledgements during the three-way handshake. The second one,
-SACK (Kind=5), carries
+in {{RFC2018}}. This first one, SACK Permitted (Kind=4), is used to
+negotiate the utilisation of selective acknowledgements during the
+three-way handshake. The second one, SACK (Kind=5), carries
 the selective acknowledgements inside regular segments.
 
 The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter
-in the Supported TCP Extensions TLV. In this case, Clients
-connected to this Transport
+in the Supported TCP Extensions TLV. Clients connected to this Transport
 Converter MAY include the SACK Permitted option in the Connect TLV.
 
 The SACK option (Kind=5) cannot be used during the three-way handshake. For
-this reason, a Transport Converter MUST ignore
-option Kind=5 with if it appears in a Connect TLV. It MUST NOT
-announce it in a TCP Supported Extensions TLV.
+this reason, a Transport Converter MUST ignore option Kind=5 if it
+appears in a Connect TLV. It MUST NOT announce it in a TCP Supported
+Extensions TLV.
 
 ## Timestamp
 
-
-The Timestamp option was initially defined in {{RFC1323}} which has been
-replaced
-by {{RFC7323}}. It can be used during the three-way handshake to negotiate
+The Timestamp option was initially defined in {{RFC1323}} and later refined
+in {{RFC7323}}. It can be used during the three-way handshake to negotiate
 the utilisation
 of timestamps during the TCP connection. It is notably used to improve
 round-trip-time estimations
@@ -1134,7 +1154,8 @@ The Multipath TCP options are defined in {{RFC6824}}. {{RFC6824}}
 defines one variable length TCP option (Kind=30) that includes a
 subtype field to support several Multipath TCP options. There are
 several operational use cases where clients would like to use
-Multipath TCP through a Transport Converter {{IETFJ16}}. However, none of
+Multipath TCP through a Transport Converter {{IETFJ16}}.
+However, none of
 these use cases require the Client to specify the content of
 the Multipath TCP option that the Transport Converter should send to a
 remote server.
@@ -1151,13 +1172,12 @@ any content.
 The TCP Fast Open cookie option (Kind=34) is defined in {{RFC7413}}. There
 are two different
 usages of this option that need to be supported by Transport Converters.
-The first utilisation of the Fast Open cookie is to request a cookie from
-the server.
+The first utilisation of the TCP Fast Open cookie option is to request
+a cookie from the server.
 In this case, the option is sent with an empty cookie by the client and the
 server returns
-the cookie. The second utilisation of the Fast Open cookie is to send a
-cookie to the
-server. In this case, the option contains a cookie.
+the cookie. The second utilisation of the TCP Fast Open cookie option
+is to send a cookie to the server. In this case, the option contains a cookie.
 
 A Transport Converter MAY advertise the TCP Fast Open cookie option (Kind=34)
 in the Supported TCP Extensions TLV.
@@ -1431,7 +1451,7 @@ as follows:
  |    0  | 0x00 | Unsupported Version               | [This-RFC]|
  |    1  | 0x01 | Malformed Message                 | [This-RFC]|
  |    2  | 0x02 | Unsupported Message               | [This-RFC]|
- |    3  | 0x03 | Missing TFO Cookie                | [This-RFC]|
+ |    3  | 0x03 | Missing Cookie                    | [This-RFC]|
  |   32  | 0x20 | Not Authorized                    | [This-RFC]|
  |   33  | 0x21 | Unsupported TCP Option            | [This-RFC]|
  |   64  | 0x40 | Resource Exceeded                 | [This-RFC]|
