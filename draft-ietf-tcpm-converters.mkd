@@ -1067,7 +1067,6 @@ In this section, we discuss how several standard track TCP options can be
 supported through the Convert protocol. The non-standard track options and
 the experimental options will be discussed in other documents.
 
-
 ## Base TCP Options
 
 Three TCP options were initially defined in {{RFC0793}}: End-of-Option List
@@ -1256,18 +1255,16 @@ operation of
 TFO if they assign different IP addresses to the same end host. Such CGNs
 could affect the operation of the TFO Option used by the Convert Protocol.
 As a reminder CGNs, enabled on the path between a Client and a Transport
-Converter, must adhere to the address preservation in {{RFC6888}}. See also
-the discussion in Section 7.1 of {{RFC7413}}.
-
+Converter, must adhere to the address preservation defined in {{RFC6888}}.
+See also the discussion in Section 7.1 of {{RFC7413}}.
 
 # Security Considerations  {#sec-security}
 
 ## Privacy & Ingress Filtering
 
 The Transport Converter may have access to privacy-related information (e.g.,
-subscriber credentials).
-The Transport Converter MUST NOT leak such sensitive information outside
-a local domain.
+subscriber credentials). The Transport Converter MUST NOT leak such
+sensitive information outside a local domain.
 
 Given its function and its location in the network, a Transport Converter has
 access to the payload of all the packets that it processes. As such, it MUST
@@ -1286,46 +1283,26 @@ addresses.
 The Convert Protocol is intended to be used in managed networks where end hosts
 can be identified by their IP address. Stronger authentication
 schemes MUST be defined to use the Convert Protocol in more open network
-environments; such schemes are out of scope of this document.
+environments. Such schemes will be defined in other documents. They are
+out of scope of this document.
 
 See below for authorization considerations that are specific for Multipath TCP.
 
 ## Denial of Service
 
 Another possible risk is the amplification attacks since a Transport
-Converter sends
-a SYN towards a remote Server upon reception of a SYN from a Client. This could
-lead to amplification attacks if the SYN sent by the Transport Converter
-were larger
-than the SYN received from the Client or if the Transport Converter
-retransmits the
-SYN. To mitigate such attacks, the Transport Converter SHOULD rate limit
-the number of
-pending requests for a given Client. It SHOULD also avoid sending to remote
-Servers SYNs
-that are significantly longer than the SYN received from the Client. In
-practice, Transport Converters SHOULD NOT advertise to a Server TCP options
-that were not specified by the Client in the received SYN. Finally, the
-Transport Converter SHOULD only retransmit
-a SYN to a Server after having received a retransmitted SYN from the
-corresponding Client.
-
-Upon reception of a SYN that contains a Connect TLV, the
-Transport Converter attempts to establish a TCP connection to a remote
-Server. There is a
-risk of denial of service attack if a Client requests too many connections
-in a short period of time. Implementations SHOULD limit the number of pending
-connections from a given Client. Means to protect against SYN flooding
+Converter sends a SYN towards a remote Server upon reception of a SYN from
+a Client. This could lead to amplification attacks if the SYN sent by the
+Transport Converter were larger than the SYN received from the Client or
+if the Transport Converter retransmits the SYN.
+To mitigate such attacks, the Transport Converter SHOULD rate limit
+the number of pending requests for a given Client. It SHOULD also avoid
+sending to remote Servers SYNs that are significantly longer than the
+SYN received from the Client. Finally, the Transport Converter
+SHOULD only retransmit a SYN to a Server after having received a
+retransmitted SYN from the corresponding Client.
+Means to protect against SYN flooding
 attacks MUST also be enabled {{RFC4987}}.
-
-## Traffic Theft
-
-   Traffic theft is a risk if an illegitimate Transport Converter is
-   inserted in the path. Indeed, inserting an illegitimate Transport
-   Converter in the forwarding path allows traffic interception and can
-   therefore provide access to sensitive data issued by or destined
-   to a host. Transport Converter discovery and configuration are out of
-   scope of this document.
 
 ## Multipath TCP-specific Considerations
 
@@ -1334,9 +1311,8 @@ Multipath TCP-related security threats are discussed in {{RFC6181}} and
 
 The operator that manages the various network attachments
 (including the Transport Converters) can enforce authentication and
-authorization
-policies using appropriate mechanisms.  For example, a non-exhaustive
-list of methods to achieve authorization is provided hereafter:
+authorization policies using appropriate mechanisms. For example, a
+non-exhaustive list of methods to achieve authorization is provided hereafter:
 
  - The network provider may enforce a policy based on the
    International Mobile Subscriber Identity (IMSI) to verify that a
