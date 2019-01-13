@@ -688,6 +688,7 @@ This document specifies the following Convert TLVs:
 |  10  | 0xA | Variable | Connect TLV                              |
 |  20  | 0x14| Variable | Extended TCP Header TLV                  |
 |  21  | 0x15| Variable | Supported TCP Extensions TLV             |
+|  22  | 0x16| Variable | Cookie TLV                               |
 |  30  | 0x1E| Variable | Error TLV                                |
 +------+-----+----------+------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -703,28 +704,6 @@ server,
 the Transport Converter replies with the Extended TCP Header TLV. If not,
 the Transport Converter
 returns an Error TLV inside a RST packet (see {{sec-error}}).
-
-When the Transport Converter receives a connection
-establishment (that is, SYN with Connect TLV) from a Client, it MUST
-process the TCP options found in
-the SYN and the Connect TLV. In general, the Transport Converter
-MUST add to the proxied SYN the TCP options that were included in the
-Connect TLV.  It SHOULD add to the proxied SYN the TCP options that
-were included in the incoming SYN provided that it supports them.
-
-
-There are some exceptions to these rules given the semantics of some
- TCP options.  First, TCP options with Kinds 0 (EOL), 1 (NOP), 2
-(MSS), and 3 (WS) MUST be used according to the configuration of the
-TCP stack of the Transport Converter.  The Timestamps option
-(Kind=10) SHOULD be used in the proxied SYN if it was present in the
-incoming SYN, but the contents of the option in the proxied SYN
-SHOULD be set by the Transport Converter's stack. The MP_CAPABLE
-option SHOULD
-be added to the proxied SYN if it was present in the incoming SYN,
-but the content of the option in the proxied SYN SHOULD be set by the
-Transport Converter. The TCP Fast Open cookie option SHOULD be handled
-as described in Section 6.
 
 As a general rule, when an error is encountered an Error TLV with the
 appropriate error code MUST be returned by the Transport Converter.
