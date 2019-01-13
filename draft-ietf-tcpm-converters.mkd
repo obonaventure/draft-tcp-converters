@@ -81,7 +81,6 @@ informative:
   I-D.peirens-mptcp-transparent:
   I-D.arkko-arch-low-latency:
   I-D.boucadair-radext-tcpm-converter:
-  I-D.nam-mptcp-deployment-considerations:
   Fukuda2011:
     author:
       - ins: K. Fukuda
@@ -457,6 +456,18 @@ shortly after the SYN+ACK.
 The connection can also be established from the Internet towards a Client
 via a Transport Converter. This is typically the case when an application
 on the Client listens to a specific port.
+
+A Transport Converter may operate in address preservation or address sharing
+modes as discussed in Section 5.4 of
+{{I-D.nam-mptcp-deployment-considerations}}. Which behavior to use by a
+Transport Converter is deployment-specific. If address sharing mode is
+enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
+implies a default "IP address pooling" behavior of "Paired" (as defined in
+Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
+breaking applications that depend on the external address remaining constant.
+Also, maintaining the same external IP address for a client is meant to
+preserve the validity of the TFO cookie.
+
 
 The procedure described in {{fig-estab}} assumes that the Client has
 obtained a TFO cookie
@@ -1227,16 +1238,6 @@ receives a Connect TLV with the TCP Fast Open cookie option that contains a
 cookie, it MUST copy the
 TCP Fast Open cookie option in the SYN sent to the remote server.
 
-The Transport Converter may behave in address preservation or address sharing
-modes as discussed in Section 5.4 of
-{{I-D.nam-mptcp-deployment-considerations}}. Which behavior to use by a
-Transport Converter is deployment-specific. If address sharing mode is
-enabled, the Transport Converter MUST adhere to REQ-2 of RFC6888 which
-implies a default "IP address pooling" behavior of "Paired" (as defined in
-Section 4.1 of [RFC4787]) must be supported. This behavior is meant to avoid
-breaking applications that depend on the external address remaining constant.
-Also, maintaining the same external IP address for a client is meant to
-preserve the validity of the TFO cookie.
 
 
 ## TCP User Timeout
