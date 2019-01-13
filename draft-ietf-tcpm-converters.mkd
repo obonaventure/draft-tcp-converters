@@ -982,8 +982,8 @@ The following error codes are defined in this document:
    Transport Converter and the Client MUST send a RST containing this
    error upon reception of an unsupported message.
 
- - Missing Cookie (3): If Transport Converter requires the utilisation of
-   Cookies to prevent spoofing attacks and a Cookie TLV was notincluded
+ - Missing Cookie (3): If a Transport Converter requires the utilisation of
+   Cookies to prevent spoofing attacks and a Cookie TLV was not included
    in the Convert message, the Transport Converter MUST send a RST
    containing this error to the requesting client. The first byte of the
    value field MUST be set to zero and the remaining bytes of the Error TLV
@@ -997,7 +997,7 @@ The following error codes are defined in this document:
  - Not Authorized (32): This error code indicates that the Transport
    Converter refused to create a connection because of a lack of
    authorization (e.g., administratively prohibited, authorization failure,
-   invalid TFO cookie, etc.). The Value field MUST be set to zero.
+   etc.). The Value field MUST be set to zero.
 
    This error code MUST be sent by the Transport Converter when a request
    cannot be successfully processed because the authorization failed.
@@ -1011,22 +1011,25 @@ The following error codes are defined in this document:
    The list of unsupported TCP options should be padded with zeros to end on
    a 32 bits boundary.
 
-
  - Resource Exceeded (64): This error indicates that the Transport Converter
    does not have enough resources to perform the request.
 
    This error MUST be sent by the Transport Converter when it does not have
-   sufficient resources to handle a new connection. Upon receipt of this
-   error code, the Client MUST wait for at least 30 seconds before
-   solliciting the Transport Converter for a new proxied connection.
+   sufficient resources to handle a new connection. The Transport Converter
+   may indicate in the Value field the suggested delay (in seconds) that the
+   Client SHOULD wait before solliciting the Transport Converter for a
+   new proxied connection. A Value of zero corresponds to a default delay
+   of at least 30 seconds.
 
  - Network Failure (65): This error indicates that the Transport
    Converter is experiencing a network failure to relay the request.
 
    The Transport Converter MUST send this error code when it experiences
-   forwarding issues to relay a connection. Upon receipt of this error code,
-   the Client MUST wait for at least 30 seconds before solliciting the
-   Transport Converter for a new proxied connection.
+   forwarding issues to relay a connection. The Transport Converter
+   may indicate in the Value field the suggested delay (in seconds) that the
+   Client SHOULD wait before solliciting the Transport Converter for a
+   new proxied connection. A Value of zero corresponds to a default delay
+   of at least 30 seconds.
 
  - Connection Reset (96): This error indicates that the final
    destination responded with a RST packet. The Value field MUST be set to zero.
@@ -1035,9 +1038,6 @@ The following error codes are defined in this document:
    unreachable, port unreachable, or network unreachable was received
    by the  Transport Converter. The Value field MUST echo the Code
    field of the received ICMP message.
-
-   This error message MUST be sent by the Transport Converter when it
-   receives an error message that is bound to a message it relayed previously.
 
 
 {{tab-error-types}} summarizes the different error codes.
