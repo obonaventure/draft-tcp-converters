@@ -683,7 +683,7 @@ This document specifies the following Convert TLVs:
 |   1  | 0x1 |    1     | Info TLV                                 |
 |  10  | 0xA | Variable | Connect TLV                              |
 |  20  | 0x14| Variable | Extended TCP Header TLV                  |
-|  21  | 0x15| Variable | Supported TCP Extension Services TLV     |
+|  21  | 0x15| Variable | Supported TCP Extensions TLV             |
 |  30  | 0x1E| Variable | Error TLV                                |
 +------+-----+----------+------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -733,7 +733,7 @@ given Transport Converter. It is typically sent on the first connection
 that a Client establishes with a Transport Converter to learn its
 capabilities. Assuming a Client is entitled to invoke the Transport
 Converter, this latter replies with the Supported TCP
-Extensions Services TLV described in {{sec-supported}}.
+Extensions TLV described in {{sec-supported}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -745,15 +745,16 @@ Extensions Services TLV described in {{sec-supported}}.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-bootstrap title="The Info TLV"}
 
-### Supported TCP Extension Services TLV {#sec-supported}
+### Supported TCP Extensions TLV {#sec-supported}
 
-The Supported TCP Extension Services TLV ({{fig-supported}}) is used by
-a Transport Converter to announce the
-TCP options for which it provides a conversion service.
+The Supported TCP Extensions TLV ({{fig-supported}}) is used by
+a Transport Converter to announce the TCP options for which it
+provides a conversion service. A Transport Converter SHOULD include in
+this list the TCP options that it accepts from Clients and that it
+includes the SYN packets that it sends to initiate connections.
 
-Each supported TCP option is encoded
-with its TCP option Kind listed in the "TCP Parameters" registry
-maintained by IANA.
+Each supported TCP option is encoded with its TCP option Kind listed
+in the "TCP Parameters" registry maintained by IANA.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -767,19 +768,18 @@ maintained by IANA.
    /                                                               /
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-supported title="The Supported TCP Extension Services TLV"}
+{: #fig-supported title="The Supported TCP Extensions TLV"}
 
 TCP option Kinds 0, 1, and 2 defined in
 {{RFC0793}} are supported by all TCP implementations and thus MUST NOT
 appear in this list.
 
-The list of Supported TCP Extension Services is padded with
-0 to end on a 32 bits boundary.
+The list of Supported TCP Extension is padded with 0 to end on a
+32 bits boundary.
 
-Typically, if the Transport Converter only supports Multipath TCP
-conversion service, solely Kind=30 will be present in the Supported TCP
-Extension Services TLV returned by the Transport Converter to a
-requesting Client.
+For example, if the Transport Converter supports Multipath TCP,
+Kind=30 will be present in the Supported TCP Extensions TLV
+that it returns in response to Info TLV. 
 
 
 ### Connect TLV {#sec-connect}
@@ -789,7 +789,7 @@ connection via a Transport Converter.
 
 The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the
 destination port number and IP address of the target server for an
-outgoing connection towards a Server located on the Internet. For incoming
+outgoing connection towards a Server. For incoming
 connections destined to a Client serviced via a Transport Converter, these
 fields convey the source port number and IP address.
 
@@ -863,12 +863,11 @@ an optional value, it SHALL copy the entire option for use in the connection
 with the destination peer. This feature is required to support TCP Fast Open.
 
 The Transport Converter may discard a Connect TLV request for various reasons
-(e.g., bad TFO cookie, authorization failed, out of resources, invalid
+(e.g., authorization failed, out of resources, invalid
 address type). An error message indicating the encountered error is returned
 to the requesting Client ({{sec-error}}). In order to prevent
 denial-of-service attacks, error messages sent to a Client SHOULD be
 rate-limited.
-
 
 ### Extended TCP Header TLV {#sec-ext-header}
 
@@ -1074,7 +1073,7 @@ a Transport Converter to advertise a specific MSS value to a remote server.
 
 A Transport Converter MUST ignore options with Kind=0, 1 or 2 if they appear
 in a Connect TLV. It MUST NOT announce them in a Supported TCP Extensions
-Services TLV.
+TLV.
 
 ## Window Scale (WS)
 
@@ -1093,7 +1092,7 @@ specifically request the utilisation of the WS option (Kind=3) with a specific
 scaling factor towards a remote Server. For this reason, a Transport
 Converter MUST ignore
 option Kind=3 if it appears in a Connect TLV. It MUST NOT announce it in a
-Supported TCP Extensions Services TLV.
+Supported TCP Extensions TLV.
 
 ## Selective Acknowledgements
 
@@ -1107,14 +1106,14 @@ SACK (Kind=5), carries
 the selective acknowledgements inside regular segments.
 
 The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter
-in the Supported TCP Extensions Services TLV. In this case, Clients
+in the Supported TCP Extensions TLV. In this case, Clients
 connected to this Transport
 Converter MAY include the SACK Permitted option in the Connect TLV.
 
 The SACK option (Kind=5) cannot be used during the three-way handshake. For
 this reason, a Transport Converter MUST ignore
 option Kind=5 with if it appears in a Connect TLV. It MUST NOT
-announce it in a TCP Supported Extensions Services TLV.
+announce it in a TCP Supported Extensions TLV.
 
 ## Timestamp
 
@@ -1138,7 +1137,7 @@ timestamp value that a Transport Converter could use to establish a
 connection to a remote server.
 
 A Transport Converter MAY advertise the Timestamp option (Kind=8) in the
-TCP Supported Extensions Services TLV. The clients
+TCP Supported Extensions TLV. The clients
 connected to this Transport Converter MAY include the Timestamp option in
 the Connect TLV but without
 any timestamp.
@@ -1156,7 +1155,7 @@ remote server.
 
 A Transport Converter which supports Multipath TCP conversion service MUST
 advertise the Multipath TCP option (Kind=30) in the Supported TCP Extensions
-Services TLV. Clients
+TLV. Clients
 serviced by this Transport Converter may include the Multipath TCP option
 in the Connect TLV but without
 any content.
@@ -1175,9 +1174,9 @@ cookie to the
 server. In this case, the option contains a cookie.
 
 A Transport Converter MAY advertise the TCP Fast Open cookie option (Kind=34)
-in the Supported TCP Extensions Services TLV.
+in the Supported TCP Extensions TLV.
 If a Transport Converter has advertised the support for TCP Fast Open in its
-Supported TCP Extensions Services TLV, it needs
+Supported TCP Extensions TLV, it needs
 to be able to process two types of Connect TLV. If such a Transport Converter
 receives a Connect TLV
 with the TCP Fast Open cookie option that does not contain a cookie, it
@@ -1211,7 +1210,7 @@ in this document are those where the
 TCP-AO-NAT extension  {{RFC6978}} is in use.
 
 A Transport Converter MUST NOT advertise the TCP-AO option (Kind=29) in
-the Supported TCP Extensions Services TLV.
+the Supported TCP Extensions TLV.
 If a Transport Converter receives a Connect TLV that contains the TCP-AO option,
 it MUST reject the establishment of the connection with error code set to
 "Unsupported TCP Option", except if the TCP-AO-NAT option is used.
@@ -1415,7 +1414,7 @@ as follows:
  |    1    | Info TLV                             | [This-RFC]  |
  |   10    | Connect TLV                          | [This-RFC]  |
  |   20    | Extended TCP Header TLV              | [This-RFC]  |
- |   21    | Supported TCP Extension Services TLV | [This-RFC]  |
+ |   21    | Supported TCP Extension TLV          | [This-RFC]  |
  |   30    | Error TLV                            | [This-RFC]  |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
