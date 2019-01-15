@@ -704,8 +704,8 @@ by using the Connect TLV
 (see {{sec-connect}}). If the connection can be established with the final
 server,
 the Transport Converter replies with the Extended TCP Header TLV. If not,
-the Transport Converter
-returns an Error TLV inside a RST packet (see {{sec-error}}).
+the Transport Converter returns an Error TLV (see {{sec-error}}) and then
+closes the connection.
 
 As a general rule, when an error is encountered an Error TLV with the
 appropriate error code MUST be returned by the Transport Converter.
@@ -932,12 +932,9 @@ The optional Error TLV ({{fig-error}}) can be used by the Transport
 Converter to provide
 information about some errors that occurred during the processing
 of a request to convert a connection. This TLV has a variable length.
-It appears after
-the Convert header in the payload of a RST segment returned by the
-Transport Converter if the error is fatal and prevented the
-establishment of the connection. If the error is not fatal and
-the connection could be established with the final destination, then
-the error TLV will be carried in the payload of the SYN+ACK.
+It appears after the Convert header in the bytestream returned by the
+Transport Converter. Upon reception of an Error TLV, a Client MUST
+close the associated connection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -990,29 +987,24 @@ The following error codes are defined in this document:
    IP address.
 
    To ease troubleshooting, the value field MUST echo the received message
-   shifted by one byte to keep to original alignment of the message. The
-   Transport Converter and the Client MUST send a RST containing this error
-   upon reception of a malformed message.
+   shifted by one byte to keep to original alignment of the message. 
 
  - Unsupported Message (2): This error code is sent to indicate that a
    message type is not supported by the Transport Converter.
 
    To ease troubleshooting, the value field MUST echo the received message
-   shifted by one byte to keep to original alignment of the message. The
-   Transport Converter and the Client MUST send a RST containing this
-   error upon reception of an unsupported message.
+   shifted by one byte to keep to original alignment of the message. 
 
  - Missing Cookie (3): If a Transport Converter requires the utilisation of
    Cookies to prevent spoofing attacks and a Cookie TLV was not included
-   in the Convert message, the Transport Converter MUST send a RST
-   containing this error to the requesting client. The first byte of the
+   in the Convert message, the Transport Converter MUST return
+   this error to the requesting client. The first byte of the
    value field MUST be set to zero and the remaining bytes of the Error TLV
    contain the Cookie computed by the Transport Converter for this Client.
 
    A Client which receives this error code MUST cache the received Cookie and
    include include it in subsequent Convert messages sent to that Transport
    Converter.
-
 
  - Not Authorized (32): This error code indicates that the Transport
    Converter refused to create a connection because of a lack of
@@ -1028,7 +1020,7 @@ The following error codes are defined in this document:
    The Value field is set to the type of the unsupported
    TCP option. If several unsupported TCP options were specified in the
    Connect TLV, then the list of unsupported TCP options is returned.
-   The list of unsupported TCP options should be padded with zeros to end on
+   The list of unsupported TCP options MUST be padded with zeros to end on
    a 32 bits boundary.
 
  - Resource Exceeded (64): This error indicates that the Transport Converter
@@ -1052,7 +1044,8 @@ The following error codes are defined in this document:
    of at least 30 seconds.
 
  - Connection Reset (96): This error indicates that the final
-   destination responded with a RST packet. The Value field MUST be set to zero.
+   destination responded with a RST packet.
+   The Value field MUST be set to zero.
 
  - Destination Unreachable (97): This error indicates that an ICMP destination
    unreachable, port unreachable, or network unreachable was received
