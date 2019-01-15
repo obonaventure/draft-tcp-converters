@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-05
-date: 2019-01-12
+date: 2019-01-17
 category: exp
 
 ipr: trust200902
@@ -654,10 +654,10 @@ future use {{RFC8126}}.
 The Convert protocol uses variable length messages that are encoded using
 the generic TLV (Type, Length, Value) format depicted in {{fi-generictlv}}.
 
-Length is expressed in 32 bits word. In general zero padding should always be
-added if the value's length in bytes can not be expressed as 2 + (4 * n).
-
+The length of all TLVs used by the Convert protocol is always a multiple of
+four bytes. All TLVs are aligned on 32 bits boundaries.
 All TLV fields are encoded using the network byte order.
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -670,11 +670,13 @@ All TLV fields are encoded using the network byte order.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Convert Generic TLV Format"}
 
+The Length field is expressed in units of 32 bits words.
+In general zero padding should always be added if the value's
+length in bytes can not be expressed as 2+(4 * n).
 
 A given TLV MUST only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Convert connection,
 the associated TCP connections MUST be closed.
-
 
 ### Summary of Supported Convert TLVs
 
