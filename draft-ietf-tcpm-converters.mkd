@@ -890,11 +890,29 @@ receiver. These bits are available for future use {{RFC8126}}.
 The Cookie TLV ({{fig-cookie}} is an optional TLV which plays the same
 role as the TCP Fast Open Cookie {{RFC7413}}. A Transport Converter may want
 to verify that its Clients can receive the packets that it sends to prevent
-attacks from spoofed addresses. Upon reception of a Connect TLV, a Transport
-Converter may refuse it and return a Missing Cookie Error TLV that includes a
-Cookie that the Client needs to include in all its Convert messages.
-The Cookie SHOULD be computed as specfied in Section 4.1.2 of {{RFC7413}}. Its
-length MUST be a multiple of 4 bytes, with a suggest length of 16 bytes.
+attacks from spoofed addresses. This verification can be done by using a
+Cookie that is bound to a the IP address(es) of the Client. This Cookie can
+be configured on the Client by means that are outside of this document
+or provided by the Transport Converter as follows.
+
+A Transport Converter that has been configured to use the optional Cookie TLV
+SHOULD verify the presence of this TLV in the payload of the received SYN. If
+this TLV is present, the Transport Converter MUST recompute the Cookie from
+the information contained in the SYN and its payload. The Cookie SHOULD be
+computed as specified in Section 4.1.2 of {{RFC7413}}. Its
+length MUST be a multiple of 4 bytes, with a suggested length of 16 bytes. If
+the Cookie is valid, the connection establishment procedure can continue.
+Otherwise, the Transport Converter MUST return an Error TLV set to
+Not Authorised and close the connection.
+
+If the received SYN did not contain a Cookie TLV, the Transport Converter
+should compute a Cookie bound to this Client address and return a Convert
+message containing the fixed header, an Error TLV set to Missing Cookie and
+the computed Cookie and close the connection. The Client will react to this
+error by storing the received Cookie in its cache and attempt to reestablish
+a new connection to the Transport Converter that includes the Cookie.
+
+The format of the Cookie TLV is shown in the below figure.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
@@ -999,7 +1017,7 @@ The following error codes are defined in this document:
  - Not Authorized (32): This error code indicates that the Transport
    Converter refused to create a connection because of a lack of
    authorization (e.g., administratively prohibited, authorization failure,
-   etc.). The Value field MUST be set to zero.
+   invalid Cookie TLV, etc.). The Value field MUST be set to zero.
 
    This error code MUST be sent by the Transport Converter when a request
    cannot be successfully processed because the authorization failed.
