@@ -352,7 +352,7 @@ Server {{figtls}}.
       |            End-to-end TLS                  |
        \==========================================/
 
-    * TLS messages exhanged between the Client
+    * TLS messages exchanged between the Client
       and the Server are not shown.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
@@ -471,17 +471,17 @@ by two concerns. First, duplicate SYNs can cause problems for some applications
 that rely on TCP {{RFC7413}}. Second, TCP suffers from SYN flooding attacks
 {{RFC4987}}. TCP Fast Open {{RFC7413}} solves these two problems for
 applications that can tolerate replays by using the TCP Fast Open option that
-includes a cookie. However, the utilisation of this option consummes space
+includes a cookie. However, the utilisation of this option consumes space
 in the limited TCP extended header. Furthermore, there are situations,
 as noted in Section 7.3 of {{RFC7413}} where it is possible to accept
 the payload of SYN packets without creating additional security risks such as
 a network where addresses cannot be spoofed and the Transport Converter
 only serves a set of hosts that are identified by these addresses. For these
-reason, this specification does not mandate the utilisation of the TCP
+reasons, this specification does not mandate the utilisation of the TCP
 Fast Open option when the Client sends a connection establishment packet
 towards a Transport Converter. The Convert protocol includes an optional
 Cookie TLV that provides similar protection as the TCP Fast Open option
-without consumming space in the extended TCP header.
+without consuming space in the extended TCP header.
 
 
 ## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
@@ -564,7 +564,7 @@ Client                   Converter                       Server
                                  -------------------->
                                           ACK, MPC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestabok title="Establishment of a Multipath TCP connection through a converter towards a server that supports Multipath TCP"}
+{: #fig-mpestabok title="Establishment of a Multipath TCP connection through a Transport Converter towards a Server that supports Multipath TCP"}
 
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
@@ -671,7 +671,7 @@ All TLV fields are encoded using the network byte order.
 {: #fi-generictlv title="Convert Generic TLV Format"}
 
 The Length field is expressed in units of 32 bits words.
-In general zero padding should always be added if the value's
+In general, zero padding should always be added if the value's
 length in bytes can not be expressed as 2+(4 * n).
 
 A given TLV MUST only appear once on a connection. If two or more
@@ -736,7 +736,7 @@ The Supported TCP Extensions TLV ({{fig-supported}}) is used by
 a Transport Converter to announce the TCP options for which it
 provides a conversion service. A Transport Converter SHOULD include in
 this list the TCP options that it accepts from Clients and that it
-includes the SYN packets that it sends to initiate connections.
+includes in the SYN packets that it sends to initiate connections.
 
 Each supported TCP option is encoded with its TCP option Kind listed
 in the "TCP Parameters" registry maintained by IANA.
@@ -764,7 +764,7 @@ The list of Supported TCP Extension is padded with 0 to end on a
 
 For example, if the Transport Converter supports Multipath TCP,
 Kind=30 will be present in the Supported TCP Extensions TLV
-that it returns in response to Info TLV. 
+that it returns in response to the Info TLV.
 
 
 ### Connect TLV {#sec-connect}
@@ -836,7 +836,7 @@ always ends on a 32 bits boundary after being padded with zeros.
 
 Upon reception of a Connect TLV, a Transport Converter MUST attempt to
 establish a connection to the address and port that it contains.
-The Transport Converter MUST the default TCP options that correspond
+The Transport Converter MUST use the default TCP options that correspond
 to its local policy to establish this connection.
 These are the options that it advertises in the Supported TCP Extensions TLV.
 
@@ -987,13 +987,13 @@ The following error codes are defined in this document:
    IP address.
 
    To ease troubleshooting, the value field MUST echo the received message
-   shifted by one byte to keep to original alignment of the message. 
+   shifted by one byte to keep the original alignment of the message.
 
  - Unsupported Message (2): This error code is sent to indicate that a
    message type is not supported by the Transport Converter.
 
    To ease troubleshooting, the value field MUST echo the received message
-   shifted by one byte to keep to original alignment of the message. 
+   shifted by one byte to keep the original alignment of the message.
 
  - Missing Cookie (3): If a Transport Converter requires the utilisation of
    Cookies to prevent spoofing attacks and a Cookie TLV was not included
@@ -1029,7 +1029,7 @@ The following error codes are defined in this document:
    This error MUST be sent by the Transport Converter when it does not have
    sufficient resources to handle a new connection. The Transport Converter
    may indicate in the Value field the suggested delay (in seconds) that the
-   Client SHOULD wait before solliciting the Transport Converter for a
+   Client SHOULD wait before soliciting the Transport Converter for a
    new proxied connection. A Value of zero corresponds to a default delay
    of at least 30 seconds.
 
@@ -1039,7 +1039,7 @@ The following error codes are defined in this document:
    The Transport Converter MUST send this error code when it experiences
    forwarding issues to relay a connection. The Transport Converter
    may indicate in the Value field the suggested delay (in seconds) that the
-   Client SHOULD wait before solliciting the Transport Converter for a
+   Client SHOULD wait before soliciting the Transport Converter for a
    new proxied connection. A Value of zero corresponds to a default delay
    of at least 30 seconds.
 
@@ -1246,7 +1246,7 @@ assumed that the network provider ensures that all involved on-path nodes
 are not breaking TCP signals (e.g., strip TCP options, discard some
 SYNs, etc.).
 
-Neverthless, and in order to allow for a robust service, this
+Nevertheless, and in order to allow for a robust service, this
 section describes how a Client can detect middlebox interference and stop using
 the Transport Converter affected by this interference.
 
