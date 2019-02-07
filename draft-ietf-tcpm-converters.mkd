@@ -189,14 +189,7 @@ for bonding purposes, faster handovers, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
 
-More recently, experimentation of 5G bonding, which has very scarce coverage,
-has been conducted into global range of the incumbent 4G (LTE) connectivity
-in newly devised clients using Multipath TCP proxy. Even if the 5G and the
-4G bonding by using Multipath TCP increases the bandwidth, it is
-as well crucial to minimize latency for all the path between endhosts
-In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the
-next generation mobile network, Multipath TCP and its proxy mechanism must be
-optimized to reduce latency.
+More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access tTaffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency.
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -1324,18 +1317,18 @@ addresses.
 The Convert Protocol is intended to be used in managed networks where end hosts
 can be identified by their IP address.
 
-Stronger authentication schemes MUST be defined to use the Convert Protocol in
-more open network environments. Concretely, the Converter SHOULD support
-certificate-based client authentication. If the Client does not support TLS
-client certificate authentication, it MUST support pre-shared key based
-{{RFC4279}} or raw public key based client authentication {{RFC7250}}. TLS-based
-authentication MUST be achieved during the Info phase. If the authentication
-succeeds, the Converter returns a cookie which content may be, for example, set
-to a hash using as input the representation of the Subject Public Key Info
-(SPKI) of the client X.509 certificate, the Client raw public key, or the
-"Pre-Shared Key (PSK) identity" used by the Client in the TLS ClientKeyExchange
-message. Subsequent Connect messages will be authorized as a function of the
-content of the Cookie TLV.
+Stronger mutual authentication schemes MUST be defined to use the Convert
+Protocol in more open network environments.  One possibility is to use TLS to
+perform mutual authentication between the client and the Converter. That is, use TLS when a Client retrieves a Cookie from the Converter and rely on 
+certificate-based client authentication, pre-shared key based {{RFC4279}} or 
+raw public key based client authentication {{RFC7250}} to secure this connection. 
+If the authentication succeeds, the Converter returns a cookie whose content may be, 
+for example, set to a hash using as input the representation of the Subject Public Key
+Info (SPKI) of the client X.509 certificate, the Client raw public
+key, or the "Pre-Shared Key (PSK) identity" used by the Client in the
+TLS ClientKeyExchange message.  Subsequent Connect messages will be
+authorized as a function of the content of the Cookie TLV. The client MUST also
+authenticate
 
 See below for authorization considerations that are specific for Multipath TCP.
 
