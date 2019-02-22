@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-05
-date: 2019-01-17
+docname: draft-ietf-tcpm-converters-06
+date: 2019-02-22
 category: exp
 
 ipr: trust200902
@@ -235,7 +235,7 @@ Furthermore, it is possible to bypass the Transport Converter to connect
 directly
 to the servers that already support the required TCP extension(s).
 
-This document assumes that a client is configured with one or a list of
+This document assumes an explicit model in which a client is configured with one or a list of
 Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
@@ -356,7 +356,7 @@ Server ({{figtls}}).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-
+It is out of scope of this document to elaborate on considerations related to the use of TLS in the Client-Converter connection leg. 
 
 ## Theory of Operation
 
@@ -620,7 +620,7 @@ Client               Converter                       Remote Host
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming TCP Connection through a Transport Converter"}
 
-
+It is out of scope of this document to define specific Convert TLVs to manage incoming connections. These TLVs can be defined in a separate document.  
 
 # The Convert Protocol (Convert) {#sec-protocol}
 
