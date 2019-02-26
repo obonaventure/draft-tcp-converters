@@ -393,7 +393,7 @@ used to reach a given destination.
 When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the
 Server) or create the connection via a Transport Converter. In the latter
-case, the Client
+case (that is, the conversion service is used), the Client
 initiates a connection towards the Transport Converter and indicates the IP
 address and port number of the Server within the connection establishment
 packet. Doing so enables the Transport Converter to immediately initiate
