@@ -356,7 +356,7 @@ Server ({{figtls}}).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-It is out of scope of this document to elaborate on considerations related to the use of TLS in the Client-Converter connection leg. 
+It is out of scope of this document to elaborate on considerations related to the use of TLS in the Client-Converter connection leg to exchange conversion-supplied data. 
 
 ## Theory of Operation
 
