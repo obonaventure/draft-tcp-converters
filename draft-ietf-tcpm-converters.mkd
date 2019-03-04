@@ -58,6 +58,8 @@ normative:
   RFC6890:
   RFC4279:
   RFC7250:
+  RFC6888:
+  RFC4787:
 
 informative:
   RFC1323:
@@ -71,8 +73,6 @@ informative:
   RFC6181:
   RFC7414:
   RFC6887:
-  RFC6888:
-  RFC4787:
   RFC6928:
   RFC6978:
   RFC7323:
@@ -223,7 +223,7 @@ The Convert Protocol is a generic mechanism to provide 0-RTT conversion
 service. As a sample applicability use case, this document specifies
 how the Convert Protocol applies for Multipath TCP. It is out of scope
 of this document to provide a comprehensive
-list of all potential conversion services. Applicability document may defined in
+list of all potential conversion services. Applicability document may be defined in
 the future.
 
 
@@ -322,7 +322,7 @@ depicted in {{figtc2}}.
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
 or more Transport Converters. Further, the architecture allows for
-making use of TCP new extensions even if those are not
+making use of new TCP extensions even if those are not
 supported by a given server.
 
 The Client is configured, through means that are outside the
@@ -1413,7 +1413,7 @@ Protocol (Convert) Parameters" registry.
 ### Convert Versions
 
 IANA is requested to create the "Convert versions" sub-registry. New
-values are assigned via Standards Action.
+values are assigned via IETF Review (Section 4.8 of {{RFC8126}}).
 
 The initial values to be assigned at the creation of the registry are
 as follows:
@@ -1432,7 +1432,7 @@ as follows:
 IANA is requested to create the "Convert TLVs" sub-registry.  The
 procedure for assigning values from this registry is as follows:
 
- -  The values in the range 1-127 can be assigned via Standards Action.
+ -  The values in the range 1-127 can be assigned via IETF Review.
  -  The values in the range 128-191 can be assigned via Specification Required.
  -  The values in the range 192-255 can be assigned for Private Use.
 
@@ -1468,7 +1468,7 @@ these types:
 The procedure for assigning values from this sub-registry is as
 follows:
 
-  - 0-191: Values in this range are assigned via Standards Action.
+  - 0-191: Values in this range are assigned via IETF Review.
   - 192-255: Values in this range are assigned via Specification Required.
 
 The initial values to be assigned at the creation of the registry are
@@ -1627,9 +1627,7 @@ The Convert protocol also relays data
 between an upstream and a downstream connection, but there are important
 differences with SOCKSv5.
 
-A first difference is that the Convert protocol leverages the TFO option
-{{RFC7413}}
-to exchange all control information during the three-way handshake. This
+A first difference is that the Convert protocol exchanges all control information during the three-way handshake. This
 reduces the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream
 connection towards the final destination. In today's Internet, latency is
