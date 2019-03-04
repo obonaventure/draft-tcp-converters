@@ -413,8 +413,9 @@ connections that are combined together:
 
 Any user data received by the Transport Converter over the upstream
 (resp., downstream) connection is relayed over the downstream
-(resp., upstream) connection.
-
+(resp., upstream) connection. In particular, if the initial SYN message contains
+     data in its payload (e.g., [RFC7413]), that data MUST be placed 
+     right after the Convert TLVs when generating the relayed SYN.
 
 {{fig-estab}} illustrates the establishment of an outbound TCP connection
 by a Client through a Transport Converter. The information shown between
@@ -666,6 +667,10 @@ The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
 future use {{RFC8126}}.
 
+Data added by the Convert protocol to the TCP bytestream in the upstream
+connection is unambiguously distinguished from payload data in the downstream
+connection by the Total Length field in the Convert messages.
+
 ##  Convert TLVs {#sec-tlv}
 
 ### Generic Convert TLV Format
@@ -857,12 +862,13 @@ always ends on a 32 bits boundary after being padded with zeros.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpopt title="The TCP Options field"}
 
-Upon reception of a Connect TLV, and absent any rate limit policy or resource
-exhaustion conditions, a Transport Converter MUST attempt to
-establish a connection to the address and port that it contains.
-The Transport Converter MUST use by default the TCP options that correspond
-to its local policy to establish this connection.
-These are the options that it advertises in the Supported TCP Extensions TLV.
+Upon reception of a Connect TLV, and absent any policy (e.g., rate-limit) or
+   resource exhaustion conditions, a Transport Converter attempts to
+   establish a connection to the address and port that it contains.  The
+   Transport Converter MUST use by default the TCP options that
+   correspond to its local policy to establish this connection.  These
+   are the options that it advertises in the Supported TCP Extensions
+   TLV.
 
 Upon reception of an extended Connect TLV, and absent any rate limit policy or
 resource exhaustion conditions, a Transport Converter MUST
