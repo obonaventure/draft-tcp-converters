@@ -222,7 +222,7 @@ The Convert Protocol is a generic mechanism to provide 0-RTT conversion
 service. As a sample applicability use case, this document specifies
 how the Convert Protocol applies for Multipath TCP. It is out of scope
 of this document to provide a comprehensive
-list of all potential conversion services. Applicability document may be defined in
+list of all potential conversion services. Applicability documents may be defined in
 the future.
 
 
