@@ -1586,10 +1586,20 @@ This section to be removed before publication.
    different standard tracks TCP options by Transport Converters,
    clarification of the IANA section, moved the SOCKS comparison to the
    appendix and various minor modifications
- - 01 to -02 : Minor modifications
- - 02 to -03 : Minor modifications
- - 03 to -04 : Minor modifications
-
+ - 01 to -02: Minor modifications
+ - 02 to -03: Minor modifications
+ - 03 to -04: Minor modifications
+ - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
+   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilisation of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * the Boostrap procedure has been simplified based on feedback from implementers
+   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
+   * Many minor editorial changes to clarify the text based on implementors feedback.
+- 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
+  * Updated IANA policy to require "IETF Review" instead of "Standard Action"
+  * Call out explicilty that data in SYNs are relayed by the Converter
+  * Reiterate the scope
+  * Hairpinning behavior can be disabled (policy-based)
+  * Fix nits
 
 --- back
 
