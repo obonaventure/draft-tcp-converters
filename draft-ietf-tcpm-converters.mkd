@@ -111,7 +111,7 @@ informative:
       - ins: A. Greenhalgh
       - ins: M. Handley
       - ins: T. Hideyuki
-    title: Is it still possible to extend TCP ?
+    title: Is it still possible to extend TCP?
     seriesinfo: Proceedings of the 2011 ACM SIGCOMM conference on Internet measurement conference
     date: 2011
   IETFJ16:
@@ -360,9 +360,8 @@ It is out of scope of this document to elaborate on specific considerations rela
 ## Theory of Operation
 
 At a high level, the objective of the Transport Converter is to allow the
-Client to use a specific extension, e.g., Multipath TCP, on a subset of
-the path even if the Server does not support this extension.
-This is illustrated in {{fig-highlevel}} where the Client initiates a
+use a specific extension, e.g., Multipath TCP, on a subset of
+the path even if the peer does not support this extension. This is illustrated in {{fig-highlevel}} where the Client initiates a
 Multipath TCP connection with the Transport Converter (packets belonging
 to the Multipath TCP connection are shown with "===") while the Transport
 Converter uses a regular TCP connection with the Server.
