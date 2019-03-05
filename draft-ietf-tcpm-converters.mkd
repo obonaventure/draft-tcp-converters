@@ -211,7 +211,6 @@ In particular, a Transport Converter achieves the following:
 - Relay control messages and data between the client and the server;
 - Perform access controls according to local policies.
 
-
 The main advantage of network-assisted conversion services is that they
 enable new TCP extensions to be used on a subset of the path between endpoints,
 which encourages the deployment of these extensions. Furthermore, the
@@ -340,7 +339,7 @@ The architecture does not mandate anything on the server side.
 
 Similar to address sharing mechanisms, the architecture does not interfere
 with end-to-end TLS connections {{RFC8446}} between the Client and the
-Server ({{figtls}}).
+Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence of a Converter.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -356,7 +355,7 @@ Server ({{figtls}}).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-It is out of scope of this document to elaborate on considerations related to the use of TLS in the Client-Converter connection leg to exchange conversion-supplied data. 
+It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert TLVs (in addition to the end-to-end TLS connection). 
 
 ## Theory of Operation
 
@@ -415,7 +414,7 @@ Any user data received by the Transport Converter over the upstream
 (resp., downstream) connection is relayed over the downstream
 (resp., upstream) connection. In particular, if the initial SYN message contains
      data in its payload (e.g., [RFC7413]), that data MUST be placed 
-     right after the Convert TLVs when generating the relayed SYN.
+     right after the Convert TLVs when generating the relayed SYN. 
 
 {{fig-estab}} illustrates the establishment of an outbound TCP connection
 by a Client through a Transport Converter. The information shown between
