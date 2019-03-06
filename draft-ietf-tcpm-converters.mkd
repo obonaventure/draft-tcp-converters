@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-05
-date: 2019-01-17
+date: 2019-02-07
 category: exp
 
 ipr: trust200902
@@ -1328,7 +1328,7 @@ Info (SPKI) of the client X.509 certificate, the Client raw public
 key, or the "Pre-Shared Key (PSK) identity" used by the Client in the
 TLS ClientKeyExchange message.  Subsequent Connect messages will be
 authorized as a function of the content of the Cookie TLV. The client MUST also
-authenticate
+authenticate.
 
 See below for authorization considerations that are specific for Multipath TCP.
 
