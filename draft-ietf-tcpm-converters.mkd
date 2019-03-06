@@ -69,7 +69,6 @@ informative:
   RFC2018:
   RFC2827:
   RFC3135:
-  RFC4787:
   RFC6181:
   RFC7414:
   RFC6887:
