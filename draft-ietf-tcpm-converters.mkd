@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-05
-date: 2019-01-17
+docname: draft-ietf-tcpm-converters-06
+date: 2019-02-22
 category: exp
 
 ipr: trust200902
@@ -58,6 +58,8 @@ normative:
   RFC6890:
   RFC4279:
   RFC7250:
+  RFC6888:
+  RFC4787:
 
 informative:
   RFC1323:
@@ -71,8 +73,6 @@ informative:
   RFC6181:
   RFC7414:
   RFC6887:
-  RFC6888:
-  RFC4787:
   RFC6928:
   RFC6978:
   RFC7323:
@@ -111,7 +111,7 @@ informative:
       - ins: A. Greenhalgh
       - ins: M. Handley
       - ins: T. Hideyuki
-    title: Is it still possible to extend TCP ?
+    title: Is it still possible to extend TCP?
     seriesinfo: Proceedings of the 2011 ACM SIGCOMM conference on Internet measurement conference
     date: 2011
   IETFJ16:
@@ -211,7 +211,6 @@ In particular, a Transport Converter achieves the following:
 - Relay control messages and data between the client and the server;
 - Perform access controls according to local policies.
 
-
 The main advantage of network-assisted conversion services is that they
 enable new TCP extensions to be used on a subset of the path between endpoints,
 which encourages the deployment of these extensions. Furthermore, the
@@ -223,7 +222,7 @@ The Convert Protocol is a generic mechanism to provide 0-RTT conversion
 service. As a sample applicability use case, this document specifies
 how the Convert Protocol applies for Multipath TCP. It is out of scope
 of this document to provide a comprehensive
-list of all potential conversion services. Applicability document may defined in
+list of all potential conversion services. Applicability documents may be defined in
 the future.
 
 
@@ -235,7 +234,7 @@ Furthermore, it is possible to bypass the Transport Converter to connect
 directly
 to the servers that already support the required TCP extension(s).
 
-This document assumes that a client is configured with one or a list of
+This document assumes an explicit model in which a client is configured with one or a list of
 Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
@@ -322,7 +321,7 @@ depicted in {{figtc2}}.
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
 or more Transport Converters. Further, the architecture allows for
-making use of TCP new extensions even if those are not
+making use of new TCP extensions even if those are not
 supported by a given server.
 
 The Client is configured, through means that are outside the
@@ -340,7 +339,7 @@ The architecture does not mandate anything on the server side.
 
 Similar to address sharing mechanisms, the architecture does not interfere
 with end-to-end TLS connections {{RFC8446}} between the Client and the
-Server ({{figtls}}).
+Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence of a Converter.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -356,14 +355,13 @@ Server ({{figtls}}).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-
+It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert TLVs (in addition to the end-to-end TLS connection). 
 
 ## Theory of Operation
 
 At a high level, the objective of the Transport Converter is to allow the
-Client to use a specific extension, e.g., Multipath TCP, on a subset of
-the path even if the Server does not support this extension.
-This is illustrated in {{fig-highlevel}} where the Client initiates a
+use a specific extension, e.g., Multipath TCP, on a subset of
+the path even if the peer does not support this extension. This is illustrated in {{fig-highlevel}} where the Client initiates a
 Multipath TCP connection with the Transport Converter (packets belonging
 to the Multipath TCP connection are shown with "===") while the Transport
 Converter uses a regular TCP connection with the Server.
@@ -393,7 +391,7 @@ used to reach a given destination.
 When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the
 Server) or create the connection via a Transport Converter. In the latter
-case, the Client
+case (that is, the conversion service is used), the Client
 initiates a connection towards the Transport Converter and indicates the IP
 address and port number of the Server within the connection establishment
 packet. Doing so enables the Transport Converter to immediately initiate
@@ -413,8 +411,9 @@ connections that are combined together:
 
 Any user data received by the Transport Converter over the upstream
 (resp., downstream) connection is relayed over the downstream
-(resp., upstream) connection.
-
+(resp., upstream) connection. In particular, if the initial SYN message contains
+     data in its payload (e.g., [RFC7413]), that data MUST be placed 
+     right after the Convert TLVs when generating the relayed SYN. 
 
 {{fig-estab}} illustrates the establishment of an outbound TCP connection
 by a Client through a Transport Converter. The information shown between
@@ -620,7 +619,7 @@ Client               Converter                       Remote Host
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming TCP Connection through a Transport Converter"}
 
-
+It is out of scope of this document to define specific Convert TLVs to manage incoming connections. These TLVs can be defined in a separate document.  
 
 # The Convert Protocol (Convert) {#sec-protocol}
 
@@ -665,6 +664,10 @@ reception of a header with such total length.
 The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
 future use {{RFC8126}}.
+
+Data added by the Convert protocol to the TCP bytestream in the upstream
+connection is unambiguously distinguished from payload data in the downstream
+connection by the Total Length field in the Convert messages.
 
 ##  Convert TLVs {#sec-tlv}
 
@@ -857,12 +860,13 @@ always ends on a 32 bits boundary after being padded with zeros.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpopt title="The TCP Options field"}
 
-Upon reception of a Connect TLV, and absent any rate limit policy or resource
-exhaustion conditions, a Transport Converter MUST attempt to
-establish a connection to the address and port that it contains.
-The Transport Converter MUST use by default the TCP options that correspond
-to its local policy to establish this connection.
-These are the options that it advertises in the Supported TCP Extensions TLV.
+Upon reception of a Connect TLV, and absent any policy (e.g., rate-limit) or
+   resource exhaustion conditions, a Transport Converter attempts to
+   establish a connection to the address and port that it contains.  The
+   Transport Converter MUST use by default the TCP options that
+   correspond to its local policy to establish this connection.  These
+   are the options that it advertises in the Supported TCP Extensions
+   TLV.
 
 Upon reception of an extended Connect TLV, and absent any rate limit policy or
 resource exhaustion conditions, a Transport Converter MUST
@@ -1322,13 +1326,29 @@ Protocol in more open network environments.  One possibility is to use TLS to
 perform mutual authentication between the client and the Converter. That is, use TLS when a Client retrieves a Cookie from the Converter and rely on 
 certificate-based client authentication, pre-shared key based {{RFC4279}} or 
 raw public key based client authentication {{RFC7250}} to secure this connection. 
-If the authentication succeeds, the Converter returns a cookie whose content may be, 
-for example, set to a hash using as input the representation of the Subject Public Key
-Info (SPKI) of the client X.509 certificate, the Client raw public
-key, or the "Pre-Shared Key (PSK) identity" used by the Client in the
-TLS ClientKeyExchange message.  Subsequent Connect messages will be
-authorized as a function of the content of the Cookie TLV. The client MUST also
-authenticate
+If the authentication succeeds, the Converter returns a cookie to the Client.  Subsequent Connect messages will be
+authorized as a function of the content of the Cookie TLV. 
+
+In deployments where network-assisted connections are not allowed between hosts of a domain (i.e., hairpinning), the Converter may be instructed to discard such connections. Hairpinned connections are thus rejected by the Transport Converter by returning an Error TLV set to "Not Authorized". Absent explicit configuration otherwise, hairpinning is enabled by the Converter (see {{fig-hairp}}.   
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          <===Network Provider===>
+   
+   +----+ from X1:x1 to X2':x2'   +-----+ X1':x1'
+   | C1 |>>>>>>>>>>>>>>>>>>>>>>>>>>>>>--+---
+   +----+                         |  v  |
+                                  |  v  |
+                                  |  v  |
+                                  |  v  |
+   +----+ from X1':x1' to X2:x2   |  v  | X2':x2'
+   | C2 |<<<<<<<<<<<<<<<<<<<<<<<<<<<<<--+---
+   +----+                         +-----+
+                                 Converter
+   
+   Note: X2':x2' may be equal to
+         X2:x2                               
+~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+{: #fig-hairp title="Hairpinning Example"}
 
 See below for authorization considerations that are specific for Multipath TCP.
 
@@ -1413,7 +1433,7 @@ Protocol (Convert) Parameters" registry.
 ### Convert Versions
 
 IANA is requested to create the "Convert versions" sub-registry. New
-values are assigned via Standards Action.
+values are assigned via IETF Review (Section 4.8 of {{RFC8126}}).
 
 The initial values to be assigned at the creation of the registry are
 as follows:
@@ -1432,7 +1452,7 @@ as follows:
 IANA is requested to create the "Convert TLVs" sub-registry.  The
 procedure for assigning values from this registry is as follows:
 
- -  The values in the range 1-127 can be assigned via Standards Action.
+ -  The values in the range 1-127 can be assigned via IETF Review.
  -  The values in the range 128-191 can be assigned via Specification Required.
  -  The values in the range 192-255 can be assigned for Private Use.
 
@@ -1468,7 +1488,7 @@ these types:
 The procedure for assigning values from this sub-registry is as
 follows:
 
-  - 0-191: Values in this range are assigned via Standards Action.
+  - 0-191: Values in this range are assigned via IETF Review.
   - 192-255: Values in this range are assigned via Specification Required.
 
 The initial values to be assigned at the creation of the registry are
@@ -1565,10 +1585,20 @@ This section to be removed before publication.
    different standard tracks TCP options by Transport Converters,
    clarification of the IANA section, moved the SOCKS comparison to the
    appendix and various minor modifications
- - 01 to -02 : Minor modifications
- - 02 to -03 : Minor modifications
- - 03 to -04 : Minor modifications
-
+ - 01 to -02: Minor modifications
+ - 02 to -03: Minor modifications
+ - 03 to -04: Minor modifications
+ - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
+   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilisation of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * the Boostrap procedure has been simplified based on feedback from implementers
+   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
+   * Many minor editorial changes to clarify the text based on implementors feedback.
+- 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
+  * Updated IANA policy to require "IETF Review" instead of "Standard Action"
+  * Call out explicilty that data in SYNs are relayed by the Converter
+  * Reiterate the scope
+  * Hairpinning behavior can be disabled (policy-based)
+  * Fix nits
 
 --- back
 
@@ -1627,9 +1657,7 @@ The Convert protocol also relays data
 between an upstream and a downstream connection, but there are important
 differences with SOCKSv5.
 
-A first difference is that the Convert protocol leverages the TFO option
-{{RFC7413}}
-to exchange all control information during the three-way handshake. This
+A first difference is that the Convert protocol exchanges all control information during the three-way handshake. This
 reduces the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream
 connection towards the final destination. In today's Internet, latency is
