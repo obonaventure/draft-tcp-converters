@@ -429,7 +429,7 @@ brackets denotes Convert Protocol messages described in {{sec-protocol}}.
        |<------------------|<---------------------|
        |    SYN+ACK [ ]    |        SYN+ACK       |
        |                   |                      |
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab title="Establishment of a TCP Connection Through a Transport Converter (1)"}
 
 The Client sends a SYN destined to the Transport Converter. The payload of
@@ -1598,6 +1598,7 @@ This section to be removed before publication.
 - 07: 
   * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed folloiwng the same rationale as in RFC7413.
   * Nits
+  * Added Appendix A on example Socket API changes
 --- back
 
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
@@ -1639,28 +1640,30 @@ the enable the reception of SYNs containing data. Later, Appendix A
 of {{RFC7413}}, mentionned:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Traditionally, accept() returns only after a socket is connected.
-    But, for a Fast Open connection, accept() returns upon receiving
-    SYN with a valid Fast Open cookie and data, and the data is available
-    to be read through, e.g., recvmsg(), read().
+  Traditionally, accept() returns only after a socket is connected.
+  But, for a Fast Open connection, accept() returns upon receiving
+  SYN with a valid Fast Open cookie and data, and the data is available
+  to be read through, e.g., recvmsg(), read().
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To support the 0-RTT Convert protocol, this behaviour should be modified as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Traditionally, accept() returns only after a socket is connected.
-    But, for a Fast Open connection, accept() returns upon receiving a
-    SYN with data, and the data is available to be read through, e.g.,
-    recvmsg(), read(). The application that receives such SYNs with data
-    must be able to validate the reachability of the source of the SYN
-    and also deal with replayed SYNs.
+  Traditionally, accept() returns only after a socket is connected.
+  But, for a Fast Open connection, accept() returns upon receiving a
+  SYN with data, and the data is available to be read through, e.g.,
+  recvmsg(), read(). The application that receives such SYNs with data
+  must be able to validate the reachability of the source of the SYN
+  and also deal with replayed SYNs.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Linux server side can be configured with the following
 sysctls:
 
-    - 0x2: (server) enables the server support, i.e., allowing data in a SYN packet to be accepted and passed to the application before 3-way handshake finishes.
-    - 0x200: (server) accept data-in-SYN w/o any cookie option present.
+  - 0x2: (server) enables the server support, i.e., allowing data
+    in a SYN packet to be accepted and passed to the application before
+    3-way handshake finishes.
+  - 0x200: (server) accept data-in-SYN w/o any cookie option present.
 
 However, this configuration is system wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
 
