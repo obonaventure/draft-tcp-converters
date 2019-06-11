@@ -247,8 +247,8 @@ Converters can be used to support different TCP extensions.
 We then discuss the interactions with middleboxes
 ({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
 
-Appendix A provides a comparison with SOCKS proxies that are already
-used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}).
+Appendix A discusses how a TCP stack would need to support the protocol described in this document. Appendix B provides a comparison with SOCKS proxies that are already
+used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
 
 # Requirements
 
@@ -1602,6 +1602,74 @@ This section to be removed before publication.
   * Fix nits
 
 --- back
+
+# Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
+
+
+## Active Open (client side)
+
+On the client side, the support of the 0-rtt converter protocol does not
+require any other changes than those identified in Appendix A of RFC7413.
+Those modifications are already supported by multiple TCP stacks.
+
+As an example, on Linux, a client can send the 0-rtt converter message inside
+its SYN by using sendto with the MSG_FASTOPEN flag as shown in the
+example below
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  s = socket(AF_INET, SOCK_STREAM, 0);
+
+  sendto(s, buffer, buffer_len, MSG_FASTOPEN,
+                 (struct sockaddr *) &server_addr, addr_len);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+The client side of the Linux TCP TFO can be used in two different modes depending on the host configuration (sysctl tcp_fastopen variable).
+
+  - 0x1: (client) enables sending data in the opening SYN on the client.
+  - 0x4: (client) send data in the opening SYN regardless of cookie availability and without a cookie option.
+
+By setting this configuration variable to 0x5, a Linux client using the
+above code would send data inside the SYN without using a TFO option.
+
+##  Passive Open (Converter side)
+
+
+The Converter needs to enable the reception of data inside the SYN independently of the utilisation of the TFO option. This implies that the Transport Converter application cannot rely on the TFO cookies to validate the reachability of the IP address that sent the SYN. It must rely on other techniques, such as the Cookie TLV described in this document, to verify this reachability.
+
+{{RFC7413}} suggested the utilisation of a TCP_FASTOPEN socket option
+the enable the reception of SYNs containing data. Later, Appendix A
+of {{RFC7413}}, mentionned:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Traditionally, accept() returns only after a socket is connected.
+    But, for a Fast Open connection, accept() returns upon receiving
+    SYN with a valid Fast Open cookie and data, and the data is available
+    to be read through, e.g., recvmsg(), read().
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To support the 0-RTT Convert protocol, this behaviour should be modified as follows:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Traditionally, accept() returns only after a socket is connected.
+    But, for a Fast Open connection, accept() returns upon receiving a
+    SYN with data, and the data is available to be read through, e.g.,
+    recvmsg(), read(). The application that receives such SYNs with data
+    must be able to validate the reachability of the source of the SYN
+    and also deal with replayed SYNs.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Linux server side can be configured with the following
+sysctls:
+
+    - 0x2: (server) enables the server support, i.e., allowing data in a SYN packet to be accepted and passed to the application before 3-way handshake finishes.
+    - 0x200: (server) accept data-in-SYN w/o any cookie option present.
+
+However, this configuration is system wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
+
+Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behaviour on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
+
+
 
 # Differences with SOCKSv5 {#sec-socks}
 
