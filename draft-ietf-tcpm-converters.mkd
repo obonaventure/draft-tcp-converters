@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-07
-date: 2019-06-07
+date: 2019-06-11
 category: exp
 
 ipr: trust200902
@@ -1392,7 +1392,7 @@ non-exhaustive list of methods to achieve authorization is provided hereafter:
    to control the hosts that are authorized to communicate with
    a Transport Converter. These ACLs may be installed as a result of RADIUS
    exchanges,
-   e.g. {{I-D.boucadair-radext-tcpm-converter}}.  This method does not
+   e.g., {{I-D.boucadair-radext-tcpm-converter}}.  This method does not
    require any interaction with the Transport Converter.
  - A device that embeds a Transport Converter may also host a RADIUS client that
    will solicit an AAA server to check whether connections received
@@ -1599,20 +1599,20 @@ This section to be removed before publication.
   * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed folloiwng the same rationale as in RFC7413.
   * Nits
   * Added Appendix A on example Socket API changes
---- back
+
 
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
 
 
-## Active Open (client side)
+## Active Open (Client Side)
 
-On the client side, the support of the 0-rtt converter protocol does not
-require any other changes than those identified in Appendix A of RFC7413.
+On the client side, the support of the 0-RTT Converter protocol does not
+require any other changes than those identified in Appendix A of {{RFC7413}}.
 Those modifications are already supported by multiple TCP stacks.
 
-As an example, on Linux, a client can send the 0-rtt converter message inside
-its SYN by using sendto with the MSG_FASTOPEN flag as shown in the
-example below
+As an example, on Linux, a client can send the 0-RTT Convert message inside
+a SYN by using sendto with the MSG_FASTOPEN flag as shown in the
+example below:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   s = socket(AF_INET, SOCK_STREAM, 0);
@@ -1622,7 +1622,7 @@ example below
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-The client side of the Linux TCP TFO can be used in two different modes depending on the host configuration (sysctl tcp_fastopen variable).
+The client side of the Linux TCP TFO can be used in two different modes depending on the host configuration (sysctl tcp_fastopen variable):
 
   - 0x1: (client) enables sending data in the opening SYN on the client.
   - 0x4: (client) send data in the opening SYN regardless of cookie availability and without a cookie option.
@@ -1630,7 +1630,7 @@ The client side of the Linux TCP TFO can be used in two different modes dependin
 By setting this configuration variable to 0x5, a Linux client using the
 above code would send data inside the SYN without using a TFO option.
 
-##  Passive Open (Converter side)
+##  Passive Open (Converter Side)
 
 
 The Converter needs to enable the reception of data inside the SYN independently of the utilisation of the TFO option. This implies that the Transport Converter application cannot rely on the TFO cookies to validate the reachability of the IP address that sent the SYN. It must rely on other techniques, such as the Cookie TLV described in this document, to verify this reachability.
@@ -1665,7 +1665,7 @@ sysctls:
     3-way handshake finishes.
   - 0x200: (server) accept data-in-SYN w/o any cookie option present.
 
-However, this configuration is system wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
+However, this configuration is system-wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
 
 Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behaviour on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
 
