@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-06
-date: 2019-03-06
+docname: draft-ietf-tcpm-converters-07
+date: 2019-06-07
 category: exp
 
 ipr: trust200902
@@ -79,7 +79,7 @@ informative:
   RFC8305:
   RFC8446:
   I-D.boucadair-tcpm-dhc-converter:
-  I-D.ietf-tcpinc-tcpcrypt:
+  RFC8548:
   I-D.olteanu-intarea-socks-6:
   I-D.boucadair-mptcp-plain-mode:
   I-D.nam-mptcp-deployment-considerations:
@@ -171,8 +171,8 @@ the deployment of Selective Acknowledgements, Window Scale and TCP Timestamps.
 is still not widely deployed.
 
 There are some situations where the transport stack used on clients
-(resp. servers) can be upgraded at a faster pace than the transport
-stack running on servers (resp.
+(or servers) can be upgraded at a faster pace than the transport
+stack running on servers (or
 clients). In those situations, clients would typically want to benefit from the
 features of an improved transport protocol even if the servers have not yet been
 upgraded and conversely. Performance Enhancing Proxies {{RFC3135}}, and other
@@ -180,7 +180,7 @@ service functions have been deployed as solutions to improve TCP performance ove
 links with specific characteristics.
 
 Recent examples of TCP extensions include Multipath TCP {{RFC6824}} or
-TCPINC {{I-D.ietf-tcpinc-tcpcrypt}}. Those extensions
+TCPINC {{RFC8548}}. Those extensions
 provide features that are interesting for clients such as wireless devices.
 With Multipath TCP, those devices could seamlessly use WLAN
 (Wireless Local Area Network) and cellular networks,
@@ -188,7 +188,7 @@ for bonding purposes, faster handovers, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
 
-More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access tTaffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency.
+More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Taffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency.
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -262,7 +262,7 @@ as shown here.
 
 ## Functional Elements
 
-The Convert Protocol considers three types of endhosts:
+The Convert Protocol considers three functional elements:
 
 - Clients;
 - Transport Converters;
@@ -278,14 +278,18 @@ A connection can be initiated from both sides of the Transport Converter
 (Internet-facing interface, client-facing interface).
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+                           |
+                           :        
+                           |
                      +------------+
 client <- upstream ->| Transport  |<- downstream ->server
                      | Converter  |
                      +------------+
-
+                           |
+   client-facing interface : Internet-facing interface     
+                           |                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc title="A Transport Converter relays data between pairs of TCP connections"}
+{: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
 
 
 Transport Converters can be operated by network operators or
@@ -295,7 +299,7 @@ service to a client is also the entity which owns and operates the
 Transport Converter.
 
 A Transport Converter can be embedded in a
-standalone device or be activated as a service on a router.
+standalone device or be activated as a service on a router. 
 How such function is enabled is deployment-specific. A sample deployment is
 depicted in {{figtc2}}.
 
@@ -315,7 +319,7 @@ depicted in {{figtc2}}.
                  +---------+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc2 title="A Transport Converter can be installed anywhere in the network"}
+{: #figtc2 title="A Transport Converter Can Be Installed Anywhere in the Network"}
 
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
@@ -366,18 +370,16 @@ to the Multipath TCP connection are shown with "===") while the Transport
 Converter uses a regular TCP connection with the Server.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                       Server
-     ======================>
-
-                                 -------------------->
-
-                                 <--------------------
-
-     <======================
-       Multipath TCP packets      Regular TCP packets
+    Client             Transport                Server
+       |               Converter                  |
+       |                   |                      |
+       |==================>|--------------------->|
+       |                   |                      |
+       |<==================|<---------------------|
+       |                   |                      |
+      Multipath TCP packets   Regular TCP packets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-highlevel title="An example of network-assisted MPTCP Connection"}
+{: #fig-highlevel title="An Example of 0-RTT Network-Assisted MPTCP Connection"}
 
 The packets belonging to the pair of connections between the Client and Server
 passing through a Transport Converter
@@ -409,8 +411,8 @@ connections that are combined together:
 - the downstream connection is between the Transport Converter and the Server.
 
 Any user data received by the Transport Converter over the upstream
-(resp., downstream) connection is relayed over the downstream
-(resp., upstream) connection. In particular, if the initial SYN message contains
+(or downstream) connection is relayed over the downstream
+(or upstream) connection. In particular, if the initial SYN message contains
      data in its payload (e.g., [RFC7413]), that data MUST be placed 
      right after the Convert TLVs when generating the relayed SYN. 
 
@@ -419,21 +421,16 @@ by a Client through a Transport Converter. The information shown between
 brackets denotes Convert Protocol messages described in {{sec-protocol}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                       Server
-     -------------------->
-      SYN [->Server:port]
-
-                                 -------------------->
-                                          SYN
-
-                                 <--------------------
-                                         SYN+ACK
-     <--------------------
-       SYN+ACK [ ]
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of a TCP connection through a Transport Converter (1)"}
+                        Transport
+    Client              Converter              Server
+       |                   |                      |
+       |SYN [->Server:port]|         SYN          |
+       |------------------>|--------------------->|
+       |<------------------|<---------------------|
+       |    SYN+ACK [ ]    |        SYN+ACK       |
+       |                   |                      |
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-estab title="Establishment of a TCP Connection Through a Transport Converter (1)"}
 
 The Client sends a SYN destined to the Transport Converter. The payload of
 this SYN contains the address and port number of the
@@ -462,25 +459,32 @@ implies a default "IP address pooling" behavior of "Paired" (as defined in
 Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
 breaking applications that depend on the external address remaining constant.
 
-Standard TCP ({{RFC0793}}, Section 3.4) allows a SYN packet to carry data inside
-its payload but forbids the receiver from delivering it to the application
-until completion of the three-way-handshake. This restriction was motivated
-by two concerns. First, duplicate SYNs can cause problems for some applications
-that rely on TCP {{RFC7413}}. Second, TCP suffers from SYN flooding attacks
-{{RFC4987}}. TCP Fast Open {{RFC7413}} solves these two problems for
-applications that can tolerate replays by using the TCP Fast Open option that
-includes a cookie. However, the utilization of this option consumes space
-in the limited TCP extended header. Furthermore, there are situations,
-as noted in Section 7.3 of {{RFC7413}} where it is possible to accept
-the payload of SYN packets without creating additional security risks such as
-a network where addresses cannot be spoofed and the Transport Converter
-only serves a set of hosts that are identified by these addresses. For these
-reasons, this specification does not mandate the use of the TCP
-Fast Open option when the Client sends a connection establishment packet
-towards a Transport Converter. The Convert protocol includes an optional
-Cookie TLV that provides similar protection as the TCP Fast Open option
-without consuming space in the extended TCP header.
+   Standard TCP ({{RFC0793}}, Section 3.4) allows a SYN packet to carry
+   data inside its payload but forbids the receiver from delivering it
+   to the application until completion of the three-way-handshake.  To
+   enable applications to exchange data in a TCP handshake, this
+   specification follows an approach similar to TCP Fast Open {{RFC7413}}
+   and thus removes the constraint by allowing data in SYN packets to be
+   delivered to the Transport Converter application.
 
+   As discussed in {{RFC7413}}, such change to TCP semantic raises two
+   issues.  First, duplicate SYNs can cause problems for some
+   applications that rely on TCP.  Second, TCP suffers from SYN flooding
+   attacks {{RFC4987}}.  TFO solves these two problems for applications
+   that can tolerate replays by using the TCP Fast Open option that
+   includes a cookie.  However, the utilization of this option consumes
+   space in the limited TCP extended header.  Furthermore, there are
+   situations, as noted in Section 7.3 of {{RFC7413}} where it is possible
+   to accept the payload of SYN packets without creating additional
+   security risks such as a network where addresses cannot be spoofed
+   and the Transport Converter only serves a set of hosts that are
+   identified by these addresses.
+
+   For these reasons, this specification does not mandate the use of the
+   TCP Fast Open option when the Client sends a connection establishment
+   packet towards a Transport Converter.  The Convert protocol includes
+   an optional Cookie TLV that provides similar protection as the TCP
+   Fast Open option without consuming space in the extended TCP header.
 
 ## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
 
@@ -497,26 +501,21 @@ by placing the MP\_CAPABLE (MPC) option in the SYN sent by the Client.
 if the Server does not support Multipath TCP.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                    Server
-     -------------------->
-     SYN, MPC [->Server:port]
-
-                                 -------------------->
-                                       SYN, MPC
-
-                                 <--------------------
-                                         SYN+ACK
-     <--------------------
-       SYN+ACK,MPC [.]
-
-     -------------------->
-         ACK,MPC
-                                 -------------------->
-                                          ACK
-
+                        Transport
+    Client              Converter              Server
+       |SYN,               |                      |
+       |MPC [->Server:port]|                      |
+       |------------------>|         SYN, MPC     |
+       |                   |--------------------->|
+       |                   |<---------------------|
+       |<------------------|        SYN+ACK       |
+       |  SYN+ACK,MPC [.]  |                      |
+       |                   |                      |
+       |------------------>|                      |
+       |     ACK, MPC      |--------------------->|
+       |                   |          ACK         |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestab title="Establishment of a Multipath TCP connection through a Transport Converter towards a Server that does not support Multipath TCP"}
+{: #fig-mpestab title="Establishment of a Multipath TCP Connection Through a Transport Converter towards a Server that Does Not Support Multipath TCP"}
 
 The Client tries to initiate a Multipath TCP connection by sending a SYN
 with the
@@ -543,26 +542,23 @@ natively. This will enable the Client to bypass the Transport Converter for
 the subsequent Multipath TCP connections that it will initiate towards
 this Server.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~              
+                        Transport
+    Client              Converter              Server
+       |SYN,               |                      |
+       |MPC [->Server:port]|                      |
+       |------------------>|         SYN, MPC     |
+       |                   |--------------------->|
+       |                   |<---------------------|
+       |<------------------|      SYN+ACK, MPC    |
+       |SYN+ACK,           |                      |
+       |MPC [MPC supported]|                      |
+       |------------------>|                      |
+       |     ACK, MPC      |--------------------->|
+       |                   |        ACK, MPC      |
+                                          
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Transport
-Client                   Converter                       Server
-     -------------------->
-     SYN, MPC [->Server:port]
-
-                                 -------------------->
-                                       SYN, MPC
-
-                                 <--------------------
-                                         SYN+ACK, MPC
-     <--------------------
-       SYN+ACK, MPC [ MPC supported ]
-
-     -------------------->
-         ACK, MPC
-                                 -------------------->
-                                          ACK, MPC
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestabok title="Establishment of a Multipath TCP connection through a converter towards a server that supports Multipath TCP"}
+{: #fig-mpestabok title="Establishment of a Multipath TCP Connection Through a Converter Towards an MPTCP-capable Server"}
 
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
@@ -597,24 +593,21 @@ subflows following normal Multipath TCP procedures.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                     Transport
-Client               Converter                       Remote Host
-                                <-------------------
-                                  SYN
 
-     <-------------------
-    SYN, MPC[Remote Host:port]
-
-     --------------------->
-            SYN+ACK, MPC
-                                --------------------->
-                                        SYN+ACK
-
-                                <---------------------
-                                           ACK
-     <-------------------
-              ACK, MPC
-
+                        Transport
+    Client              Converter              Server
+      |                     |                    |
+      |                     |<-------------------|
+      |<--------------------|       SYN          |
+      |SYN,                 |                    |
+      |MPC[Remote Host:port]|                    |
+      |-------------------->|                    |
+      |      SYN+ACK, MPC   |------------------->|
+      |                     |       SYN+ACK      |
+      |                     |<-------------------|
+      |<--------------------|           ACK      |
+      |       ACK, MPC      |                    |
+      |                     |                    |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming TCP Connection through a Transport Converter"}
 
@@ -646,7 +639,7 @@ the first four bytes of the bytestream.
    |  Version      |  Total Length |          Unassigned           |
    +---------------+---------------+-------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-header title="The fixed-sized header of the Convert protocol"}
+{: #fig-header title="The Fixed-Sized Header of the Convert Protocol"}
 
 The Version is encoded as an 8 bits unsigned integer value. This
 document specifies
@@ -715,7 +708,7 @@ This document specifies the following Convert TLVs:
 |  30  | 0x1E| Variable | Error TLV                                |
 +------+-----+----------+------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #tab-converter-tlv title="The TLVs used by the Convert protocol"}
+{: #tab-converter-tlv title="The TLVs used by the Convert Protocol"}
 
 Type 0x0 is a reserved valued. Implementations MUST discard messages
 with such TLV.
@@ -857,7 +850,7 @@ always ends on a 32 bits boundary after being padded with zeros.
    |                              ...                              |
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-tcpopt title="The TCP Options field"}
+{: #fig-tcpopt title="The TCP Options Field"}
 
 Upon reception of a Connect TLV, and absent any policy (e.g., rate-limit) or
    resource exhaustion conditions, a Transport Converter attempts to
@@ -1527,6 +1520,8 @@ in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Thanks to them.
 
+Thanks to Yuchung Cheng and Praveen Balasubramanian for the discussion on supplying data in SYNs.
+
 This document builds upon earlier documents that proposed various forms
 of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
 {{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
@@ -1600,7 +1595,9 @@ This section to be removed before publication.
   * Reiterate the scope
   * Hairpinning behavior can be disabled (policy-based)
   * Fix nits
-
+- 07: 
+  * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed folloiwng the same rationale as in RFC7413.
+  * Nits
 --- back
 
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
