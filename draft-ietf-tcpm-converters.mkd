@@ -86,6 +86,12 @@ informative:
   I-D.peirens-mptcp-transparent:
   I-D.arkko-arch-low-latency:
   I-D.boucadair-radext-tcpm-converter:
+  TS23501:
+      author:
+      - ins: 3GPP (3rd Generation Partnership Project)
+    title: Technical Specification Group Services and System Aspects; System Architecture for the 5G System; Stage 2 (Release 16)
+    date: 2019
+    target: https://www.3gpp.org/ftp/Specs/archive/23_series/23.501/
   Fukuda2011:
     author:
       - ins: K. Fukuda
@@ -188,7 +194,7 @@ for bonding purposes, faster handovers, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
 
-More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle uRLLC (Ultra-Reliable Low-Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Taffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency.
+More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle URLLC (Ultra Reliable Low Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Traffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency {{TS23501}}.
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
