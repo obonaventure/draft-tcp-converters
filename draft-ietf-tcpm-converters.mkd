@@ -550,12 +550,11 @@ Converter notes that the connection with the Server does not support
 Multipath TCP
 and returns the extended TCP header received from the Server to the Client.
 
-   Note that, if the TCP connection fails for some reason, 
-   the Converter tears down the Multipath TCP
-   connection by transmitting a FASTCLOSE.  Likewise, if the Multipath TCP connection
-   ends with the transmission of DATA_FINs, the Converter
-   terminates the TCP connection by using
-   FIN segments.
+Note that, if the TCP connection fails for some reason, the Converter tears down the Multipath TCP
+connection by transmitting a MP_FASTCLOSE.  Likewise, if the Multipath TCP connection
+ends with the transmission of DATA_FINs, the Converter
+terminates the TCP connection by using
+FIN segments.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this
 case, it
@@ -1624,6 +1623,8 @@ This section to be removed before publication.
   * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed folloiwng the same rationale as in RFC7413.
   * Nits
   * Added Appendix A on example Socket API changes
+- 08:
+  * Added short discusion on the termination of connections
 
 
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
