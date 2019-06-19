@@ -473,7 +473,7 @@ breaking applications that depend on the external address remaining constant.
    attacks {{RFC4987}}.  TFO solves these two problems for applications
    that can tolerate replays by using the TCP Fast Open option that
    includes a cookie.  However, the utilization of this option consumes
-   space in the limited TCP extended header.  Furthermore, there are
+   space in the limited TCP header.  Furthermore, there are
    situations, as noted in Section 7.3 of {{RFC7413}} where it is possible
    to accept the payload of SYN packets without creating additional
    security risks such as a network where addresses cannot be spoofed
@@ -1105,7 +1105,7 @@ the experimental options will be discussed in other documents.
 Three TCP options were initially defined in {{RFC0793}}: End-of-Option List
 (Kind=0), No-Operation (Kind=1) and Maximum Segment Size (Kind=2).
 The first two options are
-mainly used to pad the TCP extended header. There is no reason for a client
+mainly used to pad the TCP header. There is no reason for a client
 to request a Transport Converter to specifically send these options towards the
 final destination.
 
