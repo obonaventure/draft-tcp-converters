@@ -422,6 +422,8 @@ Any user data received by the Transport Converter over the upstream
      data in its payload (e.g., [RFC7413]), that data MUST be placed 
      right after the Convert TLVs when generating the relayed SYN. 
 
+The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
+   
 {{fig-estab}} illustrates the establishment of an outbound TCP connection
 by a Client through a Transport Converter. The information shown between
 brackets denotes Convert Protocol messages described in {{sec-protocol}}.
@@ -492,6 +494,17 @@ breaking applications that depend on the external address remaining constant.
    an optional Cookie TLV that provides similar protection as the TCP
    Fast Open option without consuming space in the extended TCP header.
 
+   If the downstream (or upstream) connection fails for some reason
+   (excessive retransmissions, reception of a RST segment, etc.), then
+   the Converter should force the teardown of the upstream (or downstream) 
+   connection.
+
+   The same reasoning applies when the upstream connection
+   ends. In this case, the Converter should also terminate the downstream connection by using
+   FIN segments.  If the downstream connection terminates with the
+   exchange of FIN segments, the Converter should initiate a graceful
+   termination of the upstream connection.   
+
 ## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
 
 As an example, let us consider how the Convert protocol
@@ -537,6 +550,13 @@ Converter notes that the connection with the Server does not support
 Multipath TCP
 and returns the extended TCP header received from the Server to the Client.
 
+   Note that, if the TCP connection fails for some reason, 
+   the Converter tears down the Multipath TCP
+   connection by transmitting a FASTCLOSE.  Likewise, if the Multipath TCP connection
+   ends with the transmission of DATA_FINs, the Converter
+   terminates the TCP connection by using
+   FIN segments.
+
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this
 case, it
 replies to the SYN sent by the Transport Converter with the MP\_CAPABLE option.
@@ -565,7 +585,6 @@ this Server.
                                           
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestabok title="Establishment of a Multipath TCP Connection Through a Converter Towards an MPTCP-capable Server"}
-
 
 ## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
 
