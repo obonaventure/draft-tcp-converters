@@ -230,7 +230,6 @@ of this document to provide a comprehensive
 list of all potential conversion services. Applicability documents may be defined in
 the future.
 
-
 This document does not assume that all the traffic is eligible to the
 network-assisted conversion service. Only a subset of the traffic will be
 forwarded to a Transport Converter according to a set of policies. These
@@ -244,24 +243,23 @@ Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
 
-
-This document is organized as follows. We first provide a brief explanation
+This document is organized as follows. First, {{sec-arch}} provides a brief explanation
 of the
-operation of Transport Converters in {{sec-arch}}. We describe the Convert
-Protocol in {{sec-protocol}}. We discuss in {{sec-tcpoptions}} how Transport
+operation of Transport Converters. Then, {{sec-protocol}} describes the Convert
+Protocol. {{sec-tcpoptions}} discusses how Transport
 Converters can be used to support different TCP extensions.
-We then discuss the interactions with middleboxes
-({{sec-middleboxes}}) and the security considerations ({{sec-security}}).
+{{sec-middleboxes}} then discusses the interactions with middleboxes, while 
+{{sec-security}} focuses on the security considerations.
 
-Appendix A discusses how a TCP stack would need to support the protocol described in this document. Appendix B provides a comparison with SOCKS proxies that are already
+Appendix A describes how a TCP stack would need to support the protocol described in this document. Appendix B provides a comparison with SOCKS proxies that are already
 used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
 
 # Requirements
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in
-{{RFC2119}} {{RFC8174}} when, and only when, they appear in all capitals,
+"OPTIONAL" in this document are to be interpreted as described in BCP14 
+{{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
 as shown here.
 
 # Architecture {#sec-arch}
@@ -281,7 +279,9 @@ The Transport Converter, thus, maintains state that associates one upstream
 connection to a corresponding downstream connection.
 
 A connection can be initiated from both sides of the Transport Converter
-(Internet-facing interface, client-facing interface).
+(Internet-facing interface, customer-facing interface). 
+
+"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections). Nevertheless, and unless this is explicitly stated, the description assumes outgoing connections as default.   
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                            |
@@ -292,11 +292,10 @@ client <- upstream ->| Transport  |<- downstream ->server
                      | Converter  |
                      +------------+
                            |
-   client-facing interface : Internet-facing interface     
+ customer-facing interface : Internet-facing interface     
                            |                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
-
 
 Transport Converters can be operated by network operators or
 third parties. Nevertheless, this document focuses on the single
@@ -329,7 +328,7 @@ depicted in {{figtc2}}.
 
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
-or more Transport Converters. Further, the architecture allows for
+or more Transport Converters. Furthermore, the architecture allows for
 making use of new TCP extensions even if those are not
 supported by a given server.
 
@@ -385,7 +384,7 @@ Converter uses a regular TCP connection with the Server.
        |                   |                      |
       Multipath TCP packets   Regular TCP packets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-highlevel title="An Example of 0-RTT Network-Assisted MPTCP Connection"}
+{: #fig-highlevel title="An Example of 0-RTT Network-Assisted Outgoing MPTCP Connection"}
 
 The packets belonging to the pair of connections between the Client and Server
 passing through a Transport Converter
@@ -393,7 +392,6 @@ may follow a different path than the packets directly exchanged between the
 Client and the Server. Deployments should minimize the possible additional
 delay by carefully selecting the location of the Transport Converter
 used to reach a given destination.
-
 
 When establishing a connection, the Client can, depending on local policies,
 either contact the Server directly (e.g., by sending a TCP SYN towards the
@@ -424,7 +422,7 @@ Any user data received by the Transport Converter over the upstream
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
    
-{{fig-estab}} illustrates the establishment of an outbound TCP connection
+{{fig-estab}} illustrates the establishment of an outgoing TCP connection
 by a Client through a Transport Converter. The information shown between
 brackets denotes Convert Protocol messages described in {{sec-protocol}}.
 
@@ -438,7 +436,7 @@ brackets denotes Convert Protocol messages described in {{sec-protocol}}.
        |    SYN+ACK [ ]    |        SYN+ACK       |
        |                   |                      |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of a TCP Connection Through a Transport Converter (1)"}
+{: #fig-estab title="Establishment of an Outgoing TCP Connection Through a Transport Converter (1)"}
 
 The Client sends a SYN destined to the Transport Converter. The payload of
 this SYN contains the address and port number of the
@@ -455,8 +453,23 @@ An implementation could also place this information in a packet that it sent
 shortly after the SYN+ACK.
 
 The connection can also be established from the Internet towards a Client
-via a Transport Converter. This is typically the case when an application
-on the Client listens to a specific port (the Client hosts a server, typically).
+via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
+on the Client listens to a specific port (the Client hosts an application server, typically). When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
+destination port number of that SYN. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
+address to one of its IP addresses and, eventually, the destination IP address
+and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. SYN-ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        Transport              Remote
+    Client              Converter             Host (RH)
+       |                   |                      |       
+       |SYN [<-RH IP@:port]|         SYN          |
+       |<------------------|<---------------------|
+       |------------------>|--------------------->|
+       |    SYN+ACK [ ]    |        SYN+ACK       |
+       |        ...        |          ...         |
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-estab2 title="Establishment of an Incoming TCP Connection Through a Transport Converter"}
 
 A Transport Converter MAY operate in address preservation or address sharing
 modes as discussed in Section 5.4 of
@@ -618,8 +631,8 @@ subflows following normal Multipath TCP procedures.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-                        Transport
-    Client              Converter              Server
+                        Transport             Remote 
+    Client              Converter              Host
       |                     |                    |
       |                     |<-------------------|
       |<--------------------|       SYN          |
@@ -633,24 +646,22 @@ subflows following normal Multipath TCP procedures.
       |       ACK, MPC      |                    |
       |                     |                    |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-inestab title="Establishment of an Incoming TCP Connection through a Transport Converter"}
+{: #fig-inestab title="Establishment of an Incoming Multipath TCP Connection through a Transport Converter"}
 
 It is out of scope of this document to define specific Convert TLVs to manage incoming connections. These TLVs can be defined in a separate document.  
 
 # The Convert Protocol (Convert) {#sec-protocol}
 
 This section describes the messages that are exchanged between a
-Client and a Transport Converter. The Convert Protocol (Convert, for short)
-uses a 32 bits long fixed header that is sent by both the Client and the
-Transport Converter over each established connection.
-This header indicates both the version of the protocol used and the length
-of the Convert message. 
-
+Client and a Transport Converter. 
 
 ## The Convert Fixed Header {#sec-header}
 
-The Fixed Header is used to convey information about the version and length of
-the messages exchanged between the Client and the Transport Converter.
+The Convert Protocol (Convert, for short)
+uses a 32 bits long fixed header that is sent by both the Client and the
+Transport Converter over each established connection. 
+This header indicates both the version of the protocol used and the length
+of the Convert message. 
 
 The Client and the
 Transport Converter MUST send the fixed-sized header, shown in {{fig-header}}, as
@@ -810,7 +821,7 @@ that it returns in response to Info TLV.
 
 The Connect TLV ({{fig-connect}}) is used to request the establishment of a
 connection via a Transport Converter. This connection can be from or to a
-client.
+Client.
 
 The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the
 destination port number and IP address of the Server, for outgoing connections.
@@ -975,7 +986,7 @@ The format of the Cookie TLV is shown in the below figure.
 The Error TLV ({{fig-error}}) is used by the Transport
 Converter to provide
 information about some errors that occurred during the processing
-of Convert message. This TLV has a variable length.
+of a Convert message. This TLV has a variable length.
 It appears after the Convert fixed-header in the bytestream returned by the
 Transport Converter. Upon reception of an Error TLV, a Client MUST
 close the associated connection.
@@ -984,14 +995,14 @@ close the associated connection.
                         1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+----------------+--------------+
-   |     Type=0x1E |     Length    |    Error code  |  Value       |
+   |     Type=0x1E |     Length    |    Error Code  |  Value       |
    +---------------+---------------+----------------+--------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-error title="The Error TLV"}
 
 Different types of errors can occur while processing Convert
-messages. Each error is identified by an Error code represented
-as an unsigned integer. Four classes of Error codes are defined:
+messages. Each error is identified by an Error Code represented
+as an unsigned integer. Four classes of error codes are defined:
 
  - Message validation and processing errors (0-31 range): returned upon
    reception of an invalid message (including valid messages but with
@@ -1009,21 +1020,21 @@ The following error codes are defined in this document:
  - Unsupported Version (0): The version number indicated in the fixed header
    of a message received from a peer is not supported.
 
-   This error code MUST be generated by a Transport Converter when it
+   This error code MUST be generated by a Transport Converter (or Client) when it
    receives a request having a version number that it does not support.
 
    The value field MUST be set to the version supported by the Transport
-   Converter. When multiple versions are supported by the Transport Converter,
+   Converter (or Client). When multiple versions are supported by the Transport Converter (or Client),
    it includes the list of supported version in the value field; each version
    is encoded in 8 bits. The list of supported versions should be padded with
    zeros to end on a 32 bits boundary.
 
-   Upon receipt of this error code, the client checks whether it supports
-   one of the versions returned by the Transport Converter. The highest
-   common supported version MUST be used by the client in subsequent
-   exchanges with the Transport Converter.
+   Upon receipt of this error code, the Client (or Transport Converter) checks whether it supports
+   one of the versions returned by the Transport Converter (or Client). The highest
+   common supported version MUST be used by the Client (or Client) in subsequent
+   exchanges with the Transport Converter (or Client).
 
- - Malformed Message (1): This error code is sent to indicate that a message
+ - Malformed Message (1): This error code is sent to indicate that a message received from a peer is 
    can not be successfully parsed and validated.
 
    Typically, this error code is sent by the Transport Converter if it
@@ -1034,7 +1045,7 @@ The following error codes are defined in this document:
    shifted by one byte to keep to original alignment of the message. 
 
  - Unsupported Message (2): This error code is sent to indicate that a
-   message type is not supported by the Transport Converter.
+   message type received from a peer is not supported.
 
    To ease troubleshooting, the value field MUST echo the received message
    shifted by one byte to keep to original alignment of the message. 
