@@ -737,12 +737,14 @@ This document specifies the following Convert TLVs:
 Type 0x0 is a reserved valued. Implementations MUST discard messages
 with such TLV.
 
+The Client typically send in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
+
 The Client can request the establishment of connections to servers
 by using the Connect TLV
 ({{sec-connect}}). If the connection can be established with the final
 server,
 the Transport Converter replies with the Extended TCP Header TLV
-({{sec-supported}}). If not,
+({{sec-ext-header}}). If not,
 the Transport Converter returns an Error TLV ({{sec-error}}) and then
 closes the connection.
 
