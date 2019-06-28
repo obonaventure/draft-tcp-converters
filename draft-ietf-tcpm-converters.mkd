@@ -1031,7 +1031,7 @@ The following error codes are defined in this document:
 
    Upon receipt of this error code, the Client (or Transport Converter) checks whether it supports
    one of the versions returned by the Transport Converter (or Client). The highest
-   common supported version MUST be used by the Client (or Client) in subsequent
+   common supported version MUST be used by the Client (or Transport Converter) in subsequent
    exchanges with the Transport Converter (or Client).
 
  - Malformed Message (1): This error code is sent to indicate that a message received from a peer is 
