@@ -1304,6 +1304,10 @@ the SYN+ACK returned by the Transport Converter.
 The Client MUST stop to use this
 Transport Converter given the middlebox interference.
 
+Consider now a middlebox that drops SYN/ACKs with a payload. The Client won't be able to establish a connection via the Transport Converter.
+
+The case of a middlebox that removes the payload of SYN+ACKs (but the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. If an Error was returned by the Transport Converter, a message to close the connection would normally follow from the Converter. If no such message is received, the Client may continue to use this Converter.    
+
 As explained in {{RFC7413}}, some CGNs (Carrier Grade NATs) can affect the
 operation of
 TFO if they assign different IP addresses to the same end host. Such CGNs
