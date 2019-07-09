@@ -640,12 +640,13 @@ It is out of scope of this document to define specific Convert TLVs to manage in
 # The Convert Protocol (Convert) {#sec-protocol}
 
 This section describes the messages that are exchanged between a
-Client and a Transport Converter. The Convert Protocol (Convert, for short)
-uses a 32 bits long fixed header that is sent by both the Client and the
-Transport Converter over each established connection.
-This header indicates both the version of the protocol used and the length
-of the Convert message. 
+Client and a Transport Converter. 
 
+By default, the Transport Converter listens on TCP port number TBA for Convert protocol (Convert, for short) messages from Clients. 
+
+Convert messages MUST appear in a SYN, SYN-ACK, or ACK. 
+
+Convert messages MUST be included as the first bytes of the bytestream. A Convert message starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs ({{sec-tlv}}). 
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -737,7 +738,7 @@ This document specifies the following Convert TLVs:
 Type 0x0 is a reserved valued. Implementations MUST discard messages
 with such TLV.
 
-The Client typically send in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
+The Client typically sends in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
 
 The Client can request the establishment of connections to servers
 by using the Connect TLV
@@ -800,7 +801,7 @@ TCP option Kinds 0, 1, and 2 defined in
 {{RFC0793}} are supported by all TCP implementations and thus MUST NOT
 appear in this list.
 
-The list of Supported TCP Extension is padded with 0 to end on a
+The list of Supported TCP Extensions is padded with 0 to end on a
 32 bits boundary.
 
 For example, if the Transport Converter supports Multipath TCP,
@@ -958,7 +959,7 @@ the computed Cookie and close the connection. The Client will react to this
 error by storing the received Cookie in its cache and attempt to reestablish
 a new connection to the Transport Converter that includes the Cookie.
 
-The format of the Cookie TLV is shown in the below figure.
+The format of the Cookie TLV is shown in {{fig-cookie}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         1                   2                   3
