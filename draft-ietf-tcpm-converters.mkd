@@ -1421,17 +1421,17 @@ non-exhaustive list of methods to achieve authorization is provided hereafter:
 
  - The network provider may enforce a policy based on the
    International Mobile Subscriber Identity (IMSI) to verify that a
-   user is allowed to benefit from the aggregation service. If that
+   user is allowed to benefit from the Multipath TCP converter service. If that
    authorization fails, the Packet Data Protocol (PDP) context/bearer
    will not be mounted. This method does not require any
-   interaction with the Transport Converter.
+   interaction with the Transport Converter for authorization matters.
  - The network provider may enforce a policy based upon Access
    Control Lists (ACLs), e.g., at a Broadband Network Gateway (BNG)
    to control the hosts that are authorized to communicate with
    a Transport Converter. These ACLs may be installed as a result of RADIUS
    exchanges,
    e.g., {{I-D.boucadair-radext-tcpm-converter}}.  This method does not
-   require any interaction with the Transport Converter.
+   require any interaction with the Transport Converter for authorization matters.
  - A device that embeds a Transport Converter may also host a RADIUS client that
    will solicit an AAA server to check whether connections received
    from a given source IP address are authorized or not
@@ -1520,9 +1520,10 @@ these types:
 The procedure for assigning values from this sub-registry is as
 follows:
 
-  - 0-191: Values in this range are assigned via IETF Review.
-  - 192-255: Values in this range are assigned via Specification Required.
-
+  - 0-127: Values in this range are assigned via IETF Review.
+  - 128-191: Values in this range are assigned via Specification Required.
+  - 192-255: Values in this range are assigned for Private Use.
+ 
 The initial values to be assigned at the creation of the registry are
 as follows:
 
@@ -1772,7 +1773,7 @@ or more round-trip-times before the establishment of the downstream
 connection towards the final destination. In today's Internet, latency is
 a important metric and various protocols have been tuned to reduce their
 latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to
-SOCKS also leverages the TFO
+SOCKS leverages the TFO
 option {{I-D.olteanu-intarea-socks-6}}.
 
 A second difference is that the Convert protocol explicitly takes the TCP
