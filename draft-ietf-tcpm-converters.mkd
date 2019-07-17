@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-08
-date: 2019-06-18
+date: 2019-07-19
 category: exp
 
 ipr: trust200902
@@ -325,7 +325,7 @@ depicted in {{figtc2}}.
                  |Converter|
                  +---------+
   R: Router 
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc2 title="A Transport Converter Can Be Installed Anywhere in the Network"}
 
 The architecture assumes that
@@ -1616,10 +1616,7 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
 This section to be removed before publication.
 
  - 00 : initial version, designed to support Multipath TCP and TFO only
- - 00 to -01 : added section {{sec-tcpoptions}} describing the support of
-   different standard tracks TCP options by Transport Converters,
-   clarification of the IANA section, moved the SOCKS comparison to the
-   appendix and various minor modifications
+ - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
  - 01 to -02: Minor modifications
  - 02 to -03: Minor modifications
  - 03 to -04: Minor modifications
@@ -1641,7 +1638,9 @@ This section to be removed before publication.
 - 08:
   * Added short discusion on the termination of connections
 
-
+- 09:
+  * Various to comments received during last call
+  
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
 
 
