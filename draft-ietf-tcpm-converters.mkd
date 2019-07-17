@@ -190,11 +190,11 @@ TCPINC {{RFC8548}}. Those extensions
 provide features that are interesting for clients such as wireless devices.
 With Multipath TCP, those devices could seamlessly use WLAN
 (Wireless Local Area Network) and cellular networks,
-for bonding purposes, faster handovers, or better resiliency.
+for bonding purposes, faster hand-overs, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
 
-More recently, 5G bonding experimentation has been conducted into global range of the incumbent 4G (LTE) connectivity using newly devised clients and a Multipath TCP proxy. Even if the 5G and the 4G bonding relying upon Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle URLLC (Ultra Reliable Low Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Traffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency {{TS23501}}.
+More recently, 5G bonding experimentation has been conducted into global range of the incumbent 4G (LTE) connectivity using newly devised clients and a Multipath TCP proxy. Even if the 5G and the 4G bonding relying upon Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle URLLC (Ultra Reliable Low Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Traffic Steering, Switching, and Splitting (ATSSS) must be optimized to reduce latency {{TS23501}}.
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -207,7 +207,7 @@ The conversion service is provided by means of the 0-RTT TCP Convert
 Protocol (Convert), that is an application-layer protocol which uses TCP
 port number TBA ({{sec-iana}}).
 
-The Convert Protocol provides 0-RTT (Zero Round-Trip Time) conversion service since no extra delay is induced by the protocol compared to connections that are not proxied. Particulalry, the Convert Protocol does not require extra signalling setup delays before making use of the conversion service. The Convert Protocol does not require any encapsulation (no tunnels, whatsoever).
+The Convert Protocol provides 0-RTT (Zero Round-Trip Time) conversion service since no extra delay is induced by the protocol compared to connections that are not proxied. Particularly, the Convert Protocol does not require extra signaling setup delays before making use of the conversion service. The Convert Protocol does not require any encapsulation (no tunnels, whatsoever).
 
 The Transport Converter adheres to the main principles drawn in {{RFC1919}}.
 In particular, a Transport Converter achieves the following:
@@ -361,7 +361,7 @@ Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence
       |            End-to-end TLS                  |
        \==========================================/
 
-    * TLS messages exhanged between the Client
+    * TLS messages exchanged between the Client
       and the Server are not shown.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
@@ -722,7 +722,7 @@ All TLV fields are encoded using the network byte order.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Convert Generic TLV Format"}
 
-The Length field is expressed in units of 32 bits words. If necessary, Value MUST be padded with zeroes so that the length of the TLV is a multiple of 32 bits.
+The Length field is expressed in units of 32 bits words. If necessary, Value MUST be padded with series so that the length of the TLV is a multiple of 32 bits.
 
 A given TLV MUST only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Convert connection,
@@ -1170,7 +1170,7 @@ factor of the incoming connection.
 
 There is no benefit from a deployment viewpoint in enabling a Client of a
 Transport Converter to
-specifically request the utilisation of the WS option (Kind=3) with a specific
+specifically request the utilization of the WS option (Kind=3) with a specific
 scaling factor towards a remote Server. For this reason, a Transport
 Converter MUST ignore
 option Kind=3 if it appears in a Connect TLV. It MUST NOT announce it in a
@@ -1180,7 +1180,7 @@ Supported TCP Extensions TLV.
 
 Two distinct TCP options were defined to support selective acknowledgements
 in {{RFC2018}}. This first one, SACK Permitted (Kind=4), is used to
-negotiate the utilisation of selective acknowledgements during the
+negotiate the utilization of selective acknowledgements during the
 three-way handshake. The second one, SACK (Kind=5), carries
 the selective acknowledgements inside regular segments.
 
@@ -1557,9 +1557,7 @@ We would like to thank Raphael Bauduin, Stefano Secci,
 Anandatirtha Nandugudi and Gregory Vander Schueren for their help
 in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
-Thanks to them.
-
-Thanks to Yuchung Cheng and Praveen Balasubramanian for the discussion on supplying data in SYNs.
+Yuchung Cheng and Praveen Balasubramanian helped to clarify the discussion on supplying data in SYNs. Phil Eardley and Michael Scharf's helped to clarify different parts of the text.
 
 This document builds upon earlier documents that proposed various forms
 of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
@@ -1621,22 +1619,22 @@ This section to be removed before publication.
  - 02 to -03: Minor modifications
  - 03 to -04: Minor modifications
  - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
-   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilisation of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
-   * the Boostrap procedure has been simplified based on feedback from implementers
+   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * the Bootstrap procedure has been simplified based on feedback from implementers
    * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
    * Many minor editorial changes to clarify the text based on implementors feedback.
 - 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
   * Updated IANA policy to require "IETF Review" instead of "Standard Action"
-  * Call out explicilty that data in SYNs are relayed by the Converter
+  * Call out explicitly that data in SYNs are relayed by the Converter
   * Reiterate the scope
   * Hairpinning behavior can be disabled (policy-based)
   * Fix nits
 - 07: 
-  * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed folloiwng the same rationale as in RFC7413.
+  * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed following the same rationale as in RFC7413.
   * Nits
   * Added Appendix A on example Socket API changes
 - 08:
-  * Added short discusion on the termination of connections
+  * Added short discussion on the termination of connections
 
 - 09:
   * Various to comments received during last call
@@ -1673,11 +1671,11 @@ above code would send data inside the SYN without using a TFO option.
 ##  Passive Open (Converter Side)
 
 
-The Converter needs to enable the reception of data inside the SYN independently of the utilisation of the TFO option. This implies that the Transport Converter application cannot rely on the TFO cookies to validate the reachability of the IP address that sent the SYN. It must rely on other techniques, such as the Cookie TLV described in this document, to verify this reachability.
+The Converter needs to enable the reception of data inside the SYN independently of the utilization of the TFO option. This implies that the Transport Converter application cannot rely on the TFO cookies to validate the reachability of the IP address that sent the SYN. It must rely on other techniques, such as the Cookie TLV described in this document, to verify this reachability.
 
-{{RFC7413}} suggested the utilisation of a TCP_FASTOPEN socket option
+{{RFC7413}} suggested the utilization of a TCP_FASTOPEN socket option
 the enable the reception of SYNs containing data. Later, Appendix A
-of {{RFC7413}}, mentionned:
+of {{RFC7413}}, mentioned:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Traditionally, accept() returns only after a socket is connected.
@@ -1686,7 +1684,7 @@ of {{RFC7413}}, mentionned:
   to be read through, e.g., recvmsg(), read().
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To support the 0-RTT Convert protocol, this behaviour should be modified as follows:
+To support the 0-RTT Convert protocol, this behavior should be modified as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Traditionally, accept() returns only after a socket is connected.
@@ -1707,7 +1705,7 @@ sysctls:
 
 However, this configuration is system-wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
 
-Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behaviour on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
+Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behavior on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
 
 
 
