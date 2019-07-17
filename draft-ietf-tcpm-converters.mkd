@@ -181,7 +181,7 @@ There are some situations where the transport stack used on clients
 stack running on servers (or
 clients). In those situations, clients would typically want to benefit from the
 features of an improved transport protocol even if the servers have not yet been
-upgraded and conversely. Performance Enhancing Proxies {{RFC3135}}, and other
+upgraded and conversely. Some assistance from the network to make use of these features is valuable. For example, Performance Enhancing Proxies {{RFC3135}}, and other
 service functions have been deployed as solutions to improve TCP performance over
 links with specific characteristics.
 
@@ -194,7 +194,7 @@ for bonding purposes, faster handovers, or better resiliency.
 Unfortunately, deploying those extensions on both a wide range of clients and
 servers remains difficult.
 
-More recently, experimentation of 5G bonding, which has very scarce coverage, has been conducted into global range of the incumbent 4G (LTE) connectivity in newly devised clients using Multipath TCP proxy. Even if the 5G and the 4G bonding by using Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle URLLC (Ultra Reliable Low Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Traffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency {{TS23501}}.
+More recently, 5G bonding experimentation has been conducted into global range of the incumbent 4G (LTE) connectivity using newly devised clients and a Multipath TCP proxy. Even if the 5G and the 4G bonding relying upon Multipath TCP increases the bandwidth, it is as well crucial to minimize latency for all the way between endhosts regardless of whether intermediate nodes are inside or outside of the mobile core. In order to handle URLLC (Ultra Reliable Low Latency Communication) for the next generation mobile network, Multipath TCP and its proxy mechanism such as the one used to provide Access Traffic Steering, Switching, and Splitting (ATSSS) must be optimised to reduce latency {{TS23501}}.
 
 This document specifies an application proxy, called Transport Converter. A
 Transport Converter is a function that is installed by a network
@@ -206,6 +206,8 @@ Which TCP extensions are eligible to the conversion service is deployment-specif
 The conversion service is provided by means of the 0-RTT TCP Convert
 Protocol (Convert), that is an application-layer protocol which uses TCP
 port number TBA ({{sec-iana}}).
+
+The Convert Protocol provides 0-RTT (Zero Round-Trip Time) conversion service since no extra delay is induced by the protocol compared to connections that are not proxied. Particulalry, the Convert Protocol does not require extra signalling setup delays before making use of the conversion service. The Convert Protocol does not require any encapsulation (no tunnels, whatsoever).
 
 The Transport Converter adheres to the main principles drawn in {{RFC1919}}.
 In particular, a Transport Converter achieves the following:
@@ -220,7 +222,7 @@ The main advantage of network-assisted conversion services is that they
 enable new TCP extensions to be used on a subset of the path between endpoints,
 which encourages the deployment of these extensions. Furthermore, the
 Transport Converter allows the client and the server to directly negotiate
-TCP options for the sake of native support along the full path.
+TCP extensions for the sake of native support along the full path.
 
 
 The Convert Protocol is a generic mechanism to provide 0-RTT conversion
@@ -323,15 +325,13 @@ depicted in {{figtc2}}.
                  |Transport|
                  |Converter|
                  +---------+
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  R: Router 
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc2 title="A Transport Converter Can Be Installed Anywhere in the Network"}
 
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
-or more Transport Converters. Further, the architecture allows for
-making use of new TCP extensions even if those are not
-supported by a given server.
+or more Transport Converters. Furthermore, the architecture enables the use of new TCP extensions by the clients even if those are not supported by a given server. This is achieved owing to the assistance of a Transport Converter. 
 
 The Client is configured, through means that are outside the
 scope of this document, with the names and/or the addresses
@@ -364,7 +364,7 @@ Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtls title="End-to-end TLS via a Transport Converter"}
 
-It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert TLVs (in addition to the end-to-end TLS connection). 
+It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert messages (in addition to the end-to-end TLS connection). 
 
 ## Theory of Operation
 
@@ -438,7 +438,7 @@ brackets denotes Convert Protocol messages described in {{sec-protocol}}.
        |    SYN+ACK [ ]    |        SYN+ACK       |
        |                   |                      |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of a TCP Connection Through a Transport Converter (1)"}
+{: #fig-estab title="Establishment of a TCP Connection Through a Transport Converter"}
 
 The Client sends a SYN destined to the Transport Converter. The payload of
 this SYN contains the address and port number of the
@@ -465,7 +465,7 @@ Transport Converter is deployment-specific. If address sharing mode is
 enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
 implies a default "IP address pooling" behavior of "Paired" (as defined in
 Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
-breaking applications that depend on the external address remaining constant.
+breaking applications that depend on the source address remaining constant.
 
    Standard TCP ({{RFC0793}}, Section 3.4) allows a SYN packet to carry
    data inside its payload but forbids the receiver from delivering it
@@ -646,6 +646,11 @@ Transport Converter over each established connection.
 This header indicates both the version of the protocol used and the length
 of the Convert message. 
 
+## Generating Convert Messages {#sec-port}
+
+This document assumes that Clients are provisioned with the reachability information of their Transport Converter(s) using any of a variety of means (e.g., dynamic means such as DHCP [I-D.boucadair-tcpm-dhc-converter]). 
+
+Packets that are eligible to the conversion service MUST be sent to the provisioned Transport Converter using TBA as destination port number. Additional information is supplied to the Transport Converter as detailed in the following sub-sections. 
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -681,9 +686,7 @@ The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
 future use {{RFC8126}}.
 
-Data added by the Convert protocol to the TCP bytestream in the upstream
-connection is unambiguously distinguished from payload data in the downstream
-connection by the Total Length field in the Convert messages.
+Data added by the Convert protocol to the TCP bytestream is unambiguously distinguished from payload data by the Total Length field in the Convert messages.
 
 ##  Convert TLVs {#sec-tlv}
 
@@ -703,14 +706,12 @@ All TLV fields are encoded using the network byte order.
    +---------------+---------------+-------------------------------+
    |     Type      |     Length    |      (optional) Value  ...    |
    +---------------+---------------+-------------------------------+
-   |              ...         (optional)  Value                    |
+   |              ...           Value                              |
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Convert Generic TLV Format"}
 
-The Length field is expressed in units of 32 bits words.
-In general zero padding MUST be added if the value's
-length in bytes can not be expressed as 2+(4 * n).
+The Length field is expressed in units of 32 bits words. If necessary, Value MUST be padded with zeroes so that the length of the TLV is a multiple of 32 bits.
 
 A given TLV MUST only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Convert connection,
@@ -746,7 +747,7 @@ the Transport Converter replies with the Extended TCP Header TLV
 the Transport Converter returns an Error TLV ({{sec-error}}) and then
 closes the connection.
 
-As a general rule, when an error is encountered an Error TLV with the
+When an error is encountered an Error TLV with the
 appropriate error code MUST be returned by the Transport Converter.
 
 ### The Info TLV {#sec-bootstrap-tlv}
@@ -774,8 +775,8 @@ Extensions TLV described in {{sec-supported}}.
 The Supported TCP Extensions TLV ({{fig-supported}}) is used by
 a Transport Converter to announce the TCP options for which it
 provides a conversion service. A Transport Converter SHOULD include in
-this list the TCP options that it accepts from Clients and that it
-includes the SYN packets that it sends to initiate connections.
+this list the TCP options that it accepts from Clients; these options are 
+included by the Transport Converter in the SYN packets that it sends to initiate connections.
 
 Each supported TCP option is encoded with its TCP option Kind listed
 in the "TCP Parameters" registry maintained by IANA.
@@ -798,8 +799,8 @@ TCP option Kinds 0, 1, and 2 defined in
 {{RFC0793}} are supported by all TCP implementations and thus MUST NOT
 appear in this list.
 
-The list of Supported TCP Extension is padded with 0 to end on a
-32 bits boundary.
+The list of Supported TCP Extensions MUST be padded with 0s to end
+on a 32 bits boundary.
 
 For example, if the Transport Converter supports Multipath TCP,
 Kind=30 will be present in the Supported TCP Extensions TLV
