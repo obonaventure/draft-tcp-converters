@@ -25,6 +25,8 @@ author:
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  city: Rennes
+  code: 35000
   country: France
   role: editor
   email: mohamed.boucadair@orange.com
