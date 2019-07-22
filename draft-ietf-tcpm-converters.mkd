@@ -25,6 +25,7 @@ author:
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
+  country: France
   role: editor
   email: mohamed.boucadair@orange.com
  -
@@ -158,7 +159,9 @@ the 0-RTT TCP Convert Protocol.
 
 
 # Introduction  {#intro}
+
 ## The Problem 
+
 Transport protocols like TCP evolve regularly {{RFC7414}}.
 TCP has been improved in different
 ways. Some improvements such as changing the initial window size {{RFC6928}}
@@ -254,14 +257,14 @@ Converters can be used to support different TCP extensions.
 {{sec-middleboxes}} then discusses the interactions with middleboxes, while 
 {{sec-security}} focuses on the security considerations.
 
-{#sec-api} describes how a TCP stack would need to support the protocol described in this document. {#sec-socks} provides a comparison with SOCKS proxies that are already
+{{sec-api}} describes how a TCP stack would need to support the protocol described in this document. {{sec-socks}} provides a comparison with SOCKS proxies that are already
 used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
 
 # Conventions and Definitions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP14 
+"OPTIONAL" in this document are to be interpreted as described in BCP 14 
 {{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
 as shown here.
 
@@ -515,7 +518,7 @@ breaking applications that depend on the source address remaining constant.
    Fast Open option without consuming space in the extended TCP header.
 
    If the downstream (or upstream) connection fails for some reason
-   (excessive retransmissions, reception of a RST segment, etc.), then
+   (excessive retransmissions, reception of an RST segment, etc.), then
    the Converter should force the teardown of the upstream (or downstream) 
    connection.
 
@@ -1102,7 +1105,7 @@ The following error codes are defined in this document:
    of at least 30 seconds.
 
  - Connection Reset (96): This error indicates that the final
-   destination responded with a RST packet.
+   destination responded with an RST packet.
    The Value field MUST be set to zero.
 
  - Destination Unreachable (97): This error indicates that an ICMP destination
@@ -1159,7 +1162,7 @@ TLV.
 
 ## Window Scale (WS)
 
-The Window Scale option (Kind=3) is defined in {{RFC7323}}. As for the MSS
+The Window Scale (WS) option (Kind=3) is defined in {{RFC7323}}. As for the MSS
 option, the window scale factor that is used for a connection strongly
 depends on the TCP stack that handles the connection. When a Transport
 Converter opens a TCP connection towards a remote server on behalf of a
@@ -1561,69 +1564,6 @@ as follows:
 
 --- back
 
-# Acknowledgements
-
-Although they could disagree with the contents of the document,
-we would like to thank Joe Touch and Juliusz Chroboczek whose
-comments on the MPTCP mailing list have forced
-us to reconsider the design of the solution several times.
-
-We would like to thank Raphael Bauduin, Stefano Secci,
-Anandatirtha Nandugudi and Gregory Vander Schueren for their help
-in preparing this document. Nandini Ganesh provided
-valuable feedback about the handling of TFO and the error codes.
-Yuchung Cheng and Praveen Balasubramanian helped to clarify the discussion on supplying data in SYNs. Phil Eardley and Michael Scharf's helped to clarify different parts of the text.
-
-This document builds upon earlier documents that proposed various forms
-of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
-{{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
-
-From {{I-D.boucadair-mptcp-plain-mode}}:
-
-   Many thanks to Chi Dung Phung, Mingui Zhang, Rao Shoaib, Yoshifumi
-   Nishida, and Christoph Paasch for their valuable comments.
-
-   Thanks to Ian Farrer, Mikael Abrahamsson, Alan Ford, Dan Wing, and
-   Sri Gundavelli for the fruitful discussions in IETF#95 (Buenos
-   Aires).
-
-   Special thanks to Pierrick Seite, Yannick Le Goff, Fred Klamm, and
-   Xavier Grall for their inputs.
-
-   Thanks also to Olaf Schleusing, Martin Gysi, Thomas Zasowski, Andreas
-   Burkhard, Silka Simmen, Sandro Berger, Michael Melloul, Jean-Yves
-   Flahaut, Adrien Desportes, Gregory Detal, Benjamin David, Arun
-   Srinivasan, and Raghavendra Mallya for the discussion.
-
-# Contributors
-
-Bart Peirens contributed to an early version of the document.
-
-As noted above, this document builds on two previous documents.
-
-The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
-
- - Mohamed Boucadair
- - Christian Jacquenet
- - Olivier Bonaventure
- - Denis Behaghel
- - Stefano Secci
- - Wim Henderickx
- - Robert Skog
- - Suresh Vinapamula
- - SungHoon Seo
- - Wouter Cloetens
- - Ullrich Meyer
- - Luis M. Contreras
- - Bart Peirens
-
-The authors of {{I-D.peirens-mptcp-transparent}} were:
-
- - Bart Peirens
- - Gregory Detal
- - Sebastien Barre
- - Olivier Bonaventure
-
 # Change Log
 
 This section to be removed before publication.
@@ -1810,3 +1750,68 @@ DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
 However, that design was not adopted
 because it induces both an extra load and increased delays
 on the Transport Converter to handle and manage DNS resolution requests.
+
+# Acknowledgements
+{: numbered="no"}
+
+Although they could disagree with the contents of the document,
+we would like to thank Joe Touch and Juliusz Chroboczek whose
+comments on the MPTCP mailing list have forced
+us to reconsider the design of the solution several times.
+
+We would like to thank Raphael Bauduin, Stefano Secci,
+Anandatirtha Nandugudi and Gregory Vander Schueren for their help
+in preparing this document. Nandini Ganesh provided
+valuable feedback about the handling of TFO and the error codes.
+Yuchung Cheng and Praveen Balasubramanian helped to clarify the discussion on supplying data in SYNs. Phil Eardley and Michael Scharf's helped to clarify different parts of the text.
+
+This document builds upon earlier documents that proposed various forms
+of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
+{{I-D.peirens-mptcp-transparent}} and {{HotMiddlebox13b}}.
+
+From {{I-D.boucadair-mptcp-plain-mode}}:
+
+   Many thanks to Chi Dung Phung, Mingui Zhang, Rao Shoaib, Yoshifumi
+   Nishida, and Christoph Paasch for their valuable comments.
+
+   Thanks to Ian Farrer, Mikael Abrahamsson, Alan Ford, Dan Wing, and
+   Sri Gundavelli for the fruitful discussions in IETF#95 (Buenos
+   Aires).
+
+   Special thanks to Pierrick Seite, Yannick Le Goff, Fred Klamm, and
+   Xavier Grall for their inputs.
+
+   Thanks also to Olaf Schleusing, Martin Gysi, Thomas Zasowski, Andreas
+   Burkhard, Silka Simmen, Sandro Berger, Michael Melloul, Jean-Yves
+   Flahaut, Adrien Desportes, Gregory Detal, Benjamin David, Arun
+   Srinivasan, and Raghavendra Mallya for the discussion.
+
+# Contributors
+{: numbered="no"}
+
+Bart Peirens contributed to an early version of the document.
+
+As noted above, this document builds on two previous documents.
+
+The authors of {{I-D.boucadair-mptcp-plain-mode}} were:
+
+ - Mohamed Boucadair
+ - Christian Jacquenet
+ - Olivier Bonaventure
+ - Denis Behaghel
+ - Stefano Secci
+ - Wim Henderickx
+ - Robert Skog
+ - Suresh Vinapamula
+ - SungHoon Seo
+ - Wouter Cloetens
+ - Ullrich Meyer
+ - Luis M. Contreras
+ - Bart Peirens
+
+The authors of {{I-D.peirens-mptcp-transparent}} were:
+
+ - Bart Peirens
+ - Gregory Detal
+ - Sebastien Barre
+ - Olivier Bonaventure
