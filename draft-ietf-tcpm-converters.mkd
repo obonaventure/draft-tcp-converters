@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-09
-date: 2019-07-22
+docname: draft-ietf-tcpm-converters-10
+date: 2019-07-31
 category: exp
 
 ipr: trust200902
@@ -25,7 +25,7 @@ author:
   ins: M. Boucadair
   name: Mohamed Boucadair
   organization: Orange
-  street:   
+  street: Clos Courtel  
   city: Rennes
   code: 35000
   country: France
@@ -293,7 +293,7 @@ connection to a corresponding downstream connection.
 A connection can be initiated from both sides of the Transport Converter
 (Internet-facing interface, customer-facing interface). 
 
-"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections). Nevertheless, and unless this is explicitly stated, the description assumes outgoing connections as default.   
+"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections).   
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                            |
@@ -448,7 +448,7 @@ by a Client through a Transport Converter.
        |    SYN+ACK [ ]    |        SYN+ACK       |
        |                   |                      |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-estab title="Establishment of an Outgoing TCP Connection Through a Transport Converter (1)"}
+{: #fig-estab title="Establishment of an Outgoing TCP Connection Through a Transport Converter"}
 
 
 The Client sends a SYN destined to the Transport Converter. The payload of
@@ -458,12 +458,7 @@ first tries to create a TCP connection towards the target Server. If this
 upstream connection succeeds, the Transport Converter confirms the
 establishment of the connection to the Client by returning a SYN+ACK and
 the first bytes of the bytestream contain information about the TCP
-options that were negotiated with the Server. This information is sent
-at the beginning of the bytestream, either directly in the SYN+ACK or in
-a subsequent packet. For graphical reasons, the figures in this section show
-that the Transport Converter returns this information in the SYN+ACK packet.
-An implementation could also place this information in a packet that it sent
-shortly after the SYN+ACK.
+options that were negotiated with the Server. 
 
 The connection can also be established from the Internet towards a Client
 via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
@@ -665,7 +660,7 @@ Clients send packets that are eligible to the conversion service to the provisio
 
 Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
-Convert messages MUST be included as the first bytes of the bytestream. A Convert message starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
+Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). After a successful exchange of Convert messages, a TCP connection with TCP extension(s) is established between the Client and Transport Converter (e.g., Multipath TCP), and a (normal) TCP connection is established between the Transport Converter and other end host, with the Transport Converter acting as an explicit proxy between the two connections (e.g.,, between MPTCP and TCP).
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -722,9 +717,9 @@ All TLV fields are encoded using the network byte order.
                         1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +---------------+---------------+-------------------------------+
-   |     Type      |     Length    |      (optional) Value  ...    |
+   |     Type      |     Length    |             Value  ...        |
    +---------------+---------------+-------------------------------+
-   |              ...           Value                              |
+   //              ...   (optional) Value                         //
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Convert Generic TLV Format"}
@@ -948,7 +943,7 @@ a Connect TLV to request the establishment of a connection.
 The Returned Extended TCP header field is a copy of the extended header
 that was received in the SYN+ACK by the Transport Converter.
 
-The Unassigned field MUST be set to zero by the transmitter and ignored by the
+The Unassigned field MUST be set to zero by the sender and ignored by the
 receiver. These bits are available for future use {{RFC8126}}.
 
 ### The Cookie TLV {#sec-cookie-tlv}
@@ -995,9 +990,7 @@ The format of the Cookie TLV is shown in {{fig-cookie}}.
 
 The Error TLV ({{fig-error}}) is meant to provide
 information about some errors that occurred during the processing
-of a Convert message. This TLV has a variable length.
-It appears after the Convert fixed-header in the bytestream returned by the
-Transport Converter. Upon reception of an Error TLV, a Client MUST
+of a Convert message. This TLV has a variable length. Upon reception of an Error TLV, a Client MUST
 close the associated connection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1006,6 +999,8 @@ close the associated connection.
    +---------------+---------------+----------------+--------------+
    |     Type=0x1E |     Length    |    Error Code  |  Value       |
    +---------------+---------------+----------------+--------------+
+   //              ...   (optional) Value                         //
+   +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-error title="The Error TLV"}
 
@@ -1326,7 +1321,7 @@ Transport Converter given the middlebox interference.
 
 Consider now a middlebox that drops SYN/ACKs with a payload. The Client won't be able to establish a connection via the Transport Converter.
 
-The case of a middlebox that removes the payload of SYN+ACKs (but the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. If an Error was returned by the Transport Converter, a message to close the connection would normally follow from the Converter. If no such message is received, the Client may continue to use this Converter. 
+The case of a middlebox that removes the payload of SYN+ACKs (but not the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. If an Error was returned by the Transport Converter, a message to close the connection would normally follow from the Converter. If no such message is received, the Client may continue to use this Converter. 
 
 As explained in {{RFC7413}}, some CGNs (Carrier Grade NATs) can affect the
 operation of
@@ -1597,6 +1592,7 @@ This section to be removed before publication.
 - 09:
   * Various to comments received during last call
   
+       
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
 
 ## Active Open (Client Side)
@@ -1664,7 +1660,23 @@ However, this configuration is system-wide. This is convenient for typical Trans
 
 Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behavior on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
 
-
+ # Some Design Considerations {#sec-des}
+  
+  Several implementors expressed concerns about the use of TFO.  As a	
+		 	   reminder, the TFO Cookie protects from some attack scenarios that	
+		 	   affect open servers like web servers. The Convert protocol is	
+		 	   different and, as discussed in RFC7413, there are different ways to	
+		 	   protect from such attacks. Instead of using a TFO cookie inside the	
+		 	   TCP options, which consumes precious space in the extended TCP	
+		 	   header, the Convert protocol supports the utilization of a Cookie	
+		 	   that is placed in the SYN payload.  This provides the same level of	
+		 	   protection as a TFO Cookie in environments were such protection is	
+		 	   required.	
+       
+  Error messages are not included in RST segments but sent in the	
+		 	   bytestream.  Implementors have indicated that processing such	
+		 	   segments on clients was difficult on some platforms.  This change	
+		 	   simplifies client implementations.
 
 # Differences with SOCKSv5 {#sec-socks}
 
