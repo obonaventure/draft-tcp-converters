@@ -1662,21 +1662,9 @@ Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the
 
  # Some Design Considerations {#sec-des}
   
-  Several implementors expressed concerns about the use of TFO.  As a	
-		 	   reminder, the TFO Cookie protects from some attack scenarios that	
-		 	   affect open servers like web servers. The Convert protocol is	
-		 	   different and, as discussed in RFC7413, there are different ways to	
-		 	   protect from such attacks. Instead of using a TFO cookie inside the	
-		 	   TCP options, which consumes precious space in the extended TCP	
-		 	   header, the Convert protocol supports the utilization of a Cookie	
-		 	   that is placed in the SYN payload.  This provides the same level of	
-		 	   protection as a TFO Cookie in environments were such protection is	
-		 	   required.	
+Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.	
        
-  Error messages are not included in RST segments but sent in the	
-		 	   bytestream.  Implementors have indicated that processing such	
-		 	   segments on clients was difficult on some platforms.  This change	
-		 	   simplifies client implementations.
+Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
 
 # Differences with SOCKSv5 {#sec-socks}
 
