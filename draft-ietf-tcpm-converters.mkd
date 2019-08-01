@@ -664,8 +664,6 @@ Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
-After a successful exchange of Convert messages, a TCP connection with TCP extension(s) is established between the Client and Transport Converter (e.g., Multipath TCP), and	a (normal) TCP connection is established between the Transport	Converter and other end host, with the Transport Converter acting as	an explicit proxy between the two connections (e.g., between Multipath and TCP). 
-
 ## The Convert Fixed Header {#sec-header}
 
 The Convert Protocol
