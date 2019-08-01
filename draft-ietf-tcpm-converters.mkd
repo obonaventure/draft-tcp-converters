@@ -260,7 +260,7 @@ Converters can be used to support different TCP extensions.
 {{sec-middleboxes}} then discusses the interactions with middleboxes, while 
 {{sec-security}} focuses on the security considerations.
 
-{{sec-api}} describes how a TCP stack would need to support the protocol described in this document. {{sec-socks}} provides a comparison with SOCKS proxies that are already
+{{sec-api}} describes how a TCP stack would need to support the protocol described in this document. {{sec-des}} records some considerations that impacted the design of the protocol. {{sec-socks}} provides a comparison with SOCKS proxies that are already
 used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
 
 # Conventions and Definitions
@@ -273,6 +273,8 @@ as shown here.
 
 The information shown between
 brackets in the figures refers to Convert Protocol messages described in {{sec-protocol}}.
+
+Only the exchange of control messages is depicted in the figures.
 
 # Architecture {#sec-arch}
 
@@ -293,8 +295,6 @@ connection to a corresponding downstream connection.
 A connection can be initiated from both sides of the Transport Converter
 (Internet-facing interface, customer-facing interface). 
 
-"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections).   
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                            |
                            :        
@@ -307,7 +307,9 @@ client <- upstream ->| Transport  |<- downstream ->server
  customer-facing interface : Internet-facing interface     
                            |                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 {: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
+"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections).   
 
 Transport Converters can be operated by network operators or
 third parties. Nevertheless, this document focuses on the single
@@ -419,8 +421,7 @@ to establish the connection before confirming it to the Client.
 
 The Client places the destination address and port number of the Server
 in the payload of the SYN sent to the Transport Converter to minimize connection
-establishment delays.
-In accordance with {{RFC1919}}, the Transport Converter maintains two
+establishment delays. The Transport Converter maintains two
 connections that are combined together:
 
 - the upstream connection is the one between the Client and the
@@ -434,6 +435,15 @@ Any user data received by the Transport Converter over the upstream
      right after the Convert TLVs when generating the relayed SYN. 
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
+
+A Transport Converter MAY operate in address preservation or address sharing
+modes as discussed in Section 5.4 of
+{{I-D.nam-mptcp-deployment-considerations}}. Which behavior to use by a
+Transport Converter is deployment-specific. If address sharing mode is
+enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
+implies a default "IP address pooling" behavior of "Paired" (as defined in
+Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
+breaking applications that depend on the source address remaining constant.
    
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
 by a Client through a Transport Converter. 
@@ -446,7 +456,7 @@ by a Client through a Transport Converter.
        |------------------>|--------------------->|
        |<------------------|<---------------------|
        |    SYN+ACK [ ]    |        SYN+ACK       |
-       |                   |                      |
+       |        ...        |          ...         |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab title="Establishment of an Outgoing TCP Connection Through a Transport Converter"}
 
@@ -464,8 +474,8 @@ The connection can also be established from the Internet towards a Client
 via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
 on the Client listens to a specific port (the Client hosts an application server, typically). When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
 destination port number of that SYN. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
-address to one of its IP addresses and, eventually, the destination IP address
-and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. SYN-ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. 
+address to one of its IP addresses and, eventually (i.e., only when the Converter is	configured in an address sharing mode), the destination IP address
+and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Transport              Remote
@@ -479,14 +489,7 @@ and port number in accordance with any information stored locally. That SYN is t
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab2 title="Establishment of an Incoming TCP Connection Through a Transport Converter"}
 
-A Transport Converter MAY operate in address preservation or address sharing
-modes as discussed in Section 5.4 of
-{{I-D.nam-mptcp-deployment-considerations}}. Which behavior to use by a
-Transport Converter is deployment-specific. If address sharing mode is
-enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
-implies a default "IP address pooling" behavior of "Paired" (as defined in
-Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
-breaking applications that depend on the source address remaining constant.
+
 
    Standard TCP ({{RFC0793}}, Section 3.4) allows a SYN packet to carry
    data inside its payload but forbids the receiver from delivering it
@@ -513,7 +516,7 @@ breaking applications that depend on the source address remaining constant.
    TCP Fast Open option when the Client sends a connection establishment
    packet towards a Transport Converter.  The Convert protocol includes
    an optional Cookie TLV that provides similar protection as the TCP
-   Fast Open option without consuming space in the extended TCP header.
+   Fast Open option without consuming space in the extended TCP header. In particular, this design allows for the use of longer cookies.
 
    If the downstream (or upstream) connection fails for some reason
    (excessive retransmissions, reception of an RST segment, etc.), then
@@ -550,7 +553,7 @@ if the Server does not support Multipath TCP.
        |  SYN+ACK,MPC [.]  |      SYN+ACK         |
        |------------------>|--------------------->|
        |     ACK, MPC      |          ACK         |
-       |                   |                      |
+       |        ...        |          ...         |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestab title="Establishment of a Multipath TCP Connection Through a Transport Converter towards a Server that Does Not Support Multipath TCP"}
 
@@ -572,7 +575,7 @@ Note that, if the TCP connection fails for some reason, the Converter tears down
 connection by transmitting a MP_FASTCLOSE.  Likewise, if the Multipath TCP connection
 ends with the transmission of DATA_FINs, the Converter
 terminates the TCP connection by using
-FIN segments.
+FIN segments. As a side note, given that with Multipath TCP, RST only has the scope of the subflow and will only close the concerned subflow but not affect the remaining subflows, the Converter does not terminate the TCP connection upon receipt of an RST over a Multipath subflow.
 
 {{fig-mpestabok}} considers a Server that supports Multipath TCP. In this
 case, it
@@ -596,7 +599,7 @@ this Server.
        |MPC [MPC supported]|                      |
        |------------------>|--------------------->|
        |     ACK, MPC      |        ACK, MPC      |
-       |                   |                      |
+       |        ...        |          ...         |
                                           
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestabok title="Establishment of a Multipath TCP Connection Through a Converter Towards an MPTCP-capable Server"}
@@ -627,7 +630,7 @@ destination port of that SYN. If an entry is found, the Converter inserts an
 MP_CAPABLE option and Connect TLV in the SYN packet, rewrites the source IP
 address to one of its IP addresses and, eventually, the destination IP address
 and port number in accordance with the information stored in the mapping.
-SYN-ACK and ACK will be then exchanged between the Client and the Converter to
+SYN+ACK and ACK will be then exchanged between the Client and the Converter to
 confirm the establishment of the initial subflow. The Client can add new
 subflows following normal Multipath TCP procedures.
 
@@ -643,7 +646,7 @@ subflows following normal Multipath TCP procedures.
       |      SYN+ACK, MPC   |       SYN+ACK      |
       |<--------------------|<-------------------|
       |       ACK, MPC      |           ACK      |
-      |                     |                    |
+      |        ...          |          ...       |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-inestab title="Establishment of an Incoming Multipath TCP Connection through a Transport Converter"}
 
@@ -651,16 +654,17 @@ It is out of scope of this document to define specific Convert TLVs to manage in
 
 # The Convert Protocol (Convert) {#sec-protocol}
 
-This section describes the messages that are exchanged between a
-Client and a Transport Converter. 
+This section defines the Convert protocol (Convert, for short) messages that are exchanged between a Client and a Transport Converter. 
 
-By default, the Transport Converter listens on TCP port number TBA for Convert protocol (Convert, for short) messages from Clients.
+By default, the Transport Converter listens on TCP port number TBA for Convert messages from Clients.
 
-Clients send packets that are eligible to the conversion service to the provisioned Transport Converter using TBA as destination port number. Additional information is supplied by Clients to the Transport Converter by means of Convert messages as detailed in the following sub-sections.
+Clients send packets bound to connections eligible to the conversion service to the provisioned Transport Converter using TBA as destination port number. This applies for both control and data messages. Additional information is supplied by Clients to the Transport Converter by means of Convert messages as detailed in the following sub-sections.
 
 Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
-Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). After a successful exchange of Convert messages, a TCP connection with TCP extension(s) is established between the Client and Transport Converter (e.g., Multipath TCP), and a (normal) TCP connection is established between the Transport Converter and other end host, with the Transport Converter acting as an explicit proxy between the two connections (e.g.,, between MPTCP and TCP).
+Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
+
+After a successful exchange of Convert messages, a TCP connection with TCP extension(s) is established between the Client and Transport Converter (e.g., Multipath TCP), and	a (normal) TCP connection is established between the Transport	Converter and other end host, with the Transport Converter acting as	an explicit proxy between the two connections (e.g., between Multipath and TCP). 
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -724,7 +728,7 @@ All TLV fields are encoded using the network byte order.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fi-generictlv title="Convert Generic TLV Format"}
 
-The Length field is expressed in units of 32 bits words. If necessary, Value MUST be padded with zeroes so that the length of the TLV is a multiple of 32 bits.
+The Length field covers Type, Length, and Value fields. It is expressed in units of 32 bits words. If necessary, Value MUST be padded with zeroes so that the length of the TLV is a multiple of 32 bits.
 
 A given TLV MUST only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Convert connection,
@@ -860,8 +864,8 @@ to the server.
    |                                                               |
    |                                                               |
    +---------------------------------------------------------------+
-   |                          TCP Options (Variable)               |
-   |                              ...                              |
+   /                          TCP Options (Variable)               /
+   /                              ...                              /
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-connect title="The Connect TLV"}
@@ -934,8 +938,8 @@ a Connect TLV to request the establishment of a connection.
    +---------------+---------------+-------------------------------+
    |     Type=0x14 |     Length    |           Unassigned          |
    +---------------+---------------+-------------------------------+
-   |               Returned Extended TCP header                    |
-   |                              ...                              |
+   /               Returned Extended TCP header                    /
+   /                              ...                              /
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpheader title="The Extended TCP Header TLV"}
@@ -980,8 +984,8 @@ The format of the Cookie TLV is shown in {{fig-cookie}}.
    +---------------+---------------+-------------------------------+
    |     Type=0x16 |     Length    |             Zero              |
    +---------------+---------------+-------------------------------+
-   |                        Opaque  Cookie                         |
-   |                              ...                              |
+   /                        Opaque  Cookie                         /
+   /                              ...                              /
    +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-cookie title="The Cookie TLV"}
