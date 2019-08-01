@@ -309,7 +309,8 @@ client <- upstream ->| Transport  |<- downstream ->server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
-"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections).   
+
+"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections ({{sample-examples-of-outgoing-converter-assisted-multipath-tcp-connections}})). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections ({{sample-example-of-incoming-converter-assisted-multipath-tcp-connection}})).   
 
 Transport Converters can be operated by network operators or
 third parties. Nevertheless, this document focuses on the single
