@@ -307,7 +307,6 @@ client <- upstream ->| Transport  |<- downstream ->server
  customer-facing interface : Internet-facing interface     
                            |                         
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 {: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
 
 "Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections ({{sample-examples-of-outgoing-converter-assisted-multipath-tcp-connections}})). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections ({{sample-example-of-incoming-converter-assisted-multipath-tcp-connection}})).   
@@ -1663,7 +1662,7 @@ However, this configuration is system-wide. This is convenient for typical Trans
 
 Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behavior on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
 
- # Some Design Considerations {#sec-des}
+# Some Design Considerations {#sec-des}
   
 Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.	
        
