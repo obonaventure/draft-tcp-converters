@@ -297,17 +297,18 @@ A connection can be initiated from both sides of the Transport Converter
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                            |
-                           :        
+                           :
                            |
                      +------------+
-client <- upstream ->| Transport  |<- downstream ->server
-                     | Converter  |
+Client <- upstream ->| Transport  |<- downstream -> Server
+         connection  | Converter  |   connection  
                      +------------+
                            |
  customer-facing interface : Internet-facing interface     
-                           |                         
+                           | 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
+
 
 "Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections ({{sample-examples-of-outgoing-converter-assisted-multipath-tcp-connections}})). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections ({{sample-example-of-incoming-converter-assisted-multipath-tcp-connection}})).   
 
@@ -1592,7 +1593,7 @@ This section to be removed before publication.
   * Added short discussion on the termination of connections
 
 - 09:
-  * Various to comments received during last call
+  * Address various comments received during last call
   
        
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
