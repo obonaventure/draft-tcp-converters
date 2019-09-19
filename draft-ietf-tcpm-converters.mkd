@@ -252,6 +252,20 @@ Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
 
+   The use of a Transport Converter means that there is no end-to-end
+   transport connection between the client and server.  This could
+   potentially create problems in some scenarios such as those discussed
+   in Section 4 of [RFC3135].  Some of these problems may not be
+   applicable, for example, a Transport Converter can inform a client by
+   means of Network Failure (65) or Destination Unreachable (97) error
+   messages ({{sec-errors}}) that it encounters a failure problem; the
+   client can react accordingly.  An endpoint, or its network
+   administrator, can assess the benefit provided by the Transport
+   Converter service versus the risk.  This is one reason why the
+   Transport Converter functionality has to be explicitly requested by
+   an endpoint.
+
+
 This document is organized as follows. First, {{sec-arch}} provides a brief explanation
 of the
 operation of Transport Converters. Then, {{sec-protocol}} describes the Convert
