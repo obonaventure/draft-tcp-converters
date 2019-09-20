@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-10
-date: 2019-07-31
+docname: draft-ietf-tcpm-converters-11
+date: 2019-09-21
 category: exp
 
 ipr: trust200902
@@ -264,8 +264,7 @@ the scope of this document.
    Converter service versus the risk.  This is one reason why the
    Transport Converter functionality has to be explicitly requested by
    an endpoint.
-
-
+   
 This document is organized as follows. First, {{sec-arch}} provides a brief explanation
 of the
 operation of Transport Converters. Then, {{sec-protocol}} describes the Convert
@@ -300,7 +299,7 @@ The Convert Protocol considers three functional elements:
 - Transport Converters;
 - Servers.
 
-A Transport Converter is a network function that relays all data exchanged
+A Transport Converter is a network function that proxies all data exchanged
 over one upstream connection to one downstream connection and
 vice versa ({{figtc}}).
 The Transport Converter, thus, maintains state that associates one upstream
@@ -321,8 +320,7 @@ Client <- upstream ->| Transport  |<- downstream -> Server
  customer-facing interface : Internet-facing interface     
                            | 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc title="A Transport Converter Relays Data between Pairs of TCP Connections"}
-
+{: #figtc title="A Transport Converter Proxies Data between Pairs of TCP Connections"}
 
 "Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections ({{sample-examples-of-outgoing-converter-assisted-multipath-tcp-connections}})). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections ({{sample-example-of-incoming-converter-assisted-multipath-tcp-connection}})).   
 
@@ -360,7 +358,6 @@ new software will be installed on the Client hosts to interact with one
 or more Transport Converters. Furthermore, the architecture allows for
 making use of new TCP extensions even if those are not
 supported by a given server.
-
 
 A Client is configured, through means that are outside the
 scope of this document, with the names and/or the addresses
@@ -443,17 +440,19 @@ connections that are combined together:
   Transport Converter.
 - the downstream connection is between the Transport Converter and the Server.
 
+The control messages, discussed in {{sec-protocol}}, establish state in the Transport Converter that will enable it to proxy between the two TCP connections. These control messages are destined to the Transport Convert and are, thus, removed by the Converter when proxying between the two connecions.   
+
 Any user data received by the Transport Converter over the upstream
-(or downstream) connection is relayed over the downstream
+(or downstream) connection is proxied over the downstream
 (or upstream) connection. In particular, if the initial SYN message contains
      data in its payload (e.g., [RFC7413]), that data MUST be placed 
-     right after the Convert TLVs when generating the relayed SYN. 
+     right after the Convert TLVs when generating the SYN. 
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
 
-A Transport Converter MAY operate in address preservation or address sharing
-modes as discussed in Section 5.4 of
-{{I-D.nam-mptcp-deployment-considerations}}. Which behavior to use by a
+A Transport Converter may operate in address preservation or address sharing
+modes (e.g., Section 5.4 of
+{{I-D.nam-mptcp-deployment-considerations}}). Which behavior to use by a
 Transport Converter is deployment-specific. If address sharing mode is
 enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
 implies a default "IP address pooling" behavior of "Paired" (as defined in
@@ -483,14 +482,14 @@ first tries to create a TCP connection towards the target Server. If this
 upstream connection succeeds, the Transport Converter confirms the
 establishment of the connection to the Client by returning a SYN+ACK and
 the first bytes of the bytestream contain information about the TCP
-options that were negotiated with the Server. 
+options that were negotiated with the Server. Also, a state entry is instantiated for this connection. This state entry is used by the Converter to handle subsequent messages belonging to the connection. Note that the Converter silently ignores Non-SYN messages that do not match an active state entry.  
 
 The connection can also be established from the Internet towards a Client
 via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
 on the Client listens to a specific port (the Client hosts an application server, typically). When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
-destination port number of that SYN. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
+destination port number of that SYN. If the check fails, the packet is silently ignored by the Converter. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
 address to one of its IP addresses and, eventually (i.e., only when the Converter is	configured in an address sharing mode), the destination IP address
-and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. 
+and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. A transport session entry is created by the Converter for this connection. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. The Converter uses the transport session entry to proxy packets belonging to the connection.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Transport              Remote
@@ -641,7 +640,7 @@ the Converter. Note that the external and internal information may be the same.
 
 Then, when the Converter receives an incoming SYN, it checks its mapping table
 to verify if there is an active mapping matching the destination IP address and
-destination port of that SYN. If an entry is found, the Converter inserts an
+destination port of that SYN. If no entry is found, the Converter silently ignores the message. If an entry is found, the Converter inserts an
 MP_CAPABLE option and Connect TLV in the SYN packet, rewrites the source IP
 address to one of its IP addresses and, eventually, the destination IP address
 and port number in accordance with the information stored in the mapping.
@@ -673,11 +672,13 @@ This section defines the Convert protocol (Convert, for short) messages that are
 
 By default, the Transport Converter listens on TCP port number TBA for Convert messages from Clients.
 
-Clients send packets bound to connections eligible to the conversion service to the provisioned Transport Converter using TBA as destination port number. This applies for both control and data messages. Additional information is supplied by Clients to the Transport Converter by means of Convert messages as detailed in the following sub-sections.
+Clients send packets bound to connections eligible to the conversion service to the provisioned Transport Converter using TBA as destination port number. This applies for both control messages and data. Additional information is supplied by Clients to the Transport Converter by means of Convert messages as detailed in the following sub-sections.
 
 Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
+
+User data can be included in SYN or non-SYN messages. User data is unambiguously distinguished from Convert TLVs owing to the Total Length field in the Convert messages.    
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -1110,10 +1111,10 @@ The following error codes are defined in this document:
    of at least 30 seconds.
 
  - Network Failure (65): This error indicates that the Transport
-   Converter is experiencing a network failure to relay the request.
+   Converter is experiencing a network failure to proxy the request.
 
    The Transport Converter MUST send this error code when it experiences
-   forwarding issues to relay a connection. The Transport Converter
+   forwarding issues to proxy a connection. The Transport Converter
    may indicate in the Value field the suggested delay (in seconds) that the
    Client SHOULD wait before soliciting the Transport Converter for a
    new proxied connection. A Value of zero corresponds to a default delay
