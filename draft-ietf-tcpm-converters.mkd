@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-11
-date: 2019-09-21
+date: 2019-09-27
 category: exp
 
 ipr: trust200902
@@ -170,7 +170,7 @@ TCP has been improved in different
 ways. Some improvements such as changing the initial window size {{RFC6928}}
 or modifying the congestion control scheme can be applied independently on
 clients and servers.
-Other improvements such as Selective Acknowledgements {{RFC2018}} or large
+Other improvements such as Selective Acknowledgments {{RFC2018}} or large
 windows {{RFC7323}} require
 a new TCP option or to change the semantics of some fields in the TCP header.
 These modifications must
@@ -178,7 +178,7 @@ be deployed on both clients and servers to be actually used on the Internet.
 Experience with the latter TCP extensions reveals that their deployment can
 require many years.  Fukuda reports in {{Fukuda2011}} results of a decade of
 measurements showing
-the deployment of Selective Acknowledgements, Window Scale and TCP Timestamps.
+the deployment of Selective Acknowledgments, Window Scale and TCP Timestamps.
 {{ANRW17}} describes measurements showing that TCP Fast Open (TFO) {{RFC7413}}
 is still not widely deployed.
 
@@ -255,10 +255,10 @@ the scope of this document.
    The use of a Transport Converter means that there is no end-to-end
    transport connection between the client and server.  This could
    potentially create problems in some scenarios such as those discussed
-   in Section 4 of [RFC3135].  Some of these problems may not be
+   in Section 4 of {{RFC3135}}.  Some of these problems may not be
    applicable, for example, a Transport Converter can inform a client by
    means of Network Failure (65) or Destination Unreachable (97) error
-   messages ({{sec-errors}}) that it encounters a failure problem; the
+   messages ({{sec-error}}) that it encounters a failure problem; the
    client can react accordingly.  An endpoint, or its network
    administrator, can assess the benefit provided by the Transport
    Converter service versus the risk.  This is one reason why the
@@ -440,13 +440,13 @@ connections that are combined together:
   Transport Converter.
 - the downstream connection is between the Transport Converter and the Server.
 
-The control messages, discussed in {{sec-protocol}}, establish state in the Transport Converter that will enable it to proxy between the two TCP connections. These control messages are destined to the Transport Convert and are, thus, removed by the Converter when proxying between the two connecions.   
+The control messages, discussed in {{sec-protocol}}, establish state in the Transport Converter that will enable it to proxy between the two TCP connections. These control messages are destined to the Transport Convert and are, thus, removed by the Converter when proxying between the two connections.   
 
 Any user data received by the Transport Converter over the upstream
 (or downstream) connection is proxied over the downstream
 (or upstream) connection. In particular, if the initial SYN message contains
-     data in its payload (e.g., [RFC7413]), that data MUST be placed 
-     right after the Convert TLVs when generating the SYN. 
+ data in its payload (e.g., {{RFC7413}}-, that data MUST be placed 
+ right after the Convert TLVs when generating the SYN. 
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
 
@@ -488,7 +488,7 @@ The connection can also be established from the Internet towards a Client
 via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
 on the Client listens to a specific port (the Client hosts an application server, typically). When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
 destination port number of that SYN. If the check fails, the packet is silently ignored by the Converter. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
-address to one of its IP addresses and, eventually (i.e., only when the Converter is	configured in an address sharing mode), the destination IP address
+address to one of its IP addresses and, eventually (i.e., only when the Converter is configured in an address sharing mode), the destination IP address
 and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. A transport session entry is created by the Converter for this connection. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. The Converter uses the transport session entry to proxy packets belonging to the connection.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -534,7 +534,7 @@ and port number in accordance with any information stored locally. That SYN is t
 
    If the downstream (or upstream) connection fails for some reason
    (excessive retransmissions, reception of an RST segment, etc.), then
-   the Converter should force the teardown of the upstream (or downstream) 
+   the Converter should force the tear-down of the upstream (or downstream) 
    connection.
 
    The same reasoning applies when the upstream connection
@@ -889,7 +889,7 @@ a list of TCP option fields ({{fig-tcpopt}}). Each TCP option field is
 encoded as a block of 2+n bytes where the first byte is the TCP
 option Kind and the second byte is the length of the TCP option
 as specified in {{RFC0793}}. The minimum value for the TCP option Length is 2.
-The TCP options that do not include a length subfield, i.e., option types
+The TCP options that do not include a length sub-field, i.e., option types
 0 (EOL) and 1 (NOP) defined in {{RFC0793}} MUST NOT be placed inside the
 TCP options field of the Connect TLV. The optional Value field
 contains the variable-length part of the TCP option. A length of two
@@ -921,7 +921,7 @@ Upon reception of a Connect TLV, and absent any policy (e.g., rate-limit) or
 Upon reception of an extended Connect TLV, and absent any rate limit policy or
 resource exhaustion conditions, a Transport Converter MUST
 attempt to establish a connection to the address and port that it contains.
-It MUST include the options of the 'TCP Options' subfield in the
+It MUST include the options of the 'TCP Options' sub-field in the
 SYN sent to the Server in addition to the TCP options that it would have
 used according to its local policies. For the
 TCP options that are listed without an optional value, the Transport
@@ -1195,13 +1195,13 @@ Converter MUST ignore
 option Kind=3 if it appears in a Connect TLV. It MUST NOT announce it in a
 Supported TCP Extensions TLV.
 
-## Selective Acknowledgements
+## Selective Acknowledgments
 
-Two distinct TCP options were defined to support selective acknowledgements
+Two distinct TCP options were defined to support selective acknowledgments
 in {{RFC2018}}. This first one, SACK Permitted (Kind=4), is used to
-negotiate the utilization of selective acknowledgements during the
+negotiate the utilization of selective acknowledgments during the
 three-way handshake. The second one, SACK (Kind=5), carries
-the selective acknowledgements inside regular segments.
+the selective acknowledgments inside regular segments.
 
 The SACK Permitted option (Kind=4) MAY be advertised by a Transport Converter
 in the Supported TCP Extensions TLV. Clients connected to this Transport
@@ -1241,7 +1241,7 @@ any timestamp.
 
 The Multipath TCP options are defined in {{RFC6824}}. {{RFC6824}}
 defines one variable length TCP option (Kind=30) that includes a
-subtype field to support several Multipath TCP options. There are
+sub-type field to support several Multipath TCP options. There are
 several operational use cases where clients would like to use
 Multipath TCP through a Transport Converter {{IETFJ16}}.
 However, none of
@@ -1332,7 +1332,7 @@ its messages in such packets.
 
 Consider a middlebox that removes the SYN payload.
 The Client can detect this problem by looking at the
-acknowledgement number field of
+acknowledgment number field of
 the SYN+ACK returned by the Transport Converter.
 The Client MUST stop to use this
 Transport Converter given the middlebox interference.
@@ -1591,7 +1591,7 @@ This section to be removed before publication.
  - 03 to -04: Minor modifications
  - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
    * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
-   * the Bootstrap procedure has been simplified based on feedback from implementers
+   * the Bootstrap procedure has been simplified based on feedback from implementors
    * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
    * Many minor editorial changes to clarify the text based on implementors feedback.
 - 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
@@ -1680,7 +1680,7 @@ Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the
 
 # Some Design Considerations {#sec-des}
   
-Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.	
+Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
 Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
 
@@ -1772,7 +1772,7 @@ However, that design was not adopted
 because it induces both an extra load and increased delays
 on the Transport Converter to handle and manage DNS resolution requests.
 
-# Acknowledgements
+# Acknowledgments
 {: numbered="no"}
 
 Although they could disagree with the contents of the document,
