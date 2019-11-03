@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-11
-date: 2019-09-27
+docname: draft-ietf-tcpm-converters-12
+date: 2019-11-04
 category: exp
 
 ipr: trust200902
@@ -66,7 +66,6 @@ normative:
   RFC4787:
 
 informative:
-  RFC1323:
   RFC1812:
   RFC1919:
   RFC1928:
@@ -153,7 +152,7 @@ configured on hosts.
 
 Please update these statements with the RFC number to be assigned to
 this document:
-[This-RFC]
+THISRFC
  
 Please update TBA statements with the port number to be assigned to
 the 0-RTT TCP Convert Protocol.
@@ -1214,9 +1213,7 @@ Extensions TLV.
 
 ## Timestamp
 
-The Timestamp option was initially defined in {{RFC1323}} and later refined
-in {{RFC7323}}. It can be used during the three-way handshake to negotiate
-the utilization
+The Timestamp option {{RFC7323}} can be used during the three-way handshake to negotiate the utilization
 of timestamps during the TCP connection. It is notably used to improve
 round-trip-time estimations
 and to provide protection against wrapped sequence numbers (PAWS).
@@ -1507,8 +1504,8 @@ as follows:
  +---------+--------------------------------------+-------------+
  | Version | Description                          | Reference   |
  +---------+--------------------------------------+-------------+
- |    0    | Reserved by this document            | [This-RFC]  |
- |    1    | Assigned by this document            | [This-RFC]  |
+ |    0    | Reserved by this document            |  THISRFC    |
+ |    1    | Assigned by this document            |  THISRFC    |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1528,13 +1525,13 @@ as follows:
  +---------+--------------------------------------+-------------+
  |  Code   | Name                                 | Reference   |
  +---------+--------------------------------------+-------------+
- |    0    | Reserved                             | [This-RFC]  |
- |    1    | Info TLV                             | [This-RFC]  |
- |   10    | Connect TLV                          | [This-RFC]  |
- |   20    | Extended TCP Header TLV              | [This-RFC]  |
- |   21    | Supported TCP Extension TLV          | [This-RFC]  |
- |   22    | Cookie TLV                           | [This-RFC]  |
- |   30    | Error TLV                            | [This-RFC]  |
+ |    0    | Reserved                             |   THISRFC   |
+ |    1    | Info TLV                             |   THISRFC   |
+ |   10    | Connect TLV                          |   THISRFC   |
+ |   20    | Extended TCP Header TLV              |   THISRFC   |
+ |   21    | Supported TCP Extension TLV          |   THISRFC   |
+ |   22    | Cookie TLV                           |   THISRFC   |
+ |   30    | Error TLV                            |   TSHIRFC   |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1564,16 +1561,16 @@ as follows:
  +-------+------+-----------------------------------+-----------+
  | Error | Hex  | Description                       | Reference |
  +-------+------+-----------------------------------+-----------+
- |    0  | 0x00 | Unsupported Version               | [This-RFC]|
- |    1  | 0x01 | Malformed Message                 | [This-RFC]|
- |    2  | 0x02 | Unsupported Message               | [This-RFC]|
- |    3  | 0x03 | Missing Cookie                    | [This-RFC]|
- |   32  | 0x20 | Not Authorized                    | [This-RFC]|
- |   33  | 0x21 | Unsupported TCP Option            | [This-RFC]|
- |   64  | 0x40 | Resource Exceeded                 | [This-RFC]|
- |   65  | 0x41 | Network Failure                   | [This-RFC]|
- |   96  | 0x60 | Connection Reset                  | [This-RFC]|
- |   97  | 0x61 | Destination Unreachable           | [This-RFC]|
+ |    0  | 0x00 | Unsupported Version               |  THISRFC  |
+ |    1  | 0x01 | Malformed Message                 |  THISRFC  |
+ |    2  | 0x02 | Unsupported Message               |  THISRFC  |
+ |    3  | 0x03 | Missing Cookie                    |  THISRFC  |
+ |   32  | 0x20 | Not Authorized                    |  THISRFC  |
+ |   33  | 0x21 | Unsupported TCP Option            |  THISRFC  |
+ |   64  | 0x40 | Resource Exceeded                 |  THISRFC  |
+ |   65  | 0x41 | Network Failure                   |  THISRFC  |
+ |   96  | 0x60 | Connection Reset                  |  THISRFC  |
+ |   97  | 0x61 | Destination Unreachable           |  THISRFC  |
  +-------+------+-----------------------------------+-----------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-error-summary title="The Convert Error Codes"}
