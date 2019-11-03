@@ -445,7 +445,7 @@ The control messages, discussed in {{sec-protocol}}, establish state in the Tran
 Any user data received by the Transport Converter over the upstream
 (or downstream) connection is proxied over the downstream
 (or upstream) connection. In particular, if the initial SYN message contains
- data in its payload (e.g., {{RFC7413}}-, that data MUST be placed 
+ data in its payload (e.g., {{RFC7413}}), that data MUST be placed 
  right after the Convert TLVs when generating the SYN. 
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
