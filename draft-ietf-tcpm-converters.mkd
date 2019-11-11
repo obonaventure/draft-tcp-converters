@@ -1,7 +1,7 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-12
+docname: draft-ietf-tcpm-converters-14
 date: 2019-11-04
 category: exp
 
@@ -81,11 +81,12 @@ informative:
   RFC8041:
   RFC8305:
   RFC8446:
+  RFC6269:
+  RFC6296:
   I-D.boucadair-tcpm-dhc-converter:
   RFC8548:
   I-D.olteanu-intarea-socks-6:
   I-D.boucadair-mptcp-plain-mode:
-  I-D.nam-mptcp-deployment-considerations:
   I-D.peirens-mptcp-transparent:
   I-D.arkko-arch-low-latency:
   I-D.boucadair-radext-tcpm-converter:
@@ -190,7 +191,7 @@ upgraded and conversely. Some assistance from the network to make use of these f
 service functions have been deployed as solutions to improve TCP performance over
 links with specific characteristics.
 
-Recent examples of TCP extensions include Multipath TCP {{RFC6824}} or
+Recent examples of TCP extensions include Multipath TCP (MPTCP) {{RFC6824}} or
 TCPINC {{RFC8548}}. Those extensions
 provide features that are interesting for clients such as wireless devices.
 With Multipath TCP, those devices could seamlessly use WLAN
@@ -288,7 +289,7 @@ brackets in the figures refers to Convert Protocol messages described in {{sec-p
 
 Only the exchange of control messages is depicted in the figures.
 
-# Architecture {#sec-arch}
+# Architecture & Behaviors {#sec-arch}
 
 ## Functional Elements
 
@@ -391,7 +392,7 @@ Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence
 
 It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert messages (in addition to the end-to-end TLS connection). 
 
-## Theory of Operation
+## Theory of Operation {{sec-to}}
 
 At a high level, the objective of the Transport Converter is to allow the
 use a specific extension, e.g., Multipath TCP, on a subset of
@@ -439,8 +440,6 @@ connections that are combined together:
   Transport Converter.
 - the downstream connection is between the Transport Converter and the Server.
 
-The control messages, discussed in {{sec-protocol}}, establish state in the Transport Converter that will enable it to proxy between the two TCP connections. These control messages are destined to the Transport Convert and are, thus, removed by the Converter when proxying between the two connections.   
-
 Any user data received by the Transport Converter over the upstream
 (or downstream) connection is proxied over the downstream
 (or upstream) connection. In particular, if the initial SYN message contains
@@ -448,15 +447,6 @@ Any user data received by the Transport Converter over the upstream
  right after the Convert TLVs when generating the SYN. 
 
 The Converter associates a lifetime with state entries used to bind an upstream connection with its downstream connection.
-
-A Transport Converter may operate in address preservation or address sharing
-modes (e.g., Section 5.4 of
-{{I-D.nam-mptcp-deployment-considerations}}). Which behavior to use by a
-Transport Converter is deployment-specific. If address sharing mode is
-enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}} which
-implies a default "IP address pooling" behavior of "Paired" (as defined in
-Section 4.1 of {{RFC4787}}) must be supported. This behavior is meant to avoid
-breaking applications that depend on the source address remaining constant.
    
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
 by a Client through a Transport Converter. 
@@ -481,7 +471,7 @@ first tries to create a TCP connection towards the target Server. If this
 upstream connection succeeds, the Transport Converter confirms the
 establishment of the connection to the Client by returning a SYN+ACK and
 the first bytes of the bytestream contain information about the TCP
-options that were negotiated with the Server. Also, a state entry is instantiated for this connection. This state entry is used by the Converter to handle subsequent messages belonging to the connection. Note that the Converter silently ignores Non-SYN messages that do not match an active state entry.  
+options that were negotiated with the Server. Also, a state entry is instantiated for this connection. This state entry is used by the Converter to handle subsequent messages belonging to the connection. 
 
 The connection can also be established from the Internet towards a Client
 via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
@@ -527,7 +517,7 @@ and port number in accordance with any information stored locally. That SYN is t
 
    For these reasons, this specification does not mandate the use of the
    TCP Fast Open option when the Client sends a connection establishment
-   packet towards a Transport Converter.  The Convert protocol includes
+   packet towards a Transport Converter.  The Convert Protocol includes
    an optional Cookie TLV that provides similar protection as the TCP
    Fast Open option without consuming space in the extended TCP header. In particular, this design allows for the use of longer cookies.
 
@@ -542,9 +532,124 @@ and port number in accordance with any information stored locally. That SYN is t
    exchange of FIN segments, the Converter should initiate a graceful
    termination of the upstream connection.   
 
-## Sample Examples of Outgoing Converter-Assisted Multipath TCP Connections
+## Data Processing at the Transport Converter
 
-As an example, let us consider how the Convert protocol
+### Base Behavior {#sec-dbb}
+
+   As mentioned in {{sec-to}}, the Transport Converter acts as a TCP
+   proxy between the upstream connection (i.e., between the Client and
+   the Transport Converter) and the downstream connection (i.e., between
+   the Transport Converter and the Server).
+
+   The control messages, discussed in {{sec-protocol}}, establish state
+   (called, transport session entry) in the Transport Converter that
+   will enable it to proxy between the two TCP connections.
+
+   The Transport Converter uses the transport session entry to proxy
+   packets belonging to the connection.  An implementation example of a
+   transport session entry for TCP connections is shown in {{fig-dbt}}.
+   
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                   (C,c) <--> (T,t), (S,s), Lifetime
+
+   Where:
+     * C and c are the source IP address and source port number
+       used by the Client for the upstream connection.
+     * S and s are the Server's IP address and port number.
+     * T and t are the source IP address and source port number
+       used by the Transport Converter to proxy the connection.
+     * Lifetime is the validity lifetime of the entry as assigned
+       by the Converter.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-dbt title="An Example of Transport Session Entry (TCP)"}
+   
+   Clients send packets bound to connections eligible to the conversion
+   service to the provisioned Transport Converter using TBA as
+   destination port number.  This applies for both control messages and
+   data.  Additional information is supplied by Clients to the Transport
+   Converter by means of Convert messages as detailed in Section 5.
+   User data can be included in SYN or non-SYN messages.  User data is
+   unambiguously distinguished from Convert TLVs by a Transport
+   Converter owing to the Convert Fixed Header in the Convert messages
+   ({{sec-header}}).  These Convert TLVs are destined to the Transport
+   Convert and are, thus, removed by the Transport Converter when
+   proxying between the two connections.
+
+   Upon receipt of a Non-SYN (or a secondary subflow for Multipath TCP)
+   on port number TBA by the Transport Converter from a Client, the
+   Converter checks if the packet matches an active transport session
+   entry.  If no entry is found, the Transport Converter MUST silently
+   ignore the packet.  If an entry is found, the user data is proxied to
+   the Server using the information stored in the corresponding
+   transport session entry.  For example, in reference to Figure 7, the
+   Transport Converter proxies the data received from (C, c) downstream
+   using (T,t) as source transport address and (S,s) as destination
+   transport address.
+
+   A similar process happens for data sent from the Server.  The
+   Converter acts as a TCP proxy and sends the data to the Client
+   relying upon the information stored in a transport session entry.
+
+   Considerations that are specific to Multipath TCP are described in
+   {{sec-mp}}.
+
+   A Transport Converter may operate in address preservation mode (that
+   is, the Converter does not rewrite the source IP address (i.e.,
+   C==T)) or address sharing mode (that is, an address pool is shared
+   among all Clients serviced by the Converter (i.e., C!=T)); refer to
+   {{sec-add}} for more details.  Which behavior to use by a Transport
+   Converter is deployment-specific.  If address sharing mode is
+   enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}}
+   which implies a default "IP address pooling" behavior of "Paired" (as
+   defined in Section 4.1 of {{RFC4787}}) must be supported.  This
+   behavior is meant to avoid breaking applications that depend on the
+   source address remaining constant.
+   
+   
+### Multipath TCP Specifics {#sec-mp}
+
+
+   Note that for the Multipath TCP case, the Convert TLVs are only
+   exchanged during the establishment of the initial subflow.
+
+   The Transport Converter identifies an MPTCP connection by means,
+   e.g., of the token assigned to the MPTCP connection (Section 2.2 of
+   {{RFC6824}}).  An implementation example of an MPTCP transport session
+   entry maintained by a Transport Converter is shown in {{fig-dbmt}}.  The
+   entry needs to be updated whenever subflows are added to, or deleted
+   from, the MPTCP connection.
+
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         token, {(C1,c1), .., (Cn, cn)} <--> (T,t), (S,s), Lifetime
+
+   Where:
+     * Token is a locally unique identifier given to a (upstream)
+       multipath connection by the Transport Converter. The token
+       is a one-way hash of the MPTCP key.
+     * Ci and ci are the source IP address and source port number
+       used by the Client for a subflow of an (upstream) MPTCP
+       connection.
+     * S and s are the Server's IP address and port number.
+     * T and t are the source IP address and source port number
+       used by the Transport Converter to proxy the connection.
+     * Lifetime is the validity lifetime of the entry as assigned
+       by the Converter.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-dbmt title="An Example of MPTCP Transport Session Entry"}
+
+   Upon receipt of a secondary subflow by the Transport Converter from a
+   Client, the Converter follows the same behavior specified in
+   {{sec-dbb}} for processing Non-SYNs.  For example, in reference to
+  {{fig-dbmt}}, the Transport Converter proxies the data received from a
+   new subflow of an existing Multipath TCP connection (Cn, cn)
+   downstream using (T,t) as source transport address and (S,s) as
+   destination transport address.
+
+# Sample Examples
+
+## Outgoing Converter-Assisted Multipath TCP Connections
+
+As an example, let us consider how the Convert Protocol
 can help the deployment of
 Multipath TCP. We assume that both the Client and the Transport
 Converter support Multipath TCP, but consider two different cases depending on
@@ -617,7 +722,7 @@ this Server.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-mpestabok title="Establishment of a Multipath TCP Connection Through a Converter Towards an MPTCP-capable Server"}
 
-## Sample Example of Incoming Converter-Assisted Multipath TCP Connection
+## Incoming Converter-Assisted Multipath TCP Connection
 
 An example of an incoming Converter-assisted Multipath TCP connection is
 depicted
@@ -667,17 +772,16 @@ It is out of scope of this document to define specific Convert TLVs to manage in
 
 # The Convert Protocol (Convert) {#sec-protocol}
 
-This section defines the Convert protocol (Convert, for short) messages that are exchanged between a Client and a Transport Converter. 
+This section defines the Convert Protocol (Convert, for short) messages that are exchanged between a Client and a Transport Converter. 
 
 By default, the Transport Converter listens on TCP port number TBA for Convert messages from Clients.
 
-Clients send packets bound to connections eligible to the conversion service to the provisioned Transport Converter using TBA as destination port number. This applies for both control messages and data. Additional information is supplied by Clients to the Transport Converter by means of Convert messages as detailed in the following sub-sections.
+
 
 Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
-User data can be included in SYN or non-SYN messages. User data is unambiguously distinguished from Convert TLVs owing to the Total Length field in the Convert messages.    
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -698,7 +802,7 @@ the first four bytes of the bytestream.
 |  Version      |  Total Length |          Unassigned           |
 +---------------+---------------+-------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-header title="The Fixed-Sized Header of the Convert Protocol"}
+{: #fig-header title="The Convert Fixed Header"}
 
 The Version is encoded as an 8 bits unsigned integer value. This
 document specifies
@@ -716,16 +820,16 @@ The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
 future use {{RFC8126}}.
 
-Data added by the Convert protocol to the TCP bytestream is unambiguously distinguished from payload data by the Total Length field in the Convert messages.
+Data added by the Convert Protocol to the TCP bytestream is unambiguously distinguished from payload data by the Total Length field in the Convert messages.
 
 ##  Convert TLVs {#sec-tlv}
 
 ### Generic Convert TLV Format
 
-The Convert protocol uses variable length messages that are encoded using
+The Convert Protocol uses variable length messages that are encoded using
 the generic TLV format depicted in {{fi-generictlv}}.
 
-The length of all TLVs used by the Convert protocol is always a multiple of
+The length of all TLVs used by the Convert Protocol is always a multiple of
 four bytes. All TLVs are aligned on 32 bits boundaries.
 All TLV fields are encoded using the network byte order.
 
@@ -1150,10 +1254,10 @@ The following error codes are defined in this document:
 {: #tab-error-types title="Convert Error Values"}
 
 
-#Compatibility of Specific TCP Options with the Conversion Service {#sec-tcpoptions}
+# Compatibility of Specific TCP Options with the Conversion Service {#sec-tcpoptions}
 
 In this section, we discuss how several standard track TCP options can be
-supported through the Convert protocol. The non-standard track options and
+supported through the Convert Protocol. The non-standard track options and
 the experimental options will be discussed in other documents.
 
 ## Base TCP Options
@@ -1587,7 +1691,7 @@ This section to be removed before publication.
  - 02 to -03: Minor modifications
  - 03 to -04: Minor modifications
  - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
-   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
    * the Bootstrap procedure has been simplified based on feedback from implementors
    * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
    * Many minor editorial changes to clarify the text based on implementors feedback.
@@ -1607,6 +1711,10 @@ This section to be removed before publication.
 - 09:
   * Address various comments received during last call
   
+- 10-13:			
+  * Changes to address the comments from Phil: Add a new section to	group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
+
+- 14: fixed nits (the shepherd write-up)
        
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
 
@@ -1652,7 +1760,7 @@ of {{RFC7413}}, mentioned:
   to be read through, e.g., recvmsg(), read().
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To support the 0-RTT Convert protocol, this behavior should be modified as follows:
+To support the 0-RTT Convert Protocol, this behavior should be modified as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
   Traditionally, accept() returns only after a socket is connected.
@@ -1677,9 +1785,112 @@ Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the
 
 # Some Design Considerations {#sec-des}
   
-Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
 Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
+
+# Address Preservation vs. Address Sharing {#sec-add}
+
+The Transport Converter is provided with instructions about the	
+		 	   behavior to adopt with regards to the processing of source addresses	
+		 	   of outgoing packets.  The following sub-sections discusses two	
+		 	   deployment models for illustration purposes.  It is out of the scope	
+		 	   of this document to make a recommendation.
+
+## Address Preservation {#sec-addp}
+
+   In this model, the visible source IP address of a packet proxied by a
+   Transport Converter to a Server is an IP address of the end host
+   (Client).  No dedicated IP address pool is provisioned to the
+   Transport Converter.
+
+   For Multipath TCP, the Transport Converter preserves the source IP
+   address used by the Client when establishing the initial subflow.
+   Data conveyed in secondary subflows will be proxied by the Transport
+   Converter using the source IP address of the initial subflow.  An
+   example of a proxied Multipath TCP connection with address
+   preservation is shown in {{fig-addp}}.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                         Transport
+          Client                        Converter          Server
+
+           @:C1,C2                        @:Tc                @:S
+              ||                            |                  |
+              |src:C1     SYN         dst:Tc|src:C1       dst:S|
+              |-------MPC [->S:port]------->|-------SYN------->|
+              ||                            |                  |
+              ||dst:C1                src:Tc|dst:C1       src:S|
+              |<---------SYN/ACK------------|<-----SYN/ACK-----|
+              ||                            |                  |
+              |src:C1                 dst:Tc|src:C1       dst:S|
+              |------------ACK------------->|-------ACK------->|
+              |                             |                  |
+              |src:C2          ...    dst:Tc|       ...        |
+              ||<-----Secondary Subflow---->|src:C1       dst:S|
+              ||                            |-------data------>|
+              |               ..            |    ...           |
+		 		
+Legend:	
+  Tc: IP address used by the Transport Converter on its customer-facing	
+      interface.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-addp title="Example of Address Preservation"}
+
+   The Transport Converter must be on the forwarding path of incoming
+   traffic.  Because the same (destination) IP address is used for both
+   proxied and non-proxied connections, the Transport Converter should
+   not drop incoming packets it intercepts if no matching entry is found
+   for the packets.  Unless explicitly configured otherwise, such
+   packets are forwarded according to the instructions of a local
+   forwarding table.
+
+## Address/Prefix Sharing {#sec-adds}
+
+   A pool of global IPv4 addresses is provisioned to the Transport
+   Converter along with possible instructions about the address sharing
+   ratio to apply (see Appendix B of {{RFC6269}}).  An address is thus
+   shared among multiple clients.
+
+   Likewise, rewriting the source IPv6 prefix {{RFC6296}} may be used to
+   ease redirection of incoming IPv6 traffic towards the appropriate
+   Transport Converter.  A pool of IPv6 prefixes is then provisioned to
+   the Transport Converter for this purpose.
+
+   Adequate forwarding policies are enforced so that traffic destined to
+   an address of such pool is intercepted by the appropriate Transport
+   Converter.  Unlike {{sec-addp}}, the Transport Converter drops
+   incoming packets which do not match an active transport session
+   entry.
+
+   An example is shown in {{fig-adds}}.
+   
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                                        Transport
+         Client                         Converter          Server
+
+            @:C                        @:Tc|Te                @:S
+             |                             |                  |
+             |src:C                  dst:Tc|src:Te       dst:S|
+             |-------SYN [->S:port]------->|-------SYN------->|
+             |                             |                  |
+             |dst:C                  src:Tc|dst:Te       src:S|
+             |<---------SYN/ACK------------|<-----SYN/ACK-----|
+             |                             |                  |
+             |src:C                  dst:Tc|src:Te       dst:S|
+             |------------ACK------------->|-------ACK------->|
+             |                             |                  |
+             |              ...            |    ...           |
+
+Legend:
+  Tc: IP address used by the Transport Converter for its customer-facing
+      interface.
+  Te: IP address used by the Transport Converter for its Internet-facing
+      interface.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-adds title="Address Sharing"}
+
 
 # Differences with SOCKSv5 {#sec-socks}
 
@@ -1732,11 +1943,11 @@ Client                     SOCKS Proxy                  Server
 {: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
 
 
-The Convert protocol also relays data
+The Convert Protocol also relays data
 between an upstream and a downstream connection, but there are important
 differences with SOCKSv5.
 
-A first difference is that the Convert protocol exchanges all control information during the three-way handshake. This
+A first difference is that the Convert Protocol exchanges all control information during the three-way handshake. This
 reduces the connection establishment delay compared to SOCKS that requires two
 or more round-trip-times before the establishment of the downstream
 connection towards the final destination. In today's Internet, latency is
@@ -1745,7 +1956,7 @@ latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to
 SOCKS leverages the TFO
 option {{I-D.olteanu-intarea-socks-6}}.
 
-A second difference is that the Convert protocol explicitly takes the TCP
+A second difference is that the Convert Protocol explicitly takes the TCP
 extensions into account. By using the Convert protocol, the Client can
 learn whether a given TCP extension is supported by the destination Server.
 This enables the Client to bypass the Transport Converter when the
