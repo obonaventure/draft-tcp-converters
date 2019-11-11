@@ -392,7 +392,7 @@ Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence
 
 It is out of scope of this document to elaborate on specific considerations related to the use of TLS in the Client-Converter connection leg to exchange Convert messages (in addition to the end-to-end TLS connection). 
 
-## Theory of Operation {{sec-to}}
+## Theory of Operation {#sec-to}
 
 At a high level, the objective of the Transport Converter is to allow the
 use a specific extension, e.g., Multipath TCP, on a subset of
@@ -481,7 +481,8 @@ address to one of its IP addresses and, eventually (i.e., only when the Converte
 and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. A transport session entry is created by the Converter for this connection. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. The Converter uses the transport session entry to proxy packets belonging to the connection.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                        Transport              Remote
+
+  Transport              Remote
     Client              Converter             Host (RH)
        |                   |                      |       
        |SYN [<-RH IP@:port]|         SYN          |
@@ -489,6 +490,7 @@ and port number in accordance with any information stored locally. That SYN is t
        |------------------>|--------------------->|
        |    SYN+ACK [ ]    |        SYN+ACK       |
        |        ...        |          ...         |
+       
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab2 title="Establishment of an Incoming TCP Connection Through a Transport Converter"}
 
@@ -549,7 +551,7 @@ and port number in accordance with any information stored locally. That SYN is t
    packets belonging to the connection.  An implementation example of a
    transport session entry for TCP connections is shown in {{fig-dbt}}.
    
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    (C,c) <--> (T,t), (S,s), Lifetime
 
    Where:
@@ -619,7 +621,7 @@ and port number in accordance with any information stored locally. That SYN is t
    entry needs to be updated whenever subflows are added to, or deleted
    from, the MPTCP connection.
 
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
          token, {(C1,c1), .., (Cn, cn)} <--> (T,t), (S,s), Lifetime
 
    Where:
@@ -1711,8 +1713,8 @@ This section to be removed before publication.
 - 09:
   * Address various comments received during last call
   
-- 10-13:			
-  * Changes to address the comments from Phil: Add a new section to	group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
+- 10-13:
+  * Changes to address the comments from Phil: Add a new section to group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
 
 - 14: fixed nits (the shepherd write-up)
        
@@ -1791,11 +1793,7 @@ Error messages are not included in RST segments but sent in the bytestream. Impl
 
 # Address Preservation vs. Address Sharing {#sec-add}
 
-The Transport Converter is provided with instructions about the	
-		 	   behavior to adopt with regards to the processing of source addresses	
-		 	   of outgoing packets.  The following sub-sections discusses two	
-		 	   deployment models for illustration purposes.  It is out of the scope	
-		 	   of this document to make a recommendation.
+The Transport Converter is provided with instructions about the behavior to adopt with regards to the processing of source addresses of outgoing packets. The following sub-sections discusses two deployment models for illustration purposes.  It is out of the scope of this document to make a recommendation.
 
 ## Address Preservation {#sec-addp}
 
@@ -1830,9 +1828,9 @@ The Transport Converter is provided with instructions about the
               ||<-----Secondary Subflow---->|src:C1       dst:S|
               ||                            |-------data------>|
               |               ..            |    ...           |
-		 		
-Legend:	
-  Tc: IP address used by the Transport Converter on its customer-facing	
+
+Legend:
+  Tc: IP address used by the Transport Converter on its customer-facing
       interface.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-addp title="Example of Address Preservation"}
@@ -1865,7 +1863,7 @@ Legend:
 
    An example is shown in {{fig-adds}}.
    
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                                         Transport
          Client                         Converter          Server
