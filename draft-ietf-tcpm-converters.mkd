@@ -60,12 +60,13 @@ normative:
   RFC5925:
   RFC8126:
   RFC6890:
-  RFC4279:
-  RFC7250:
   RFC6888:
   RFC4787:
 
 informative:
+  RFC2782:
+  RFC4279:
+  RFC7250:
   RFC1812:
   RFC1919:
   RFC1928:
@@ -155,9 +156,6 @@ Please update these statements with the RFC number to be assigned to
 this document:
 THISRFC
  
-Please update TBA statements with the port number to be assigned to
-the 0-RTT TCP Convert Protocol.
-
 --- middle
 
 
@@ -212,8 +210,8 @@ A Transport Converter may provide conversion service for one or more TCP
 extensions.
 Which TCP extensions are eligible to the conversion service is deployment-specific.
 The conversion service is provided by means of the 0-RTT TCP Convert
-Protocol (Convert), that is an application-layer protocol which uses TCP
-port number TBA ({{sec-iana}}).
+Protocol (Convert), that is an application-layer protocol which uses a dedicated TCP
+port number ({{sec-iana}}).
 
 The Convert Protocol provides 0-RTT (Zero Round-Trip Time) conversion service since no extra delay is induced by the protocol compared to connections that are not proxied. Particularly, the Convert Protocol does not require extra signaling setup delays before making use of the conversion service. The Convert Protocol does not require any encapsulation (no tunnels, whatsoever).
 
@@ -566,7 +564,7 @@ and port number in accordance with any information stored locally. That SYN is t
 {: #fig-dbt title="An Example of Transport Session Entry (TCP)"}
    
    Clients send packets bound to connections eligible to the conversion
-   service to the provisioned Transport Converter using TBA as
+   service to the provisioned Transport Converter and 
    destination port number.  This applies for both control messages and
    data.  Additional information is supplied by Clients to the Transport
    Converter by means of Convert messages as detailed in Section 5.
@@ -578,7 +576,7 @@ and port number in accordance with any information stored locally. That SYN is t
    proxying between the two connections.
 
    Upon receipt of a Non-SYN (or a secondary subflow for Multipath TCP)
-   on port number TBA by the Transport Converter from a Client, the
+   on the dedicated port number used by the Transport Converter from a Client, the
    Converter checks if the packet matches an active transport session
    entry.  If no entry is found, the Transport Converter MUST silently
    ignore the packet.  If an entry is found, the user data is proxied to
@@ -776,9 +774,7 @@ It is out of scope of this document to define specific Convert TLVs to manage in
 
 This section defines the Convert Protocol (Convert, for short) messages that are exchanged between a Client and a Transport Converter. 
 
-By default, the Transport Converter listens on TCP port number TBA for Convert messages from Clients.
-
-
+The Transport Converter listens on a dedicated TCP port number for Convert messages from Clients. That port number is configured by an administrator.
 
 Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
@@ -820,7 +816,7 @@ reception of a header with such total length.
 
 The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
-future use {{RFC8126}}.
+future use.
 
 Data added by the Convert Protocol to the TCP bytestream is unambiguously distinguished from payload data by the Total Length field in the Convert messages.
 
@@ -871,7 +867,7 @@ This document specifies the following Convert TLVs:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-converter-tlv title="The TLVs used by the Convert Protocol"}
 
-Type 0x0 is a reserved valued. Implementations MUST discard messages
+Type 0x0 is a reserved value. Implementations MUST discard messages
 with such TLV.
 
 The Client typically sends in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
@@ -953,9 +949,7 @@ Client.
 
 The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the
 destination port number and IP address of the Server, for outgoing connections.
-For incoming
-connections destined to a Client serviced via a Transport Converter,
-these fields convey the source port number and IP address.
+For incoming connections destined to a Client serviced via a Transport Converter, these fields convey the source port number and the IP address of the SYN packet received by the Transport Converter from the remote peer.
 
 The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
@@ -1071,7 +1065,7 @@ receiver. These bits are available for future use {{RFC8126}}.
 
 ### The Cookie TLV {#sec-cookie-tlv}
 
-The Cookie TLV ({{fig-cookie}} is an optional TLV which use is similar to
+The Cookie TLV ({{fig-cookie}}) is an optional TLV which use is similar to
 the TCP Fast Open Cookie {{RFC7413}}. A Transport Converter may want
 to verify that a Client can receive the packets that it sends to prevent
 attacks from spoofed addresses. This verification can be done by using a
@@ -1524,7 +1518,7 @@ SYN received from the Client. Finally, the Transport Converter
 SHOULD only retransmit a SYN to a Server after having received a
 retransmitted SYN from the corresponding Client.
 Means to protect against SYN flooding
-attacks MUST also be enabled {{RFC4987}}.
+attacks should also be enabled (e.g., Section 3 of {{RFC4987}}).
 
 ## Traffic Theft
 
@@ -1574,15 +1568,15 @@ be accepted.
 # IANA Considerations {#sec-iana}
 
 
-## Convert Service Port Number
+## Convert Service Name {#sec-service}
 
-IANA is requested to assign a TCP port number (TBA)  for the Convert Protocol
+IANA is requested to assign a service name for the Convert Protocol
 from the "Service Name and Transport Protocol Port Number Registry" available
 at https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
    Service Name:           convert
-   Port Number:            TBD
+   Port Number:            N/A
    Transport Protocol(s):  TCP
    Description:            0-RTT TCP Convert Protocol
    Assignee:               IESG <iesg@ietf.org>
@@ -1590,13 +1584,43 @@ at https://www.iana.org/assignments/service-names-port-numbers/service-names-por
    Reference:              RFC XXXX
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Clients may use this service name to fed the procedure defined in [RFC2782] to discover the IP address(es) and the port number used by the Transport Converters of a domain. 
+
 ## The Convert Protocol (Convert) Parameters
 
-IANA is requested to create a new "The Convert Protocol (Convert)
+IANA is requested to create a new "The TCP Convert Protocol (Convert)
 Parameters" registry.
 
 The following subsections detail new registries within "The Convert
 Protocol (Convert) Parameters" registry.
+
+Registration requests for the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) are evaluated after a three-week review period on the tcp-convert-review@ietf.org mailing list, on the advice of one or more  Designated Experts.  However, to allow for the allocation of values prior to publication, the Designated Experts may approve registration once they are satisfied that such a specification will be published.  New registration requests should be sent in the form of an email to the review mailing list; the request  should use an appropriate subject (e.g., "Request to register 0-RTT Convert TLV: example" or "Request to register 0-RTT Convert Error Message: example").  IANA will only accept new registrations from the Designated Experts, and will check that review was requested on the mailing list in accordance with these procedures.
+
+Within the review period, the Designated Experts will either
+      approve or deny the registration request, communicating this
+      decision to the review list and IANA.  Denials should include an
+      explanation and, if applicable, suggestions as to how to make the
+      request successful.  Registration requests that are undetermined
+      for a period longer than 21 days can be brought to the IESG's
+      attention (using the iesg@ietf.org mailing list) for resolution.
+
+The Designated Expert is expected to ascertain the existence of suitable
+   documentation as described in Section 4.6.of [RFC8126] and to
+   verify that the document is permanently and publicly available. The
+   Designated Expert is also expected to check the clarity of purpose and use of the requested code points. 
+ 
+Also, criteria that should be applied by the Designated Experts includes
+      determining whether the proposed registration duplicates existing
+      functionality, whether it is likely to be of general applicability
+      or whether it is useful only for a private use, and whether
+      the registration description is clear. IANA must only accept
+      registry updates to the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) from the Designated
+      Experts and should direct all requests for registration to the
+      review mailing list.  It is suggested that multiple Designated
+      Experts be appointed.  In cases where a registration decision
+      could be perceived as creating a conflict of interest for a
+      particular Expert, that Expert should defer to the judgment of the
+      other Experts.
 
 ### Convert Versions
 
@@ -1622,7 +1646,7 @@ procedure for assigning values from this registry is as follows:
 
  -  The values in the range 1-127 can be assigned via IETF Review.
  -  The values in the range 128-191 can be assigned via Specification Required.
- -  The values in the range 192-255 can be assigned for Private Use.
+ -  The values in the range 192-255 are reserved for Private Use.
 
 The initial values to be assigned at the creation of the registry are
 as follows:
@@ -1637,7 +1661,7 @@ as follows:
  |   20    | Extended TCP Header TLV              |   THISRFC   |
  |   21    | Supported TCP Extension TLV          |   THISRFC   |
  |   22    | Cookie TLV                           |   THISRFC   |
- |   30    | Error TLV                            |   TSHIRFC   |
+ |   30    | Error TLV                            |   THISRFC   |
  +---------+--------------------------------------+-------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1658,7 +1682,7 @@ follows:
 
   - 0-127: Values in this range are assigned via IETF Review.
   - 128-191: Values in this range are assigned via Specification Required.
-  - 192-255: Values in this range are assigned for Private Use.
+  - 192-255: Values in this range are reserved for Private Use.
  
 The initial values to be assigned at the creation of the registry are
 as follows:
