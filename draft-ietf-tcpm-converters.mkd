@@ -211,7 +211,7 @@ extensions.
 Which TCP extensions are eligible to the conversion service is deployment-specific.
 The conversion service is provided by means of the 0-RTT TCP Convert
 Protocol (Convert), that is an application-layer protocol which uses a dedicated TCP
-port number ({{sec-iana}}).
+port number.
 
 The Convert Protocol provides 0-RTT (Zero Round-Trip Time) conversion service since no extra delay is induced by the protocol compared to connections that are not proxied. Particularly, the Convert Protocol does not require extra signaling setup delays before making use of the conversion service. The Convert Protocol does not require any encapsulation (no tunnels, whatsoever).
 
