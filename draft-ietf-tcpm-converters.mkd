@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-14
-date: 2019-11-04
+docname: draft-ietf-tcpm-converters-15
+date: 2020-01-20
 category: exp
 
 ipr: trust200902
@@ -273,7 +273,7 @@ Converters can be used to support different TCP extensions.
 {{sec-middleboxes}} then discusses the interactions with middleboxes, while 
 {{sec-security}} focuses on the security considerations.
 
-{{sec-api}} describes how a TCP stack would need to support the protocol described in this document. {{sec-des}} records some considerations that impacted the design of the protocol. {{sec-socks}} provides a comparison with SOCKS proxies that are already
+{{sec-api}} describes how a TCP stack would need to support the protocol described in this document.  {{sec-socks}} provides a comparison with SOCKS proxies that are already
 used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
 
 # Conventions and Definitions
@@ -647,6 +647,105 @@ and port number in accordance with any information stored locally. That SYN is t
    downstream using (T,t) as source transport address and (S,s) as
    destination transport address.
 
+## Address Preservation vs. Address Sharing {#sec-add}
+
+The Transport Converter is provided with instructions about the behavior to adopt with regards to the processing of source addresses of outgoing packets. The following sub-sections discusses two deployment models for illustration purposes.  It is out of the scope of this document to make a recommendation.
+
+### Address Preservation {#sec-addp}
+
+   In this model, the visible source IP address of a packet proxied by a
+   Transport Converter to a Server is an IP address of the end host
+   (Client).  No dedicated IP address pool is provisioned to the
+   Transport Converter.
+
+   For Multipath TCP, the Transport Converter preserves the source IP
+   address used by the Client when establishing the initial subflow.
+   Data conveyed in secondary subflows will be proxied by the Transport
+   Converter using the source IP address of the initial subflow.  An
+   example of a proxied Multipath TCP connection with address
+   preservation is shown in {{fig-addp}}.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                         Transport
+          Client                        Converter          Server
+
+           @:C1,C2                        @:Tc                @:S
+              ||                            |                  |
+              |src:C1     SYN         dst:Tc|src:C1       dst:S|
+              |-------MPC [->S:port]------->|-------SYN------->|
+              ||                            |                  |
+              ||dst:C1                src:Tc|dst:C1       src:S|
+              |<---------SYN/ACK------------|<-----SYN/ACK-----|
+              ||                            |                  |
+              |src:C1                 dst:Tc|src:C1       dst:S|
+              |------------ACK------------->|-------ACK------->|
+              |                             |                  |
+              |src:C2          ...    dst:Tc|       ...        |
+              ||<-----Secondary Subflow---->|src:C1       dst:S|
+              ||                            |-------data------>|
+              |               ..            |    ...           |
+
+Legend:
+  Tc: IP address used by the Transport Converter on its customer-facing
+      interface.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-addp title="Example of Address Preservation"}
+
+   The Transport Converter must be on the forwarding path of incoming
+   traffic.  Because the same (destination) IP address is used for both
+   proxied and non-proxied connections, the Transport Converter should
+   not drop incoming packets it intercepts if no matching entry is found
+   for the packets.  Unless explicitly configured otherwise, such
+   packets are forwarded according to the instructions of a local
+   forwarding table.
+
+### Address/Prefix Sharing {#sec-adds}
+
+   A pool of global IPv4 addresses is provisioned to the Transport
+   Converter along with possible instructions about the address sharing
+   ratio to apply (see Appendix B of {{RFC6269}}).  An address is thus
+   shared among multiple clients.
+
+   Likewise, rewriting the source IPv6 prefix {{RFC6296}} may be used to
+   ease redirection of incoming IPv6 traffic towards the appropriate
+   Transport Converter.  A pool of IPv6 prefixes is then provisioned to
+   the Transport Converter for this purpose.
+
+   Adequate forwarding policies are enforced so that traffic destined to
+   an address of such pool is intercepted by the appropriate Transport
+   Converter.  Unlike {{sec-addp}}, the Transport Converter drops
+   incoming packets which do not match an active transport session
+   entry.
+
+   An example is shown in {{fig-adds}}.
+   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+                                        Transport
+         Client                         Converter          Server
+
+            @:C                        @:Tc|Te                @:S
+             |                             |                  |
+             |src:C                  dst:Tc|src:Te       dst:S|
+             |-------SYN [->S:port]------->|-------SYN------->|
+             |                             |                  |
+             |dst:C                  src:Tc|dst:Te       src:S|
+             |<---------SYN/ACK------------|<-----SYN/ACK-----|
+             |                             |                  |
+             |src:C                  dst:Tc|src:Te       dst:S|
+             |------------ACK------------->|-------ACK------->|
+             |                             |                  |
+             |              ...            |    ...           |
+
+Legend:
+  Tc: IP address used by the Transport Converter for its customer-facing
+      interface.
+  Te: IP address used by the Transport Converter for its Internet-facing
+      interface.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-adds title="Address Sharing"}
+
+
 # Sample Examples
 
 ## Outgoing Converter-Assisted Multipath TCP Connections
@@ -784,6 +883,11 @@ Convert messages may appear only in a SYN, SYN+ACK, or ACK.
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
+
+  
+- Implementation note 1: Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+       
+- Implementation note 2: Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This design simplifies client implementations.
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -1784,111 +1888,6 @@ sysctls:
 However, this configuration is system-wide. This is convenient for typical Transport Converter deployments where no other applications relying on TFO are collocated on the same device.
 
 Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behavior on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
-
-# Some Design Considerations {#sec-des}
-  
-Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
-       
-Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
-
-# Address Preservation vs. Address Sharing {#sec-add}
-
-The Transport Converter is provided with instructions about the behavior to adopt with regards to the processing of source addresses of outgoing packets. The following sub-sections discusses two deployment models for illustration purposes.  It is out of the scope of this document to make a recommendation.
-
-## Address Preservation {#sec-addp}
-
-   In this model, the visible source IP address of a packet proxied by a
-   Transport Converter to a Server is an IP address of the end host
-   (Client).  No dedicated IP address pool is provisioned to the
-   Transport Converter.
-
-   For Multipath TCP, the Transport Converter preserves the source IP
-   address used by the Client when establishing the initial subflow.
-   Data conveyed in secondary subflows will be proxied by the Transport
-   Converter using the source IP address of the initial subflow.  An
-   example of a proxied Multipath TCP connection with address
-   preservation is shown in {{fig-addp}}.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                                         Transport
-          Client                        Converter          Server
-
-           @:C1,C2                        @:Tc                @:S
-              ||                            |                  |
-              |src:C1     SYN         dst:Tc|src:C1       dst:S|
-              |-------MPC [->S:port]------->|-------SYN------->|
-              ||                            |                  |
-              ||dst:C1                src:Tc|dst:C1       src:S|
-              |<---------SYN/ACK------------|<-----SYN/ACK-----|
-              ||                            |                  |
-              |src:C1                 dst:Tc|src:C1       dst:S|
-              |------------ACK------------->|-------ACK------->|
-              |                             |                  |
-              |src:C2          ...    dst:Tc|       ...        |
-              ||<-----Secondary Subflow---->|src:C1       dst:S|
-              ||                            |-------data------>|
-              |               ..            |    ...           |
-
-Legend:
-  Tc: IP address used by the Transport Converter on its customer-facing
-      interface.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-addp title="Example of Address Preservation"}
-
-   The Transport Converter must be on the forwarding path of incoming
-   traffic.  Because the same (destination) IP address is used for both
-   proxied and non-proxied connections, the Transport Converter should
-   not drop incoming packets it intercepts if no matching entry is found
-   for the packets.  Unless explicitly configured otherwise, such
-   packets are forwarded according to the instructions of a local
-   forwarding table.
-
-## Address/Prefix Sharing {#sec-adds}
-
-   A pool of global IPv4 addresses is provisioned to the Transport
-   Converter along with possible instructions about the address sharing
-   ratio to apply (see Appendix B of {{RFC6269}}).  An address is thus
-   shared among multiple clients.
-
-   Likewise, rewriting the source IPv6 prefix {{RFC6296}} may be used to
-   ease redirection of incoming IPv6 traffic towards the appropriate
-   Transport Converter.  A pool of IPv6 prefixes is then provisioned to
-   the Transport Converter for this purpose.
-
-   Adequate forwarding policies are enforced so that traffic destined to
-   an address of such pool is intercepted by the appropriate Transport
-   Converter.  Unlike {{sec-addp}}, the Transport Converter drops
-   incoming packets which do not match an active transport session
-   entry.
-
-   An example is shown in {{fig-adds}}.
-   
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-                                        Transport
-         Client                         Converter          Server
-
-            @:C                        @:Tc|Te                @:S
-             |                             |                  |
-             |src:C                  dst:Tc|src:Te       dst:S|
-             |-------SYN [->S:port]------->|-------SYN------->|
-             |                             |                  |
-             |dst:C                  src:Tc|dst:Te       src:S|
-             |<---------SYN/ACK------------|<-----SYN/ACK-----|
-             |                             |                  |
-             |src:C                  dst:Tc|src:Te       dst:S|
-             |------------ACK------------->|-------ACK------->|
-             |                             |                  |
-             |              ...            |    ...           |
-
-Legend:
-  Tc: IP address used by the Transport Converter for its customer-facing
-      interface.
-  Te: IP address used by the Transport Converter for its Internet-facing
-      interface.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-adds title="Address Sharing"}
-
 
 # Differences with SOCKSv5 {#sec-socks}
 
