@@ -973,8 +973,6 @@ This section defines the Convert Protocol (Convert, for short) messages that are
 
 The Transport Converter listens on a dedicated TCP port number for Convert messages from Clients. That port number is configured by an administrator.
 
-Convert messages may appear only in a SYN, SYN+ACK, or ACK.
-
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
 
@@ -1020,7 +1018,9 @@ The Unassigned field MUST be set to zero in this
 version of the protocol. These bits are available for
 future use.
 
-Data added by the Convert Protocol to the TCP bytestream is unambiguously distinguished from payload data by the Total Length field in the Convert messages.
+The Total Length field unambiguously marks the number of 32 bits words that carry Convert TLVs in the beginning of the bytestream.
+
+
 
 ##  Convert TLVs {#sec-tlv}
 
@@ -1049,7 +1049,7 @@ The Length field covers Type, Length, and Value fields. It is expressed in units
 
 A given TLV MUST only appear once on a connection. If two or more
 instances of the same TLV are exchanged over a Convert connection,
-the associated TCP connections MUST be closed.
+the associated TCP connections MUST be reset.
 
 ### Summary of Supported Convert TLVs
 
@@ -1625,9 +1625,8 @@ the Transport Converter affected by this interference.
 
 Internet measurements {{IMC11}}
 have shown that middleboxes can affect the deployment of TCP extensions.
-In this section, we only discuss the middleboxes
-that modify SYN and SYN+ACK packets since the Convert Protocol places
-its messages in such packets.
+In this section, we focus the middleboxes that modify payload since
+the Convert Protocol places its messages at the beginning of the bytestream.
 
 Consider a middlebox that removes the SYN payload.
 The Client can detect this problem by looking at the
@@ -1638,7 +1637,7 @@ Transport Converter given the middlebox interference.
 
 Consider now a middlebox that drops SYN/ACKs with a payload. The Client won't be able to establish a connection via the Transport Converter.
 
-The case of a middlebox that removes the payload of SYN+ACKs (but not the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. If an Error was returned by the Transport Converter, a message to close the connection would normally follow from the Converter. If no such message is received, the Client may continue to use this Converter. 
+The case of a middlebox that removes the payload of SYN+ACKs or from the packet that follows the SYN+ACK (but not the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. 
 
 As explained in {{RFC7413}}, some CGNs (Carrier Grade NATs) can affect the
 operation of
