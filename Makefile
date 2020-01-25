@@ -29,6 +29,7 @@ $(next).mkd: $(draft).mkd
 	sed -e"s/$(basename $<)-latest/$(basename $@)/" $< > $@
 
 %.xml: %.mkd
+	mdspell -n -a --en-us -r $< 
 	$(kramdown-rfc2629) $< > $@
 
 %.txt: %.xml

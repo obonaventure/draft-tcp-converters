@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-15
-date: 2020-01-20
+date: 2020-01-30
 category: exp
 
 ipr: trust200902
@@ -250,6 +250,8 @@ Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
 
+{::comment}
+
    The use of a Transport Converter means that there is no end-to-end
    transport connection between the client and server.  This could
    potentially create problems in some scenarios such as those discussed
@@ -262,7 +264,9 @@ the scope of this document.
    Converter service versus the risk.  This is one reason why the
    Transport Converter functionality has to be explicitly requested by
    an endpoint.
-   
+
+{:/comment}
+
 This document is organized as follows. First, {{sec-arch}} provides a brief explanation
 of the
 operation of Transport Converters. Then, {{sec-protocol}} describes the Convert
@@ -288,6 +292,95 @@ brackets in the figures refers to Convert Protocol messages described in {{sec-p
 Only the exchange of control messages is depicted in the figures.
 
 # Architecture & Behaviors {#sec-arch}
+
+## Differences with SOCKSv5 {#sec-socks}
+
+Several IETF protocols provide proxy services, the closest to the
+0-RTT Convert protocol being the SOCKSv5 protocol {{RFC1928}}. 
+A SOCKS Client creates a connection to a SOCKS proxy,
+exchanges authentication information and indicates
+the destination address and port of the final server. At this point, the SOCKS
+proxy creates a connection towards the final server and relays all data between
+the two proxied connections. The operation of an implementation based on
+SOCKSv5 is illustrated in {{fig-socks5}}.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Client                     SOCKS Proxy                  Server
+     -------------------->
+             SYN
+     <--------------------
+           SYN+ACK
+     -------------------->
+             ACK
+
+     -------------------->
+     Version=5, Auth Methods
+     <--------------------
+           Method
+     -------------------->
+         Auth Request (unless "No auth" method negotiated)
+     <--------------------
+         Auth Response
+     -------------------->
+     Connect Server:Port            -------------------->
+                                           SYN
+
+                                    <--------------------
+                                         SYN+ACK
+     <--------------------
+          Succeeded
+
+     -------------------->
+            Data1
+                                    -------------------->
+                                           Data1
+
+                                    <--------------------
+                                           Data2
+     <--------------------
+              Data2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
+
+
+When SOCKS is used, an "end-to-end" connection between a Client and a Server
+becomes a sequence of two TCP connections that are glued together on the SOCKS proxy. The Client and the SOCKS server exchange control information at the beginning of the bytestream on the Client-Proxy connection. The SOCKS Proxy then creates the connection with the remote server and then glues the two connections together so that all bytes send by the application to the SOCKS proxy are relayed to the remote server and vice versa. 
+
+The Convert Protocol is also used on TCP proxies that relay data
+between an upstream and a downstream connection, but there are important
+differences with SOCKSv5. A first difference is that the 0-RTT Convert protocol exchanges all the control information during the initial RTT. This
+reduces the connection establishment delay compared to SOCKS that requires two
+or more round-trip-times before the establishment of the downstream
+connection towards the final destination. In today's Internet, latency is
+a important metric and various protocols have ben tuned to reduce their
+latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to
+SOCKS leverages the TFO option {{I-D.olteanu-intarea-socks-6}} to reduce this delay.
+
+A second difference is that the Convert Protocol explicitly takes the TCP
+extensions into account. By using the Convert protocol, the Client can
+learn whether a given TCP extension is supported by the destination Server.
+This enables the Client to bypass the Transport Converter when the
+destination supports the required TCP extension. Neither SOCKSv5
+{{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
+provide such a feature.
+
+A third difference is that a Transport Converter will only confirm the establishment of the connection
+initiated by the Client provided that the downstream connection has already been accepted by
+the Server. If the Server refuses the connection establishment attempt from
+the Transport Converter, then the upstream connection from the Client
+is rejected as well. This feature is important for applications that check the
+availability of a Server or use the time to connect as a hint on the
+selection of a Server {{RFC8305}}.
+
+A fourth difference is that the 0-RTT Convert protocol only allows the client to
+specify the address/port of the destination server and not a DNS name.
+We evaluated an alternate design that included the
+DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
+However, that design was not adopted
+because it induces both an extra load and increased delays
+on the Transport Converter to handle and manage DNS resolution requests.
+
 
 ## Functional Elements
 
@@ -320,7 +413,7 @@ Client <- upstream ->| Transport  |<- downstream -> Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc title="A Transport Converter Proxies Data between Pairs of TCP Connections"}
 
-"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections ({{sample-examples-of-outgoing-converter-assisted-multipath-tcp-connections}})). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections ({{sample-example-of-incoming-converter-assisted-multipath-tcp-connection}})).   
+"Client" refers to a software instance embedded on a host that can reach a Transport Converter via its customer-facing interface. The "Client" can initiate connections via a Transport Converter (referred to as outgoing connections). Also, the "Client" can accept incoming connections via a Transport Converter (referred to as incoming connections).   
 
 Transport Converters can be operated by network operators or
 third parties. Nevertheless, this document focuses on the single
@@ -330,7 +423,11 @@ Transport Converter.
 
 A Transport Converter can be embedded in a
 standalone device or be activated as a service on a router. 
-How such function is enabled is deployment-specific. A sample deployment is
+How such function is enabled is deployment-specific.
+
+
+{::comment}
+A sample deployment is
 depicted in {{figtc2}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -350,6 +447,9 @@ depicted in {{figtc2}}.
   R: Router 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #figtc2 title="A Transport Converter Can Be Installed Anywhere in the Network"}
+
+{:/comment}
+
 
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
@@ -881,9 +981,9 @@ Convert messages MUST be included as the first bytes of the bytestream. All Conv
 
 
   
-- Implementation note 1: Several implementors expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+- Implementation note 1: Several implementers expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
-- Implementation note 2: Error messages are not included in RST segments but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This design simplifies client implementations.
+- Implementation note 2: Error messages are not included in RST segments but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This design simplifies client implementations.
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -1709,7 +1809,7 @@ Within the review period, the Designated Experts will either
       attention (using the iesg@ietf.org mailing list) for resolution.
 
 The Designated Expert is expected to ascertain the existence of suitable
-   documentation as described in Section 4.6.of [RFC8126] and to
+   documentation as described in Section 4.6 of {{RFC8126}} and to
    verify that the document is permanently and publicly available. The
    Designated Expert is also expected to check the clarity of purpose and use of the requested code points. 
  
@@ -1820,11 +1920,11 @@ This section to be removed before publication.
  - 01 to -02: Minor modifications
  - 02 to -03: Minor modifications
  - 03 to -04: Minor modifications
- - 04 to -05: Integrate a lot of feedback from implementors who have worked on client and server side implementations. The main modifications are the following :
-   * TCP Fast Open is not strictly required anymore. Several implementors expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
-   * the Bootstrap procedure has been simplified based on feedback from implementors
-   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementors have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
-   * Many minor editorial changes to clarify the text based on implementors feedback.
+ - 04 to -05: Integrate a lot of feedback from implementers who have worked on client and server side implementations. The main modifications are the following :
+   * TCP Fast Open is not strictly required anymore. Several implementers expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * the Bootstrap procedure has been simplified based on feedback from implementers
+   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
+   * Many minor editorial changes to clarify the text based on implementers feedback.
 - 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
   * Updated IANA policy to require "IETF Review" instead of "Standard Action"
   * Call out explicitly that data in SYNs are relayed by the Converter
@@ -1913,93 +2013,7 @@ However, this configuration is system-wide. This is convenient for typical Trans
 
 Recently, the TCP_FASTOPEN_NO_COOKIE socket option has been added to provide the same behavior on a per socket basis. This enables a single host to support both servers that require the TFO cookie and servers that do not use it.
 
-# Differences with SOCKSv5 {#sec-socks}
 
-At a first glance, the solution proposed in this document could seem similar
-to the SOCKS v5 protocol {{RFC1928}} which is used to proxy TCP connections.
-The Client creates a connection to a SOCKS proxy, exchanges authentication
-information and indicates
-the destination address and port of the final server. At this point, the SOCKS
-proxy creates a connection towards the final server and relays all data between
-the two proxied connections. The operation of an implementation based on
-SOCKSv5 is illustrated in {{fig-socks5}}.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Client                     SOCKS Proxy                  Server
-     -------------------->
-             SYN
-     <--------------------
-           SYN+ACK
-     -------------------->
-             ACK
-
-     -------------------->
-     Version=5, Auth Methods
-     <--------------------
-           Method
-     -------------------->
-         Auth Request (unless "No auth" method negotiated)
-     <--------------------
-         Auth Response
-     -------------------->
-     Connect Server:Port            -------------------->
-                                           SYN
-
-                                    <--------------------
-                                         SYN+ACK
-     <--------------------
-          Succeeded
-
-     -------------------->
-            Data1
-                                    -------------------->
-                                           Data1
-
-                                    <--------------------
-                                           Data2
-     <--------------------
-              Data2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
-
-
-The Convert Protocol also relays data
-between an upstream and a downstream connection, but there are important
-differences with SOCKSv5.
-
-A first difference is that the Convert Protocol exchanges all control information during the three-way handshake. This
-reduces the connection establishment delay compared to SOCKS that requires two
-or more round-trip-times before the establishment of the downstream
-connection towards the final destination. In today's Internet, latency is
-a important metric and various protocols have been tuned to reduce their
-latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to
-SOCKS leverages the TFO
-option {{I-D.olteanu-intarea-socks-6}}.
-
-A second difference is that the Convert Protocol explicitly takes the TCP
-extensions into account. By using the Convert protocol, the Client can
-learn whether a given TCP extension is supported by the destination Server.
-This enables the Client to bypass the Transport Converter when the
-destination supports the required TCP extension. Neither SOCKS v5
-{{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
-provide such a feature.
-
-A third difference is that a Transport Converter will only accept the connection
-initiated by the Client provided that the downstream connection is accepted by
-the Server. If the Server refuses the connection establishment attempt from
-the Transport Converter, then the upstream connection from the Client
-is rejected as well. This feature is important for applications that check the
-availability of a Server or use the time to connect as a hint on the
-selection of a Server {{RFC8305}}.
-
-A fourth difference is that the Convert protocol only allows the client to
-specify the address/port of the destination server and not a DNS name.
-We evaluated an alternate design for the Connect TLV that included the
-DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
-However, that design was not adopted
-because it induces both an extra load and increased delays
-on the Transport Converter to handle and manage DNS resolution requests.
 
 # Acknowledgments
 {: numbered="no"}
