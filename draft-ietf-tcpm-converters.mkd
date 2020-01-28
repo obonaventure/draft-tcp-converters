@@ -1158,7 +1158,11 @@ Client.
 
 The 'Remote Peer Port' and 'Remote Peer IP Address' fields contain the
 destination port number and IP address of the Server, for outgoing connections.
-For incoming connections destined to a Client serviced via a Transport Converter, these fields convey the source port number and the IP address of the SYN packet received by the Transport Converter from the remote peer.
+For incoming connections destined to a Client
+serviced via a Transport Converter, these fields convey the source
+port number and IP address of the SYN packet received by the
+Transport Converter from the server.
+
 
 The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
