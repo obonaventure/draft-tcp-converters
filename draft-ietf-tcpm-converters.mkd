@@ -1410,7 +1410,7 @@ The following error codes are defined in this document:
    value field MUST be set to zero and the remaining bytes of the Error TLV
    contain the Cookie computed by the Transport Converter for this Client.
 
-   A Client which receives this error code MUST cache the received Cookie and
+   A Client which receives this error code SHOULD cache the received Cookie and
    include it in subsequent Convert messages sent to that Transport
    Converter.
 
