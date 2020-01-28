@@ -1631,11 +1631,6 @@ it MUST reject the establishment of the connection with error code set to
 "Unsupported TCP Option", except if the TCP-AO-NAT option is used.
 
 
-## TCP Experimental Options
-
-The TCP Experimental options are defined in {{RFC4727}}. Given the variety of
-semantics for these options and their experimental nature, it is impossible
-to discuss them in details in this document.
 
 # Interactions with Middleboxes {#sec-middleboxes}
 
