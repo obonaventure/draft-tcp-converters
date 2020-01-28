@@ -1750,10 +1750,7 @@ access to sensitive data issued by or destined to a host.  Converter
 discovery and configuration are out of scope of this document.
 
 
-## Multipath TCP-specific Considerations
-
-Multipath TCP-related security threats are discussed in {{RFC6181}} and
-{{RFC6824}}.
+## Authentication Considerations
 
 The operator that manages the various network attachments
 (including the Transport Converters) can enforce authentication and
@@ -1762,7 +1759,7 @@ non-exhaustive list of methods to achieve authorization is provided hereafter:
 
  - The network provider may enforce a policy based on the
    International Mobile Subscriber Identity (IMSI) to verify that a
-   user is allowed to benefit from the Multipath TCP converter service. If that
+   user is allowed to benefit from the TCP converter service. If that
    authorization fails, the Packet Data Protocol (PDP) context/bearer
    will not be mounted. This method does not require any
    interaction with the Transport Converter for authorization matters.
@@ -1781,8 +1778,8 @@ non-exhaustive list of methods to achieve authorization is provided hereafter:
 A first safeguard against the misuse of Transport Converter resources by
 illegitimate users (e.g., users with access networks that are not managed by
 the same provider that operates the Transport Converter) is the Transport
-Converter to reject Multipath TCP connections received on its
-Internet-facing interfaces. Only Multipath TCP connections received on
+Converter to reject Convert connections received on its
+Internet-facing interfaces. Only Convert connections received on
 the customer-facing interfaces of a Transport Converter will
 be accepted.
 
