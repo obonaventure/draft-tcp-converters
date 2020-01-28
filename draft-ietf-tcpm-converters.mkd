@@ -150,12 +150,6 @@ a network-assisted connection (that is, 0-RTT).
 This specification assumes an explicit model, where the proxy is explicitly
 configured on hosts.
 
---- Editorial Note (To be removed by RFC Editor)
-
-Please update these statements with the RFC number to be assigned to
-this document:
-THISRFC
- 
 --- middle
 
 
@@ -1769,6 +1763,7 @@ be accepted.
 
 # IANA Considerations {#sec-iana}
 
+Note to the RFC Editor: Please replace "THISRFC" in the following sub-sections with the RFC number to be assigned to this document.
 
 ## Convert Service Name {#sec-service}
 
@@ -1783,7 +1778,7 @@ at https://www.iana.org/assignments/service-names-port-numbers/service-names-por
    Description:            0-RTT TCP Convert Protocol
    Assignee:               IESG <iesg@ietf.org>
    Contact:                IETF Chair <chair@ietf.org>
-   Reference:              RFC XXXX
+   Reference:              THISRFC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Clients may use this service name to fed the procedure defined in [RFC2782] to discover the IP address(es) and the port number used by the Transport Converters of a domain. 
@@ -2026,6 +2021,8 @@ Anandatirtha Nandugudi and Gregory Vander Schueren for their help
 in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Yuchung Cheng and Praveen Balasubramanian helped to clarify the discussion on supplying data in SYNs. Phil Eardley and Michael Scharf's helped to clarify different parts of the text.
+
+Many thanks to Mirja Kühlewind for the detailed AD review. 
 
 This document builds upon earlier documents that proposed various forms
 of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
