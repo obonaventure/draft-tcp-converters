@@ -1270,10 +1270,9 @@ rate-limited.
 ### Extended TCP Header TLV {#sec-ext-header}
 
 The Extended TCP Header TLV ({{fig-tcpheader}}) is used by the
-Transport Converter to send
-to the Client the extended TCP header that was returned by the Server in the
-SYN+ACK packet. This TLV is only sent if the Client sent
-a Connect TLV to request the establishment of a connection.
+Transport Converter to return to the Client the TCP options that were returned
+by the Server in the SYN+ACK packet. This TLV is only sent if the Client sent
+an Extended Connect TLV to request the establishment of a connection.
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1288,11 +1287,11 @@ a Connect TLV to request the establishment of a connection.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpheader title="The Extended TCP Header TLV"}
 
-The Returned Extended TCP header field is a copy of the extended header
-that was received in the SYN+ACK by the Transport Converter.
+The Returned Extended TCP header field is a copy of the TCP Options
+that were included in the SYN+ACK received by the Transport Converter.
 
 The Unassigned field MUST be set to zero by the sender and ignored by the
-receiver. These bits are available for future use {{RFC8126}}.
+receiver. 
 
 ### The Cookie TLV {#sec-cookie-tlv}
 
