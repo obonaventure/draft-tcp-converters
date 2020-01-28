@@ -1047,9 +1047,11 @@ All TLV fields are encoded using the network byte order.
 
 The Length field covers Type, Length, and Value fields. It is expressed in units of 32 bits words. If necessary, Value MUST be padded with zeroes so that the length of the TLV is a multiple of 32 bits.
 
-A given TLV MUST only appear once on a connection. If two or more
-instances of the same TLV are exchanged over a Convert connection,
-the associated TCP connections MUST be reset.
+A given TLV MUST only appear once on a connection. If a Client receives
+two or more instances of the same TLV over a Convert connection, it MUST
+reset the associated TCP connection. If a Converter receives
+two or more instances of the same TLV over a Convert connection, it MUST
+return a Malformed Message Error TLV and close the associated TCP connection. 
 
 ### Summary of Supported Convert TLVs
 
@@ -1069,8 +1071,12 @@ This document specifies the following Convert TLVs:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #tab-converter-tlv title="The TLVs used by the Convert Protocol"}
 
-Type 0x0 is a reserved value. Implementations MUST discard messages
-with such TLV.
+Type 0x0 is a reserved value. If a Client receives
+a TLV of type 0x0, it MUST reset the associated TCP connection.
+If a Converter receives a TLV of type 0x0, it MUST
+return an Unsupported Message Error TLV and close the associated TCP connection.
+
+Implementations MUST reset the connection upon reception of messages with such TLV.
 
 The Client typically sends in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
 
@@ -1079,9 +1085,11 @@ by using the Connect TLV
 ({{sec-connect}}). If the connection can be established with the final
 server,
 the Transport Converter replies with the Extended TCP Header TLV
-({{sec-ext-header}}). If not,
-the Transport Converter returns an Error TLV ({{sec-error}}) and then
-closes the connection.
+({{sec-ext-header}}). If not, the Transport Converter returns an Error TLV
+({{sec-error}}) and then closes the connection. The Transport Converter
+MUST NOT send a RST immediately after the detection of an error to let the
+Error TLV reach the Client. As explained later, the Client will anyway send a
+RST upon reception of the Error TLV. 
 
 When an error is encountered an Error TLV with the
 appropriate error code MUST be returned by the Transport Converter.
@@ -1157,8 +1165,7 @@ The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
 IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer
 IP address field MUST NOT include multicast, broadcast, and host loopback
-addresses {{RFC6890}}. Connect TLVs witch such messages MUST be discarded by the
-Transport Converter.
+addresses {{RFC6890}}. If a Converter receives a Connect TLVs witch such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
 
 We distinguish two types of Connect TLV based on their length: (1) the base
 Connect TLV has a length of 20 bytes and contains a remote address and a
@@ -1288,7 +1295,8 @@ required, the Transport Converter
 should compute a Cookie bound to this Client address and return a Convert
 message containing the fixed header, an Error TLV set to "Missing Cookie" and
 the computed Cookie and close the connection. The Client will react to this
-error by storing the received Cookie in its cache and attempt to reestablish
+error by first issuing a reset to terminate the connection. It also stores
+the received Cookie in its cache and attempts to reestablish
 a new connection to the Transport Converter that includes the Cookie TLV.
 
 The format of the Cookie TLV is shown in {{fig-cookie}}.
@@ -1309,8 +1317,8 @@ The format of the Cookie TLV is shown in {{fig-cookie}}.
 
 The Error TLV ({{fig-error}}) is meant to provide
 information about some errors that occurred during the processing
-of a Convert message. This TLV has a variable length. Upon reception of an Error TLV, a Client MUST
-close the associated connection.
+of a Convert message. This TLV has a variable length. Upon reception of
+an Error TLV, a Client MUST reset the associated connection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                       1                   2                   3
