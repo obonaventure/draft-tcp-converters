@@ -1651,7 +1651,7 @@ the Transport Converter affected by this interference.
 
 Internet measurements {{IMC11}}
 have shown that middleboxes can affect the deployment of TCP extensions.
-In this section, we focus the middleboxes that modify payload since
+In this section, we focus the middleboxes that modify the payload since
 the Convert Protocol places its messages at the beginning of the bytestream.
 
 Consider a middlebox that removes the SYN payload.
@@ -1662,8 +1662,7 @@ The Client MUST stop to use this
 Transport Converter given the middlebox interference.
 
 Consider now a middlebox that drops SYN/ACKs with a payload. The Client won't be able to establish a connection via the Transport Converter.
-
-The case of a middlebox that removes the payload of SYN+ACKs or from the packet that follows the SYN+ACK (but not the payload of SYN) can be detected by a Client. This is hinted by the absence of an Error or Extended TCP Header TLV in a response. 
+The case of a middlebox that removes the payload of SYN+ACKs or from the packet that follows the SYN+ACK (but not the payload of SYN) can be detected by a Client. This is hinted by the absence of a valid Convert message in the response. 
 
 As explained in {{RFC7413}}, some CGNs (Carrier Grade NATs) can affect the
 operation of
