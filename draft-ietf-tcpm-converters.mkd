@@ -1823,30 +1823,30 @@ Protocol (Convert) Parameters" registry.
 Registration requests for the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) are evaluated after a three-week review period on the tcp-convert-review@ietf.org mailing list, on the advice of one or more  Designated Experts.  However, to allow for the allocation of values prior to publication, the Designated Experts may approve registration once they are satisfied that such a specification will be published.  New registration requests should be sent in the form of an email to the review mailing list; the request  should use an appropriate subject (e.g., "Request to register 0-RTT Convert TLV: example" or "Request to register 0-RTT Convert Error Message: example").  IANA will only accept new registrations from the Designated Experts, and will check that review was requested on the mailing list in accordance with these procedures.
 
 Within the review period, the Designated Experts will either
-      approve or deny the registration request, communicating this
-      decision to the review list and IANA.  Denials should include an
-      explanation and, if applicable, suggestions as to how to make the
-      request successful.  Registration requests that are undetermined
-      for a period longer than 21 days can be brought to the IESG's
-      attention (using the iesg@ietf.org mailing list) for resolution.
+approve or deny the registration request, communicating this
+decision to the review list and IANA.  Denials should include an
+explanation and, if applicable, suggestions as to how to make the
+request successful.  Registration requests that are undetermined
+for a period longer than 21 days can be brought to the IESG's
+attention (using the iesg@ietf.org mailing list) for resolution.
 
 The Designated Expert is expected to ascertain the existence of suitable
-   documentation as described in Section 4.6 of {{RFC8126}} and to
-   verify that the document is permanently and publicly available. The
-   Designated Expert is also expected to check the clarity of purpose and use of the requested code points. 
+documentation as described in Section 4.6 of {{RFC8126}} and to
+verify that the document is permanently and publicly available. The
+Designated Expert is also expected to check the clarity of purpose and use of the requested code points. 
  
 Also, criteria that should be applied by the Designated Experts includes
-      determining whether the proposed registration duplicates existing
-      functionality, whether it is likely to be of general applicability
-      or whether it is useful only for a private use, and whether
-      the registration description is clear. IANA must only accept
-      registry updates to the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) from the Designated
-      Experts and should direct all requests for registration to the
-      review mailing list.  It is suggested that multiple Designated
-      Experts be appointed.  In cases where a registration decision
-      could be perceived as creating a conflict of interest for a
-      particular Expert, that Expert should defer to the judgment of the
-      other Experts.
+determining whether the proposed registration duplicates existing
+functionality, whether it is likely to be of general applicability
+or whether it is useful only for a private use, and whether
+the registration description is clear. IANA must only accept
+registry updates to the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) from the Designated
+Experts and should direct all requests for registration to the
+review mailing list.  It is suggested that multiple Designated
+Experts be appointed.  In cases where a registration decision
+could be perceived as creating a conflict of interest for a
+particular Expert, that Expert should defer to the judgment of the
+other Experts.
 
 ### Convert Versions
 
