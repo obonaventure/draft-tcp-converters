@@ -1484,9 +1484,9 @@ The following error codes are defined in this document:
 
 # Compatibility of Specific TCP Options with the Conversion Service {#sec-tcpoptions}
 
-In this section, we discuss how several standard track TCP options can be
-supported through the Convert Protocol. The non-standard track options and
-the experimental options will be discussed in other documents.
+In this section, we discuss how several deployed standard track TCP options
+can be supported through the Convert Protocol. The other TCP options
+will be discussed in other documents.
 
 ## Base TCP Options
 
@@ -1611,10 +1611,6 @@ receives a Connect TLV with the TCP Fast Open cookie option that contains a
 cookie, it MUST copy the
 TCP Fast Open cookie option in the SYN sent to the remote server.
 
-## TCP User Timeout
-
-The TCP User Timeout option is defined in {{RFC5482}}. The associated
-TCP option (Kind=28) does not appear to be widely deployed.
 
 ## TCP-AO
 
