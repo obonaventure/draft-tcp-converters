@@ -1119,8 +1119,7 @@ Extensions TLV described in {{sec-supported}}.
 The Supported TCP Extensions TLV ({{fig-supported}}) is used by
 a Transport Converter to announce the TCP options for which it
 provides a conversion service. A Transport Converter SHOULD include in
-this list the TCP options that it accepts from Clients; these options are 
-included by the Transport Converter in the SYN packets that it sends to initiate connections.
+this list the TCP options that it supports in outgoing SYNs. 
 
 Each supported TCP option is encoded with its TCP option Kind listed
 in the "TCP Parameters" registry maintained by IANA.
