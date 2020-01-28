@@ -1170,12 +1170,27 @@ IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer
 IP address field MUST NOT include multicast, broadcast, and host loopback
 addresses {{RFC6890}}. If a Converter receives a Connect TLVs witch such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
 
-We distinguish two types of Connect TLV based on their length: (1) the base
+We distinguish two types of Connect TLV based on their length: (1) the Base
 Connect TLV has a length of 20 bytes and contains a remote address and a
-remote port, (2) the extended Connect TLV spans more than 20 bytes and also
-includes the optional 'TCP Options' field. This field is used to specify
-how specific TCP options should be advertised by the Transport Converter
+remote port ({{fig-connect}}), (2) the Extended Connect TLV spans more than 20 bytes and also
+includes the optional 'TCP Options' field ({{fig-econnect}}).
+This field is used to request the advertisement of specific TCP options 
 to the server.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                      1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ +---------------+---------------+-------------------------------+
+ |     Type=0xA  |     Length    |      Remote Peer Port         |
+ +---------------+---------------+-------------------------------+
+ |                                                               |
+ |         Remote Peer IP Address (128 bits)                     |
+ |                                                               |
+ |                                                               |
+ +---------------------------------------------------------------+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{: #fig-connect title="The Base Connect TLV"}
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1193,7 +1208,8 @@ to the server.
  /                              ...                              /
  +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-connect title="The Connect TLV"}
+{: #fig-connect title="The Extended Connect TLV"}
+
 
 The 'TCP Options' field is a variable length field that carries
 a list of TCP option fields ({{fig-tcpopt}}). Each TCP option field is
@@ -1221,29 +1237,32 @@ always ends on a 32 bits boundary after being padded with zeros.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-tcpopt title="The TCP Options Field"}
 
-Upon reception of a Connect TLV, and absent any policy (e.g., rate-limit) or
-   resource exhaustion conditions, a Transport Converter attempts to
-   establish a connection to the address and port that it contains.  The
-   Transport Converter MUST use by default the TCP options that
-   correspond to its local policy to establish this connection.  These
-   are the options that it advertises in the Supported TCP Extensions
-   TLV.
+Upon reception of a Base Connect TLV, and absent any policy
+(e.g., rate-limit) or
+resource exhaustion conditions, a Transport Converter attempts to
+establish a connection to the address and port that it contains. The
+Transport Converter MUST use by default the TCP options that
+correspond to its local policy to establish this connection. These
+are the options that it advertises in the Supported TCP Extensions
+TLV.
 
-Upon reception of an extended Connect TLV, and absent any rate limit policy or
+Upon reception of an Extended Connect TLV, a Transport Converter first checks
+whether it supports the TCP Options listed in the 'TCP Options' field. If not, it returns an error message ({{sec-error}}). 
+If the above check succeeded and absent any rate limit policy or
 resource exhaustion conditions, a Transport Converter MUST
 attempt to establish a connection to the address and port that it contains.
-It MUST include the options of the 'TCP Options' sub-field in the
-SYN sent to the Server in addition to the TCP options that it would have
-used according to its local policies. For the
-TCP options that are listed without an optional value, the Transport
+It MUST include in the SYN that it sends to the Server the options
+listed in the 'TCP Options' sub-field and the TCP options that it would have
+used according to its local policies. For the TCP options that are included
+in the TCP Options field without an optional value, the Transport
 Converter MUST generate its own value. For the TCP options that are
 included in the 'TCP Options' field with
-an optional value, it MUST copy the entire option for use in the connection
-with the destination peer. This feature is required to support TCP Fast Open.
+an optional value, it MUST copy the entire option in the SYN sent to the remote server. This feature is required to support TCP Fast Open. See {{sec-tcpoptions}} for a detailed discussion of the different types of TCP options.
 
-The Transport Converter may discard a Connect TLV request for various reasons
+The Transport Converter may refuse a Connect TLV request for various reasons
 (e.g., authorization failed, out of resources, invalid
-address type). An error message indicating the encountered error is returned
+address type, unsupported TCP option).
+An error message indicating the encountered error is returned
 to the requesting Client ({{sec-error}}). In order to prevent
 denial-of-service attacks, error messages sent to a Client SHOULD be
 rate-limited.
