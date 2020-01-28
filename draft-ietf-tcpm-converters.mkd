@@ -1313,7 +1313,7 @@ Otherwise, the Transport Converter MUST return an Error TLV set to
 
 If the received SYN did not contain a Cookie TLV, and cookie validation is
 required, the Transport Converter
-should compute a Cookie bound to this Client address and return a Convert
+MAY compute a Cookie bound to this Client address and return a Convert
 message containing the fixed header, an Error TLV set to "Missing Cookie" and
 the computed Cookie and close the connection. The Client will react to this
 error by first issuing a reset to terminate the connection. It also stores
