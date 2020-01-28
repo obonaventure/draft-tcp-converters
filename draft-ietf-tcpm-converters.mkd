@@ -1208,7 +1208,7 @@ to the server.
  /                              ...                              /
  +---------------------------------------------------------------+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-connect title="The Extended Connect TLV"}
+{: #fig-econnect title="The Extended Connect TLV"}
 
 
 The 'TCP Options' field is a variable length field that carries
