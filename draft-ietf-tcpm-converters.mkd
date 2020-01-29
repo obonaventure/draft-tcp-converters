@@ -293,79 +293,77 @@ Only the exchange of control messages is depicted in the figures.
 
 # Architecture & Behaviors {#sec-arch}
 
-## Differences with SOCKSv5 {#sec-socks}
+## Differences with SOCKS {#sec-socks}
 
-Several IETF protocols provide proxy services, the closest to the
+Several IETF protocols provide proxy services; the closest to the
 0-RTT Convert protocol being the SOCKSv5 protocol {{RFC1928}}. 
-A SOCKS Client creates a connection to a SOCKS proxy,
-exchanges authentication information and indicates
-the destination address and port of the final server. At this point, the SOCKS
-proxy creates a connection towards the final server and relays all data between
+A SOCKS Client creates a connection to a SOCKS Proxy,
+exchanges authentication information, and indicates
+the IP address and port number of the target Server. At this point, the SOCKS
+Proxy creates a connection towards the target Server and relays all data between
 the two proxied connections. The operation of an implementation based on
-SOCKSv5 is illustrated in {{fig-socks5}}.
+SOCKSv5 (without authentication) is illustrated in {{fig-socks5}}.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Client                     SOCKS Proxy                  Server
-     -------------------->
-             SYN
-     <--------------------
-           SYN+ACK
-     -------------------->
-             ACK
-
-     -------------------->
-     Version=5, Auth Methods
-     <--------------------
-           Method
-     -------------------->
-         Auth Request (unless "No auth" method negotiated)
-     <--------------------
-         Auth Response
-     -------------------->
-     Connect Server:Port            -------------------->
-                                           SYN
-
-                                    <--------------------
-                                         SYN+ACK
-     <--------------------
-          Succeeded
-
-     -------------------->
-            Data1
-                                    -------------------->
-                                           Data1
-
-                                    <--------------------
-                                           Data2
-     <--------------------
-              Data2
+Client                SOCKS Proxy               Server
+   |                       |                       |
+   | --------------------> |                       |
+   |         SYN           |                       |
+   | <-------------------- |                       |
+   |       SYN+ACK         |                       |
+   | --------------------> |                       |
+   |         ACK           |                       |
+   |                       |                       |
+   | --------------------> |                       |
+   |Version=5, Auth Methods|                       |
+   | <-------------------- |                       |
+   |       Method          |                       |
+   | --------------------> |                       |
+   |Auth Request (unless "No auth" method negotiated)
+   | <-------------------- |                       | 
+   |     Auth Response     |                       |
+   | --------------------> |                       |
+   | Connect Server:Port   | --------------------> |
+   |                       |          SYN          |
+   |                       | <-------------------- |
+   |                       |        SYN+ACK        |
+   | <-------------------- |                       |
+   |      Succeeded        |                       |
+   | --------------------> |                       |
+   |       Data1           |                       |
+   |                       | --------------------> |
+   |                       |         Data1         |
+   |                       | <-------------------- |
+   |                       |         Data2         |
+   | <-------------------- |                       |
+   |          Data2        |                       |
+                         ...
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-socks5 title="Establishment of a TCP connection through a SOCKS proxy without authentication"}
+{: #fig-socks5 title="Establishment of a TCP Cnnection through a SOCKS Proxy Without Authentication"}
 
 
 When SOCKS is used, an "end-to-end" connection between a Client and a Server
-becomes a sequence of two TCP connections that are glued together on the SOCKS proxy. The Client and the SOCKS server exchange control information at the beginning of the bytestream on the Client-Proxy connection. The SOCKS Proxy then creates the connection with the remote server and then glues the two connections together so that all bytes send by the application to the SOCKS proxy are relayed to the remote server and vice versa. 
+becomes a sequence of two TCP connections that are glued together on the SOCKS Proxy. The SOCKS Client and Server exchange control information at the beginning of the bytestream on the Client-Proxy connection. The SOCKS Proxy then creates the connection with the target Server and then glues the two connections together so that all bytes sent by the application (Client) to the SOCKS Proxy are relayed to the Server and vice versa. 
 
 The Convert Protocol is also used on TCP proxies that relay data
 between an upstream and a downstream connection, but there are important
 differences with SOCKSv5. A first difference is that the 0-RTT Convert protocol exchanges all the control information during the initial RTT. This
-reduces the connection establishment delay compared to SOCKS that requires two
+reduces the connection establishment delay compared to SOCKS which requires two
 or more round-trip-times before the establishment of the downstream
 connection towards the final destination. In today's Internet, latency is
 a important metric and various protocols have ben tuned to reduce their
 latency {{I-D.arkko-arch-low-latency}}. A recently proposed extension to
-SOCKS leverages the TFO option {{I-D.olteanu-intarea-socks-6}} to reduce this delay.
+SOCKS leverages the TFO (TCP Fast Open) option {{I-D.olteanu-intarea-socks-6}} to reduce this delay.
 
 A second difference is that the Convert Protocol explicitly takes the TCP
-extensions into account. By using the Convert protocol, the Client can
+extensions into account. By using the Convert Protocol, the Client can
 learn whether a given TCP extension is supported by the destination Server.
 This enables the Client to bypass the Transport Converter when the
-destination supports the required TCP extension. Neither SOCKSv5
-{{RFC1928}} nor the proposed SOCKS v6 {{I-D.olteanu-intarea-socks-6}}
+Server supports the required TCP extension(s). Neither SOCKSv5
+{{RFC1928}} nor the proposed SOCKSv6 {{I-D.olteanu-intarea-socks-6}}
 provide such a feature.
 
-A third difference is that a Transport Converter will only confirm the establishment of the connection
+A third difference is that a Transport Converter will only confirm the establishment of the connection 
 initiated by the Client provided that the downstream connection has already been accepted by
 the Server. If the Server refuses the connection establishment attempt from
 the Transport Converter, then the upstream connection from the Client
@@ -373,12 +371,11 @@ is rejected as well. This feature is important for applications that check the
 availability of a Server or use the time to connect as a hint on the
 selection of a Server {{RFC8305}}.
 
-A fourth difference is that the 0-RTT Convert protocol only allows the client to
-specify the address/port of the destination server and not a DNS name.
+A fourth difference is that the 0-RTT Convert protocol only allows the Client to
+specify the IP address/port number of the destination server and not a DNS name.
 We evaluated an alternate design that included the
 DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
-However, that design was not adopted
-because it induces both an extra load and increased delays
+However, that design was not adopted because it induces both an extra load and increased delays
 on the Transport Converter to handle and manage DNS resolution requests.
 
 
