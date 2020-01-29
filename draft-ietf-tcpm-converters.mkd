@@ -291,9 +291,8 @@ brackets in the figures refers to Convert Protocol messages described in {{sec-p
 
 Only the exchange of control messages is depicted in the figures.
 
-# Architecture & Behaviors {#sec-arch}
 
-## Differences with SOCKSv5 {#sec-socks}
+# Differences with SOCKSv5 {#sec-socks}
 
 Several IETF protocols provide proxy services, the closest to the
 0-RTT Convert protocol being the SOCKSv5 protocol {{RFC1928}}. 
@@ -381,6 +380,7 @@ However, that design was not adopted
 because it induces both an extra load and increased delays
 on the Transport Converter to handle and manage DNS resolution requests.
 
+# Architecture & Behaviors {#sec-arch}
 
 ## Functional Elements
 
