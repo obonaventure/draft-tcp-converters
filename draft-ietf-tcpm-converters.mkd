@@ -55,8 +55,6 @@ normative:
   RFC4987:
   RFC2119:
   RFC8174:
-  RFC4727:
-  RFC5482:
   RFC5925:
   RFC8126:
   RFC6890:
@@ -67,7 +65,6 @@ normative:
   RFC2018:
   RFC6978:
   RFC2827:
-  RFC6181:
   RFC5961:
 
 
@@ -643,7 +640,8 @@ Transport Converter will react according to {{RFC0793}} and {{RFC5961}}.
 A similar process happens for data sent from the Server.  The
 Converter acts as a TCP proxy and sends the data to the Client
 relying upon the information stored in a transport session entry.
-
+The Converter associates a lifetime with state entries used
+to bind an upstream connection with its downstream connection.
 
 A Transport Converter may operate in address preservation mode (that
 is, the Converter does not rewrite the source IP address (i.e.,
@@ -653,7 +651,7 @@ among all Clients serviced by the Converter (i.e., C!=T)); refer to
 Converter is deployment-specific.  If address sharing mode is
 enabled, the Transport Converter MUST adhere to REQ-2 of {{RFC6888}}
 which implies a default "IP address pooling" behavior of "Paired" (as
-defined in Section 4.1 of {{RFC4787}}) must be supported.  This
+defined in Section 4.1 of {{RFC4787}}) MUST be supported.  This
 behavior is meant to avoid breaking applications that depend on the
 source address remaining constant.
    
