@@ -62,6 +62,14 @@ normative:
   RFC6890:
   RFC6888:
   RFC4787:
+  RFC5961:
+  RFC7323:
+  RFC2018:
+  RFC6978:
+  RFC2827:
+  RFC6181:
+  RFC5961:
+
 
 informative:
   RFC2782:
@@ -70,15 +78,10 @@ informative:
   RFC1812:
   RFC1919:
   RFC1928:
-  RFC2018:
-  RFC2827:
   RFC3135:
-  RFC6181:
   RFC7414:
   RFC6887:
   RFC6928:
-  RFC6978:
-  RFC7323:
   RFC8041:
   RFC8305:
   RFC8446:
@@ -642,16 +645,16 @@ Converter owing to the Convert Fixed Header in the Convert messages
 Convert and are, thus, removed by the Transport Converter when
 proxying between the two connections.
 
-Upon receipt of a Non-SYN (or a secondary subflow for Multipath TCP)
+Upon receipt of a Non-SYN 
 on the dedicated port number used by the Transport Converter from a Client, the
 Converter checks if the packet matches an active transport session
-entry.  If no entry is found, the Transport Converter MUST silently
-ignore the packet.  If an entry is found, the user data is proxied to
+entry. If an entry is found, the user data is proxied to
 the Server using the information stored in the corresponding
-transport session entry.  For example, in reference to {{fig-dbt}}, the
+transport session entry. For example, in reference to {{fig-dbt}}, the
 Transport Converter proxies the data received from (C, c) downstream
 using (T,t) as source transport address and (S,s) as destination
-transport address.
+transport address. If no entry is found the TCP stack of the
+Transport Converter will react according to {{RFC793}} and {{RFC5961}}.
 
 A similar process happens for data sent from the Server.  The
 Converter acts as a TCP proxy and sends the data to the Client
