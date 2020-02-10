@@ -156,6 +156,8 @@ This specification assumes an explicit model, where the Transport Converter is e
 
 # Introduction  {#intro}
 
+## The Problem {#pb}
+ 
 Transport protocols like TCP evolve regularly {{RFC7414}}.
 TCP has been improved in different
 ways. Some improvements such as changing the initial window size {{RFC6928}}
