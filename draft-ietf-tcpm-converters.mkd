@@ -679,8 +679,9 @@ The Transport Converter is provided with instructions about the behavior to adop
 
 In this model, the visible source IP address of a packet proxied by a
 Transport Converter to a Server is an IP address of the end host
-(Client).  No dedicated IP address pool is provisioned to the
-Transport Converter.
+(Client). No dedicated IP address pool is provisioned to the
+Transport Converter, but the the Transport Converter is located on the
+path between the Client and the Server.
 
 For Multipath TCP, the Transport Converter preserves the source IP
 address used by the Client when establishing the initial subflow.
@@ -716,10 +717,10 @@ Legend:
 {: #fig-addp title="Example of Address Preservation"}
 
 The Transport Converter must be on the forwarding path of incoming
-traffic.  Because the same (destination) IP address is used for both
+traffic. Because the same (destination) IP address is used for both
 proxied and non-proxied connections, the Transport Converter should
 not drop incoming packets it intercepts if no matching entry is found
-for the packets.  Unless explicitly configured otherwise, such
+for the packets. Unless explicitly configured otherwise, such
 packets are forwarded according to the instructions of a local
 forwarding table.
 
@@ -798,7 +799,7 @@ if the Server does not support Multipath TCP.
        |     ACK, MPC      |          ACK         |
        |        ...        |          ...         |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestab title="Establishment of a Multipath TCP Connection Through a Transport Converter towards a Server that Does Not Support Multipath TCP"}
+{: #fig-mpestab title="Establishment of a Multipath TCP Connection through a Transport Converter towards a Server that does not support Multipath TCP"}
 
 The Client tries to initiate a Multipath TCP connection by sending a SYN
 with the
@@ -838,14 +839,14 @@ this Server.
        |[->Server:port]    |         SYN, MPC     |
        |------------------>|--------------------->|
        |<------------------|<---------------------|
-       |SYN+ACK,           |      SYN+ACK, MPC    |
-       |MPC [MPC supported]|                      |
+       |SYN+ACK, MPC       |      SYN+ACK, MPC    |
+       |[MPC supported]    |                      |
        |------------------>|--------------------->|
        |     ACK, MPC      |        ACK, MPC      |
        |        ...        |          ...         |
                                           
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-mpestabok title="Establishment of a Multipath TCP Connection Through a Converter Towards an MPTCP-capable Server"}
+{: #fig-mpestabok title="Establishment of a Multipath TCP Connection through a Converter towards an MPTCP-capable Server"}
 
 ## Incoming Converter-Assisted Multipath TCP Connection
 
@@ -883,8 +884,8 @@ subflows following normal Multipath TCP procedures.
     Client              Converter              Host
       |                     |                    |
       |<--------------------|<-------------------|
-      |SYN,                 |         SYN        |
-      |MPC[Remote Host:port]|                    |
+      |SYN, MPC             |         SYN        |
+      |[Remote Host:port]   |                    |
       |-------------------->|------------------->|
       |      SYN+ACK, MPC   |       SYN+ACK      |
       |<--------------------|<-------------------|
@@ -904,9 +905,9 @@ The Transport Converter listens on a dedicated TCP port number for Convert messa
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
  
-- Implementation note 1: Several implementers expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+- Implementation note 1: Several implementers expressed concerns about the use of TFO. As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
-- Implementation note 2: Error messages are not included in RST segments but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This design simplifies client implementations.
+- Implementation note 2: Error messages are not included in RST but sent in the bytestream. Implementers have indicated that processing RST on clients was difficult on some platforms. This design simplifies client implementations.
 
 ## The Convert Fixed Header {#sec-header}
 
@@ -1220,11 +1221,12 @@ receiver.
 
 ### The Cookie TLV {#sec-cookie-tlv}
 
-The Cookie TLV ({{fig-cookie}}) is an optional TLV which use is similar to
+The Cookie TLV ({{fig-cookie}}) is an optional TLV which is similar to
 the TCP Fast Open Cookie {{RFC7413}}. A Transport Converter may want
 to verify that a Client can receive the packets that it sends to prevent
 attacks from spoofed addresses. This verification can be done by using a
-Cookie that is bound to, for example, the IP address(es) of the Client. This Cookie can
+Cookie that is bound to, for example, the IP address(es) of the Client.
+This Cookie can
 be configured on the Client by means that are outside of this document
 or provided by the Transport Converter as follows.
 
