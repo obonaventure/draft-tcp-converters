@@ -601,9 +601,7 @@ the downstream connection by using FIN packets.
 If the downstream connection terminates with the exchange of FIN packets,
 the Converter should initiate a graceful termination of the upstream connection.   
 
-## Data Processing at the Transport Converter
-
-### Base Behavior {#sec-dbb}
+## Data Processing at the Transport Converter {#sec-dbb}
 
 As mentioned in {{sec-to}}, the Transport Converter acts as a TCP
 proxy between the upstream connection (i.e., between the Client and
@@ -659,8 +657,6 @@ A similar process happens for data sent from the Server.  The
 Converter acts as a TCP proxy and sends the data to the Client
 relying upon the information stored in a transport session entry.
 
-Considerations that are specific to Multipath TCP are described in
-{{sec-mp}}.
 
 A Transport Converter may operate in address preservation mode (that
 is, the Converter does not rewrite the source IP address (i.e.,
@@ -674,42 +670,6 @@ defined in Section 4.1 of {{RFC4787}}) must be supported.  This
 behavior is meant to avoid breaking applications that depend on the
 source address remaining constant.
    
-   
-### Multipath TCP Specifics {#sec-mp}
-
-
-The Transport Converter identifies an MPTCP connection by means,
-e.g., of the token assigned to the MPTCP connection (Section 2.2 of
-{{RFC6824}}).  An implementation example of an MPTCP transport session
-entry maintained by a Transport Converter is shown in {{fig-dbmt}}.  The
-entry needs to be updated whenever subflows are added to, or deleted
-from, the MPTCP connection.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-         token, {(C1,c1), .., (Cn, cn)} <--> (T,t), (S,s), Lifetime
-
-   Where:
-     * Token is a locally unique identifier given to a (upstream)
-       multipath connection by the Transport Converter. The token
-       is a one-way hash of the MPTCP key.
-     * Ci and ci are the source IP address and source port number
-       used by the Client for a subflow of an (upstream) MPTCP
-       connection.
-     * S and s are the Server's IP address and port number.
-     * T and t are the source IP address and source port number
-       used by the Transport Converter to proxy the connection.
-     * Lifetime is the validity lifetime of the entry as assigned
-       by the Converter.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-dbmt title="An Example of MPTCP Transport Session Entry"}
-
-Upon receipt of a secondary subflow by the Transport Converter from a
-Client, the Converter follows the same behavior specified in
-{{sec-dbb}} for processing Non-SYNs.  For example, in reference to
-{{fig-dbmt}}, the Transport Converter proxies the data received from a
-new subflow of an existing Multipath TCP connection (Cn, cn)
-downstream using (T,t) as source transport address and (S,s) as
-destination transport address.
 
 ## Address Preservation vs. Address Sharing {#sec-add}
 
