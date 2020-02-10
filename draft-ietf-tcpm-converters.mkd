@@ -349,8 +349,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 {{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
 as shown here.
 
+The information shown between brackets in the figures refers to Convert Protocol messages described in {{sec-protocol}}.
 
-
+Only the exchange of control messages is depicted in the figures.
 
 # Architecture & Behaviors {#sec-arch}
 
@@ -492,8 +493,7 @@ user data in its payload (e.g., {{RFC7413}}), that data MUST be placed
 right after the Convert TLVs when generating the SYN. 
 
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
-by a Client through a Transport Converter. The information shown between
-brackets in the figures refers to Convert Protocol messages. 
+by a Client through a Transport Converter.  
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
