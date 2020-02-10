@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-15
-date: 2020-01-30
+date: 2020-02-10
 category: exp
 
 ipr: trust200902
@@ -153,8 +153,6 @@ This specification assumes an explicit model, where the Transport Converter is e
 
 # Introduction  {#intro}
 
-## The Problem 
-
 Transport protocols like TCP evolve regularly {{RFC7414}}.
 TCP has been improved in different
 ways. Some improvements such as changing the initial window size {{RFC6928}}
@@ -242,54 +240,22 @@ Transport Converters (statically or through protocols such as
 {{I-D.boucadair-tcpm-dhc-converter}}). Configuration means are outside
 the scope of this document.
 
-{::comment}
-
-   The use of a Transport Converter means that there is no end-to-end
-   transport connection between the client and server.  This could
-   potentially create problems in some scenarios such as those discussed
-   in Section 4 of {{RFC3135}}.  Some of these problems may not be
-   applicable, for example, a Transport Converter can inform a client by
-   means of Network Failure (65) or Destination Unreachable (97) error
-   messages ({{sec-error}}) that it encounters a failure problem; the
-   client can react accordingly.  An endpoint, or its network
-   administrator, can assess the benefit provided by the Transport
-   Converter service versus the risk.  This is one reason why the
-   Transport Converter functionality has to be explicitly requested by
-   an endpoint.
-
-{:/comment}
-
-This document is organized as follows. First, {{sec-arch}} provides a brief explanation
-of the
+This document is organized as follows. First, {{sec-socks}} provides a brief overview of the differences between the well-known SOCKS protocol and the 0-RTT Convert protocol.
+{{sec-arch}} provides a brief explanation of the
 operation of Transport Converters. Then, {{sec-protocol}} describes the Convert
 Protocol. {{sec-tcpoptions}} discusses how Transport
 Converters can be used to support different TCP extensions.
 {{sec-middleboxes}} then discusses the interactions with middleboxes, while 
 {{sec-security}} focuses on the security considerations.
-
-{{sec-api}} describes how a TCP stack would need to support the protocol described in this document.  {{sec-socks}} provides a comparison with SOCKS proxies that are already
-used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}). 
-
-# Conventions and Definitions
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP 14 
-{{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
-as shown here.
-
-The information shown between
-brackets in the figures refers to Convert Protocol messages described in {{sec-protocol}}.
-
-Only the exchange of control messages is depicted in the figures.
-
-
+{{sec-api}} describes how a TCP stack would need to support the protocol described in this document.  
 
 # Differences with SOCKSv5 {#sec-socks}
 
 
 Several IETF protocols provide proxy services; the closest to the
-0-RTT Convert protocol being the SOCKSv5 protocol {{RFC1928}}. 
+0-RTT Convert protocol being the SOCKSv5 protocol {{RFC1928}}. This protocol
+is already used to deploy Multipath TCP in some cellular networks (Section 2.2 of {{RFC8041}}).
+
 A SOCKS Client creates a connection to a SOCKS Proxy,
 exchanges authentication information, and indicates
 the IP address and port number of the target Server. At this point, the SOCKS
@@ -332,7 +298,7 @@ Client                SOCKS Proxy               Server
    |          Data2        |                       |
                          ...
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #fig-socks5 title="Establishment of a TCP Cnnection through a SOCKS Proxy Without Authentication"}
+{: #fig-socks5 title="Establishment of a TCP Connection through a SOCKS Proxy Without Authentication"}
 
 
 When SOCKS is used, an "end-to-end" connection between a Client and a Server
@@ -370,6 +336,18 @@ We evaluated an alternate design that included the
 DNS name of the remote peer instead of its IP address as in SOCKS {{RFC1928}}.
 However, that design was not adopted because it induces both an extra load and increased delays
 on the Transport Converter to handle and manage DNS resolution requests.
+
+
+# Conventions and Definitions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP 14 
+{{RFC2119}}{{RFC8174}} when, and only when, they appear in all capitals,
+as shown here.
+
+
+
 
 # Architecture & Behaviors {#sec-arch}
 
@@ -461,7 +439,7 @@ TCP extensions until they are widely supported by servers, in particular.
 
 The architecture does not mandate anything on the Server side.
 
-Similar to address sharing mechanisms, the architecture does not interfere
+Similar to SOCKS, the architecture does not interfere
 with end-to-end TLS connections {{RFC8446}} between the Client and the
 Server ({{figtls}}). In other words, end-to-end TLS is supported in the presence of a Converter.  
 
@@ -535,7 +513,9 @@ user data in its payload (e.g., {{RFC7413}}), that data MUST be placed
 right after the Convert TLVs when generating the SYN. 
 
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
-by a Client through a Transport Converter. 
+by a Client through a Transport Converter. The information shown between
+brackets in the figures refers to Convert Protocol messages. 
+
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Transport
@@ -656,7 +636,7 @@ Clients send packets bound to connections eligible to the conversion
 service to the provisioned Transport Converter and 
 destination port number.  This applies for both control messages and
 data.  Additional information is supplied by Clients to the Transport
-Converter by means of Convert messages as detailed in Section 5.
+Converter by means of Convert messages as detailed in {{sec-protocol}}.
 User data can be included in SYN or non-SYN messages.  User data is
 unambiguously distinguished from Convert TLVs by a Transport
 Converter owing to the Convert Fixed Header in the Convert messages
@@ -670,7 +650,7 @@ Converter checks if the packet matches an active transport session
 entry.  If no entry is found, the Transport Converter MUST silently
 ignore the packet.  If an entry is found, the user data is proxied to
 the Server using the information stored in the corresponding
-transport session entry.  For example, in reference to Figure 7, the
+transport session entry.  For example, in reference to {{fig-dbt}}, the
 Transport Converter proxies the data received from (C, c) downstream
 using (T,t) as source transport address and (S,s) as destination
 transport address.
@@ -697,9 +677,6 @@ source address remaining constant.
    
 ### Multipath TCP Specifics {#sec-mp}
 
-
-Note that for the Multipath TCP case, the Convert TLVs are only
-exchanged during the establishment of the initial subflow.
 
 The Transport Converter identifies an MPTCP connection by means,
 e.g., of the token assigned to the MPTCP connection (Section 2.2 of
@@ -966,8 +943,7 @@ The Transport Converter listens on a dedicated TCP port number for Convert messa
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
-
-  
+ 
 - Implementation note 1: Several implementers expressed concerns about the use of TFO.  As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
 - Implementation note 2: Error messages are not included in RST segments but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This design simplifies client implementations.
@@ -1010,8 +986,6 @@ version of the protocol. These bits are available for
 future use.
 
 The Total Length field unambiguously marks the number of 32 bits words that carry Convert TLVs in the beginning of the bytestream.
-
-
 
 ##  Convert TLVs {#sec-tlv}
 
@@ -1917,40 +1891,7 @@ as follows:
 
 --- back
 
-# Change Log
 
-This section to be removed before publication.
-
- - 00 : initial version, designed to support Multipath TCP and TFO only
- - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
- - 01 to -02: Minor modifications
- - 02 to -03: Minor modifications
- - 03 to -04: Minor modifications
- - 04 to -05: Integrate a lot of feedback from implementers who have worked on client and server side implementations. The main modifications are the following :
-   * TCP Fast Open is not strictly required anymore. Several implementers expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
-   * the Bootstrap procedure has been simplified based on feedback from implementers
-   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
-   * Many minor editorial changes to clarify the text based on implementers feedback.
-- 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
-  * Updated IANA policy to require "IETF Review" instead of "Standard Action"
-  * Call out explicitly that data in SYNs are relayed by the Converter
-  * Reiterate the scope
-  * Hairpinning behavior can be disabled (policy-based)
-  * Fix nits
-- 07: 
-  * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed following the same rationale as in RFC7413.
-  * Nits
-  * Added Appendix A on example Socket API changes
-- 08:
-  * Added short discussion on the termination of connections
-
-- 09:
-  * Address various comments received during last call
-  
-- 10-13:
-  * Changes to address the comments from Phil: Add a new section to group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
-
-- 14: fixed nits (the shepherd write-up)
        
 # Example Socket API Changes to Support the 0-RTT Convert Protocol {#sec-api}
 
@@ -2087,3 +2028,38 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
  - Gregory Detal
  - Sebastien Barre
  - Olivier Bonaventure
+
+# Change Log
+
+This section to be removed before publication.
+
+ - 00 : initial version, designed to support Multipath TCP and TFO only
+ - 00 to -01 : added section {{sec-tcpoptions}} describing the support of different standard tracks TCP options by Transport Converters, clarification of the IANA section, moved the SOCKS comparison to the appendix and various minor modifications
+ - 01 to -02: Minor modifications
+ - 02 to -03: Minor modifications
+ - 03 to -04: Minor modifications
+ - 04 to -05: Integrate a lot of feedback from implementers who have worked on client and server side implementations. The main modifications are the following :
+   * TCP Fast Open is not strictly required anymore. Several implementers expressed concerns about this requirement. The TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, this version supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
+   * the Bootstrap procedure has been simplified based on feedback from implementers
+   * Error messages are not included in RST segments anymore but sent in the bytestream. Implementers have indicated that processing such segments on clients was difficult on some platforms. This change simplifies client implementations.
+   * Many minor editorial changes to clarify the text based on implementers feedback.
+- 05 to -06: Many clarifications to integrate the comments from the chairs in preparation to the WGLC:
+  * Updated IANA policy to require "IETF Review" instead of "Standard Action"
+  * Call out explicitly that data in SYNs are relayed by the Converter
+  * Reiterate the scope
+  * Hairpinning behavior can be disabled (policy-based)
+  * Fix nits
+- 07: 
+  * Update the text about supplying data in SYNs to make it clear that a constraint defined in RFC793 is relaxed following the same rationale as in RFC7413.
+  * Nits
+  * Added Appendix A on example Socket API changes
+- 08:
+  * Added short discussion on the termination of connections
+
+- 09:
+  * Address various comments received during last call
+  
+- 10-13:
+  * Changes to address the comments from Phil: Add a new section to group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
+
+- 14: fixed nits (the shepherd write-up)
