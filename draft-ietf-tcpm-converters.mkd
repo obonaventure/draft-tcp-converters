@@ -398,30 +398,6 @@ standalone device or be activated as a service on a router.
 How such function is enabled is deployment-specific.
 
 
-{::comment}
-A sample deployment is
-depicted in {{figtc2}}.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-              +-+    +-+    +-+
-    Client -  |R| -- |R| -- |R| - - -  Server
-              +-+    +-+    +-+
-                      |
-                     +-+
-                     |R|
-                     +-+
-                      |
-                 +---------+
-                 |Transport|
-                 |Converter|
-                 +---------+
-  R: Router 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-{: #figtc2 title="A Transport Converter Can Be Installed Anywhere in the Network"}
-
-{:/comment}
-
 
 The architecture assumes that
 new software will be installed on the Client hosts to interact with one
@@ -543,11 +519,17 @@ the first bytes of the bytestream contain information about the TCP
 options that were negotiated with the Server. Also, a state entry is instantiated for this connection. This state entry is used by the Converter to handle subsequent messages belonging to the connection. 
 
 The connection can also be established from the Internet towards a Client
-via a Transport Converter ({{fig-estab2}}). This is typically the case when an application
-on the Client listens to a specific port (the Client hosts an application server, typically). When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
-destination port number of that SYN. If the check fails, the packet is silently ignored by the Converter. If the check is successful, the Converter inserts the source IP address and source port number in the SYN packet, rewrites the source IP
-address to one of its IP addresses and, eventually (i.e., only when the Converter is configured in an address sharing mode), the destination IP address
-and port number in accordance with any information stored locally. That SYN is then forwarded to the next hop. A transport session entry is created by the Converter for this connection. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. The Converter uses the transport session entry to proxy packets belonging to the connection.  
+via a Transport Converter ({{fig-estab2}}). This is typically the case when
+the Client hosts an application server that listens to a specific port.
+When the Converter receives an incoming SYN from a remote host, it checks if it can provide the conversion service for the destination IP address and
+destination port number of that SYN. The Transport Converter receives this SYN because it is either on the path between the remote host and the Client or
+it provides NAT services for the Client. If the check fails, the packet is
+silently ignored by the Converter.
+If the check is successful, the Converter tries to initiate a TCP connection
+towards the Client from its own address and using its configured TCP options.
+In thE SYN that corresponds to this connection attempt, the Transport
+Convert inserts a TLV message that indicates the source address and port of the
+remote host. A transport session entry is created by the Converter for this connection. SYN+ACK and ACK will be then exchanged between the Client, the Converter, and remote host to confirm the establishment of the connection. The Converter uses the transport session entry to proxy packets belonging to the connection.  
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1200,8 +1182,9 @@ rate-limited.
 
 The Extended TCP Header TLV ({{fig-tcpheader}}) is used by the
 Transport Converter to return to the Client the TCP options that were returned
-by the Server in the SYN+ACK packet. This TLV is only sent if the Client sent
-an Extended Connect TLV to request the establishment of a connection.
+by the Server in the SYN+ACK packet. A Transport Converter MUST return this
+TLV if the Client sent an Extended Connect TLV and the connection was accepted by the server. 
+
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
