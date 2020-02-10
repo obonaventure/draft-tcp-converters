@@ -636,7 +636,7 @@ transport session entry. For example, in reference to {{fig-dbt}}, the
 Transport Converter proxies the data received from (C, c) downstream
 using (T,t) as source transport address and (S,s) as destination
 transport address. If no entry is found the TCP stack of the
-Transport Converter will react according to {{RFC793}} and {{RFC5961}}.
+Transport Converter will react according to {{RFC0793}} and {{RFC5961}}.
 
 A similar process happens for data sent from the Server.  The
 Converter acts as a TCP proxy and sends the data to the Client
