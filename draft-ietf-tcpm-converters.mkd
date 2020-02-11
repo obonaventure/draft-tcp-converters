@@ -65,7 +65,6 @@ normative:
   RFC2018:
   RFC6978:
   RFC2827:
-  RFC5961:
 
 
 informative:
@@ -640,22 +639,20 @@ Converter owing to the Convert Fixed Header in the Convert messages
 Convert and are, thus, removed by the Transport Converter when
 proxying between the two connections.
 
-Upon receipt of a Non-SYN 
-on the dedicated port number used by the Transport Converter from a Client, the
-Converter checks if the packet matches an active transport session
-entry. If an entry is found, the user data is proxied to
+Upon receipt of a packet that belongs to an existing connection between a Client and the Transport Converter the Converter proxies the user data  to
 the Server using the information stored in the corresponding
 transport session entry. For example, in reference to {{fig-dbt}}, the
 Transport Converter proxies the data received from (C, c) downstream
 using (T,t) as source transport address and (S,s) as destination
-transport address. If no entry is found the TCP stack of the
-Transport Converter will react according to {{RFC0793}} and {{RFC5961}}.
+transport address. 
 
 A similar process happens for data sent from the Server.  The
 Converter acts as a TCP proxy and sends the data to the Client
 relying upon the information stored in a transport session entry.
 The Converter associates a lifetime with state entries used
 to bind an upstream connection with its downstream connection.
+
+When Multipath TCP is used between the Client and the Transport Converter, the Converter maintains more state (e.g. information about the subflows) for each Multipath TCP connection. The procedure described above continues to apply except that the Converter needs to manage the establishment/termination of subflows and schedule packets among the established ones. These operations are part of the Multipath TCP implementation. They are independent of the Convert protocol that only processes the Convert messages in the beginning of the bytestream.
 
 A Transport Converter may operate in address preservation mode (that
 is, the Converter does not rewrite the source IP address (i.e.,
