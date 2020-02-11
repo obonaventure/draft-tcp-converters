@@ -60,7 +60,6 @@ normative:
   RFC6890:
   RFC6888:
   RFC4787:
-  RFC5961:
   RFC7323:
   RFC2018:
   RFC6978:
@@ -1981,6 +1980,7 @@ The authors of {{I-D.peirens-mptcp-transparent}} were:
  - Olivier Bonaventure
 
 # Change Log
+{: numbered="no"}
 
 This section to be removed before publication.
 
@@ -2014,3 +2014,5 @@ This section to be removed before publication.
   * Changes to address the comments from Phil: Add a new section to group data plane considerations in one place + add a new appendix with more details on address modes + rearrange the MPTCP text. 
 
 - 14: fixed nits (the shepherd write-up)
+
+- 15: Rewrote parts of the text to address the detailed comments provided by M. Kühlewind
