@@ -491,9 +491,9 @@ user data in its payload (e.g., {{RFC7413}}), that data MUST be placed
 right after the Convert TLVs when generating the SYN. 
 
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
-by a Client through a Transport Converter. The information shown between
-brackets in the figures refers to Convert Protocol messages. 
+by a Client through a Transport Converter. 
 
+- Note: The information shown between brackets in {{fig-estab}} (and other figures in the document) refers to Convert Protocol messages described in {{sec-protocol}}. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Transport
@@ -506,7 +506,6 @@ brackets in the figures refers to Convert Protocol messages.
        |        ...        |          ...         |
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {: #fig-estab title="Establishment of an Outgoing TCP Connection Through a Transport Converter"}
-
 
 The Client sends a SYN destined to the Transport Converter. The payload of
 this SYN contains the address and port number of the
@@ -626,7 +625,7 @@ Converter owing to the Convert Fixed Header in the Convert messages
 Convert and are, thus, removed by the Transport Converter when
 proxying between the two connections.
 
-Upon receipt of a Non-SYN 
+Upon receipt of a Non-SYN (or a secondary subflow for Multipath TCP)
 on the dedicated port number used by the Transport Converter from a Client, the
 Converter checks if the packet matches an active transport session
 entry. If an entry is found, the user data is proxied to
