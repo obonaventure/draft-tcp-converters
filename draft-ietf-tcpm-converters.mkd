@@ -1,8 +1,8 @@
 ---
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
-docname: draft-ietf-tcpm-converters-15
-date: 2020-02-11
+docname: draft-ietf-tcpm-converters-16
+date: 2020-02-13
 category: exp
 
 ipr: trust200902
@@ -1089,7 +1089,7 @@ The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
 IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer
 IP address field MUST NOT include multicast, broadcast, and host loopback
-addresses {{RFC6890}}. If a Converter receives a Connect TLVs witch such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
+addresses {{RFC6890}}. If a Converter receives a Connect TLVs with such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
 
 We distinguish two types of Connect TLV based on their length: (1) the Base
 Connect TLV has a length of 20 bytes and contains a remote address and a
@@ -1728,16 +1728,6 @@ Parameters" registry.
 The following subsections detail new registries within "The Convert
 Protocol (Convert) Parameters" registry.
 
-Registration requests for the 128-191 range (for both "Convert TLVs" and "Convert Error Messages" sub-registries) are evaluated after a three-week review period on the tcp-convert-review@ietf.org mailing list, on the advice of one or more  Designated Experts.  However, to allow for the allocation of values prior to publication, the Designated Experts may approve registration once they are satisfied that such a specification will be published.  New registration requests should be sent in the form of an email to the review mailing list; the request  should use an appropriate subject (e.g., "Request to register 0-RTT Convert TLV: example" or "Request to register 0-RTT Convert Error Message: example").  IANA will only accept new registrations from the Designated Experts, and will check that review was requested on the mailing list in accordance with these procedures.
-
-Within the review period, the Designated Experts will either
-approve or deny the registration request, communicating this
-decision to the review list and IANA.  Denials should include an
-explanation and, if applicable, suggestions as to how to make the
-request successful.  Registration requests that are undetermined
-for a period longer than 21 days can be brought to the IESG's
-attention (using the iesg@ietf.org mailing list) for resolution.
-
 The Designated Expert is expected to ascertain the existence of suitable
 documentation as described in Section 4.6 of {{RFC8126}} and to
 verify that the document is permanently and publicly available. The
@@ -2015,4 +2005,5 @@ This section to be removed before publication.
 
 - 14: fixed nits (the shepherd write-up)
 
-- 15: Various clarifications in the text to address the detailed comments provided by Mirja Kuehlewind
+- 15: Rewrote parts of the text to address the detailed comments provided by M. Kühlewind
+
