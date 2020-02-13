@@ -2,7 +2,7 @@
 title: 0-RTT TCP Convert Protocol
 abbrev: Convert Protocol
 docname: draft-ietf-tcpm-converters-15
-date: 2020-02-10
+date: 2020-02-11
 category: exp
 
 ipr: trust200902
@@ -104,7 +104,7 @@ informative:
   ANRW17:
     author:
       - ins: B. Trammell
-      - ins: M. Kuhlewind
+      - ins: M. Kuehlewind
       - ins: P. De Vaere
       - ins: I. Learmonth
       - ins: G. Fairhurst
@@ -1926,7 +1926,7 @@ in preparing this document. Nandini Ganesh provided
 valuable feedback about the handling of TFO and the error codes.
 Yuchung Cheng and Praveen Balasubramanian helped to clarify the discussion on supplying data in SYNs. Phil Eardley and Michael Scharf's helped to clarify different parts of the text.
 
-Many thanks to Mirja Kühlewind for the detailed AD review. 
+Many thanks to Mirja Kuehlewind for the detailed AD review. 
 
 This document builds upon earlier documents that proposed various forms
 of Multipath TCP proxies {{I-D.boucadair-mptcp-plain-mode}},
@@ -2015,4 +2015,4 @@ This section to be removed before publication.
 
 - 14: fixed nits (the shepherd write-up)
 
-- 15: Rewrote parts of the text to address the detailed comments provided by M. Kühlewind
+- 15: Various clarifications in the text to address the detailed comments provided by Mirja Kuehlewind
