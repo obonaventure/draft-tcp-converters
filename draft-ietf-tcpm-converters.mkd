@@ -1089,7 +1089,7 @@ The Remote Peer IP Address MUST be encoded
 as an IPv6 address. IPv4 addresses MUST be encoded using the
 IPv4-Mapped IPv6 Address format defined in {{RFC4291}}. Further, Remote Peer
 IP address field MUST NOT include multicast, broadcast, and host loopback
-addresses {{RFC6890}}. If a Converter receives a Connect TLVs witch such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
+addresses {{RFC6890}}. If a Converter receives a Connect TLVs with such invalid addresses, it MUST reply with a Malformed Message Error TLV and close the associated TCP connection. 
 
 We distinguish two types of Connect TLV based on their length: (1) the Base
 Connect TLV has a length of 20 bytes and contains a remote address and a
