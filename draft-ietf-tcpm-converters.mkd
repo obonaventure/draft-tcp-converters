@@ -997,8 +997,6 @@ a TLV of type 0x0, it MUST reset the associated TCP connection.
 If a Converter receives a TLV of type 0x0, it MUST
 return an Unsupported Message Error TLV and close the associated TCP connection.
 
-Implementations MUST reset the connection upon reception of messages with such TLV.
-
 The Client typically sends in the first connection it established with a Transport Converter the Info TLV ({{sec-bootstrap-tlv}}) to learn its capabilities. Assuming the Client is authorized to invoke the Transport Converter, the latter replies with the Supported TCP Extensions TLV ({{sec-supported}}).
 
 The Client can request the establishment of connections to servers
