@@ -498,9 +498,7 @@ connections that are combined together:
 
 Any user data received by the Transport Converter over the upstream
 (or downstream) connection is proxied over the downstream
-(or upstream) connection. In particular, if the initial SYN message contains
-user data in its payload (e.g., {{RFC7413}}), that data MUST be placed 
-right after the Convert TLVs when generating the SYN. 
+(or upstream) connection. 
 
 {{fig-estab}} illustrates the establishment of an outgoing TCP connection
 by a Client through a Transport Converter. 
@@ -591,7 +589,7 @@ the Converter reacts by forcing the tear-down of the upstream (or downstream)
 connection.
 
 The same reasoning applies when the upstream connection ends with an
-exchange of FIN packets. In this case, the Converter should also terminate
+exchange of FIN packets. In this case, the Converter will also terminate
 the downstream connection by using FIN packets.
 If the downstream connection terminates with the exchange of FIN packets,
 the Converter should initiate a graceful termination of the upstream connection.   
@@ -899,6 +897,7 @@ The Transport Converter listens on a dedicated TCP port number for Convert messa
 
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
+If the initial SYN message contains user data in its payload (e.g., {{RFC7413}}), that data MUST be placed right after the Convert TLVs when generating the SYN.
  
 - Implementation note 1: Several implementers expressed concerns about the use of TFO. As a reminder, the TFO Cookie protects from some attack scenarios that affect open servers like web servers. The Convert Protocol is different and, as discussed in RFC7413, there are different ways to protect from such attacks. Instead of using a TFO cookie inside the TCP options, which consumes precious space in the extended TCP header, the Convert Protocol supports the utilization of a Cookie that is placed in the SYN payload. This provides the same level of protection as a TFO Cookie in environments were such protection is required.
        
