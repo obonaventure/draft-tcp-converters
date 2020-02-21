@@ -1094,7 +1094,7 @@ addresses {{RFC6890}}. If a Converter receives a Connect TLVs with such invalid 
 We distinguish two types of Connect TLV based on their length: (1) the Base
 Connect TLV has a length of 20 bytes and contains a remote address and a
 remote port ({{fig-connect}}), (2) the Extended Connect TLV spans more than 20 bytes and also
-includes the optional 'TCP Options' field ({{fig-econnect}}).
+includes the optional 'TCP Options' field ({{fig-econnect}}).     
 This field is used to request the advertisement of specific TCP options 
 to the server.
 
@@ -1178,7 +1178,7 @@ used according to its local policies. For the TCP options that are included
 in the TCP Options field without an optional value, the Transport
 Converter MUST generate its own value. For the TCP options that are
 included in the 'TCP Options' field with
-an optional value, it MUST copy the entire option in the SYN sent to the remote server. This feature is required to support TCP Fast Open. See {{sec-tcpoptions}} for a detailed discussion of the different types of TCP options.
+an optional value, it MUST copy the entire option in the SYN sent to the remote server. This procedure is designed with TFO in mind. Particularly, this procedure allows to successfully exchange a TFO Cookie between the client and the server. See {{sec-tcpoptions}} for a detailed discussion of the different types of TCP options.
 
 The Transport Converter may refuse a Connect TLV request for various reasons
 (e.g., authorization failed, out of resources, invalid
