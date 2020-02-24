@@ -1006,14 +1006,11 @@ by using the Connect TLV
 ({{sec-connect}}). If the connection can be established with the final
 server,
 the Transport Converter replies with the Extended TCP Header TLV
-({{sec-ext-header}}). If not, the Transport Converter returns an Error TLV
-({{sec-error}}) and then closes the connection. The Transport Converter
+({{sec-ext-header}}). If not, the Transport Converter MUST return an Error TLV with the appropriate error code ({{sec-error}}) and then closes the connection. The Transport Converter
 MUST NOT send a RST immediately after the detection of an error to let the
 Error TLV reach the Client. As explained later, the Client will anyway send a
 RST upon reception of the Error TLV. 
 
-When an error is encountered an Error TLV with the
-appropriate error code MUST be returned by the Transport Converter.
 
 ### The Info TLV {#sec-bootstrap-tlv}
 
