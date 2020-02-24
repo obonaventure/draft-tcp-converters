@@ -897,6 +897,8 @@ This section defines the Convert Protocol (Convert, for short) messages that are
 
 The Transport Converter listens on a dedicated TCP port number for Convert messages from Clients. That port number is configured by an administrator.
 
+Convert messages may appear only in a SYN, SYN+ACK, or in an ACK that is sent shortly after the SYN+ACK.
+
 Convert messages MUST be included as the first bytes of the bytestream. All Convert messages starts with a 32 bits long fixed header ({{sec-header}}) followed by one or more Convert TLVs (Type, Length, Value) ({{sec-tlv}}). 
 
  
